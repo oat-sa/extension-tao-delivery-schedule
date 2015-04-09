@@ -1,0 +1,22 @@
+@import "./inc/fullcalendar";
+@import "./inc/jquery.qtip";
+
+.event-tooltip {
+    position: relative;
+}
+.event-tooltip__content {
+    
+}
+.event-tooltip__controls {
+    a:last-child {
+        float: right;
+    }
+}
+.event-tooltip__close {
+    position: absolute;
+    top: -23px;
+    right: -5px;
+    z-index: 10;
+    cursor: pointer;
+    font-size: 14px;
+}

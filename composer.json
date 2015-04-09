@@ -1,0 +1,31 @@
+{
+    "name": "oat-sa/extension-tao-delivery-schedule",
+    "description" : "An extension is used to visualize the delivery schedule in the form of a calendar.",
+    "type" : "tao-extension",
+    "authors" : [
+        {
+            "name": "Open Assessment Technologies SA"
+        }
+    ],
+    "keywords" : [
+        "tao",
+        "computer-based-assessment"
+    ],
+    "homepage" : "http://www.taotesting.com",
+    "license" : [
+        "GPL-2.0"
+    ],
+    "extra" : {
+        "tao-extension-name" : "taoDeliverySchedule"
+    },
+    "minimum-stability" : "dev",
+    "require": {
+        "oat-sa/oatbox-extension-installer": "dev-master",
+        "oat-sa/extension-tao-delivery": "dev-master"
+    },
+    "autoload" : {
+        "psr-4" : {
+            "oat\\taoDeliverySchedule\\" : ""
+        }
+    } 
+}
