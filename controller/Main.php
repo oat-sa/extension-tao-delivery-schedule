@@ -22,6 +22,7 @@ namespace oat\taoDeliverySchedule\controller;
 
 use oat\taoDeliverySchedule\controller;
 use oat\taoDeliverySchedule\form\WizardForm;
+use oat\taoDeliverySchedule\model\DeliveryFactory;
 
 /**
  * Controller to managed assembled deliveries
@@ -59,10 +60,16 @@ class Main extends \tao_actions_SaSModule
              
             if ($myForm->isValid() && $myForm->isSubmited()) {
                 $label = $myForm->getValue('label');
-                $test = new core_kernel_classes_Resource($myForm->getValue('test'));
-                $label = __("Delivery of %s", $test->getLabel());
-                $deliveryClass = new core_kernel_classes_Class($myForm->getValue('classUri'));
-                $report = taoDelivery_models_classes_SimpleDeliveryFactory::create($deliveryClass, $test, $label);
+                $start = $myForm->getValue('start');
+                $end = $myForm->getValue('end');
+                $test = new \core_kernel_classes_Resource($myForm->getValue('test'));
+                $deliveryClass = new \core_kernel_classes_Class($myForm->getValue('classUri'));
+                $report = DeliveryFactory::create($deliveryClass, $test, array(
+                        RDFS_LABEL => $label, 
+                        TAO_DELIVERY_START_PROP => $start, 
+                        TAO_DELIVERY_END_PROP => $end
+                    )
+                );
                 $this->returnReport($report);
             } else {
                 $this->setData('myForm', $myForm->render());

@@ -46,11 +46,16 @@ class CalendarApi extends \tao_actions_CommonModule
     
     public function get()
     {
-        //$filter = $this->getRequestParameters();
+        $params = $this->getRequestParameters();
+        $from = isset($params['start']) ? $params['start'] : null;
+        $to = isset($params['end']) ? $params['start'] : null;
+        
+        
         $result = array();
         $startProp = new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP);
         $endProp = new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP);
         
+        // TO DO get filtered deliveries list based on $from and $to params.
         foreach ($this->service->getAllAssemblies() as $delivery) {
             $deliveryProps = $delivery->getPropertiesValues(array(
                 $startProp,
@@ -80,6 +85,8 @@ class CalendarApi extends \tao_actions_CommonModule
      */
     private function formatDate($date) {
         $datetime = \DateTime::createFromFormat('U', $date);
-        return $datetime->format(\DateTime::ISO8601);
+        if ($datetime) {
+            return $datetime->format(\DateTime::ISO8601);
+        }
     }
 }

@@ -6,6 +6,11 @@
         <b>{{__ 'End'}}:</b> {{end}}<br>
         {{/if}}
     </p>
+    <form>
+        <input type="hidden" name="id" value="{{id}}" />
+        <input type="hidden" name="classUri" value="{{classUri}}" />
+        <input type="hidden" name="uri" value="{{uri}}" />
+    </form>
     <hr>
     <p class="event-tooltip__controls">
         <a href="#" class="js-delete-event">{{__ 'Delete'}}</a>

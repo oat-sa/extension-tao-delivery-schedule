@@ -23,11 +23,12 @@ define(
         'taoDeliverySchedule/calendar/tooltips/eventTooltip',
         'handlebars',
         'i18n',
+        'ui/feedback',
         'taoDeliverySchedule/lib/qtip/jquery.qtip'
     ],
-    function (_, $, eventTooltip, Handlebars, __) {
+    function (_, $, eventTooltip, Handlebars, __, feedback) {
         'use stirct';
-        return function ($container) {
+        return function (options) {
             var that = this;
             
             eventTooltip.apply(this, arguments);
@@ -59,13 +60,40 @@ define(
                         id : options.id
                     },
                     success : function (response) {
-                        var tpl = Handlebars.compile(response);
+                        var tpl = Handlebars.compile(response),
+                            $form;
                         that.tooltip.set({
                             'content.text' : tpl(tplOptions)
                         });
                         that.tooltip.show();
-                        that.tooltip.elements.content.find('#label').focus();
+                        
+                        $form = that.tooltip.elements.content.find('form');
+                        $form.find('#label').focus();
+                        
+                        $form.find('[name="start"]').val(options.start.format('YYYY-MM-DD HH:mm'));
+                        $form.find('[name="end"]').val(options.end.format('YYYY-MM-DD HH:mm'));
+                        
+                        that.tooltip.elements.content.find('.js-create-event').on('click', function () {
+                            that.submit($form);
+                        });
+                        
                         that.callback('afterShow');
+                    }
+                });
+            };
+            
+            this.submit = function ($form) {
+                that.callback('beforeSubmit');
+                $.ajax({
+                    url     : $form.attr('action'),
+                    type    : $form.attr('method'),
+                    data    : $form.serialize(),
+                    success : function(data) {
+                        feedback().success(__('Delivery saved'));
+                        that.callback('afterSubmit');
+                    },
+                    error   : function(xhr, err) {
+                        feedback().warning('Something went wrong');
                     }
                 });
             };

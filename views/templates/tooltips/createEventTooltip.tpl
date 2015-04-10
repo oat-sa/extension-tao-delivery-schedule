@@ -7,11 +7,11 @@
         {{/if}}
     </p>
     <p class="event-tooltip__content">
-        <?=get_data('myForm')?>
+        <?= get_data('myForm') ?>
     </p>
     <hr>
     <p class="event-tooltip__controls">
         <a href="#" class="js-close">{{__ 'Cancel'}}</a>
-        <a href="#" class="js-edit-event">{{__ 'Create'}} &raquo;</a>
+        <a href="#" class="js-create-event">{{__ 'Create'}} &raquo;</a>
     </p>
 </div>

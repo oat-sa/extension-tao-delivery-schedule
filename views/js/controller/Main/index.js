@@ -25,23 +25,27 @@ define(
         'taoDeliverySchedule/calendar/eventService',
         'taoDeliverySchedule/calendar/tooltips/editEventTooltip',
         'taoDeliverySchedule/calendar/tooltips/createEventTooltip',
+        'taoDeliverySchedule/calendar/modals/editEventModal',
         'layout/actions',
         'css!/taoDeliverySchedule/views/css/taodeliveryschedule'
     ],
-    function (_, $, binder, Calendar, EventService, EditEventTooltip, CreateEventTooltip, actionManager) {
+    function (_, $, binder, Calendar, EventService, EditEventTooltip, CreateEventTooltip, EditEventModal, actionManager) {
         'use strict';
 
         function DeliverySchedule() {
             var calendar,
                 that = this,
+                tree,
                 eventService,
                 editEventTooltip,
                 createEventTooltip,
+                editEventModal,
                 $calendarContainer = $('.js-delivery-calendar');
 
             this.calendarLoading = $.Deferred();
 
             this.start = function () {
+                tree = $.tree.reference($('#tree-manage_delivery_schedule'));
                 calendar = new Calendar(
                     {
                         $container : $calendarContainer,
@@ -65,17 +69,12 @@ define(
                         },
                         eventClick : function (fcEvent, e) {
                             createEventTooltip.hide();
+                            //tree.select_branch($('#' + fcEvent.id));
                             that.showEditEventTooltip(fcEvent, e);
                         },
-                        /*dayClick : function () {
-                            that.hideTooltips();
-                        },*/
                         eventResizeStart : function () {
                             that.hideTooltips();
                         },
-                        /*viewDestroy : function () {
-                            that.hideTooltips();
-                        },*/
                         eventDragStart : function () {
                             that.hideTooltips();
                         },
@@ -108,10 +107,13 @@ define(
                     callback : {
                         afterHide : function () {
                             calendar.exec('unselect');
+                        },
+                        afterSubmit : function () {
+                            that.hideTooltips();
+                            calendar.exec('refetchEvents');
                         }
                     }
                 });
-                
                 editEventTooltip.tooltip.elements.content.on('click', '.js-edit-event', function () {
                     actionManager.exec(
                         'delivery-edit', 
@@ -120,6 +122,13 @@ define(
                             {action : actionManager.getBy('delivery-edit')}
                         )
                     );
+                });
+                editEventModal = new EditEventModal({
+                    callback : {
+                        afterHide : function () {
+                            calendar.exec('unselect');
+                        }
+                    }
                 });
                 
                 binder.register('schedule_month_mode', function () {
@@ -212,16 +221,21 @@ define(
                        $eventElement = $moreLinks.eq(0);
                     }
                     editEventTooltip.set({
-                        'position.target' : $eventElement
+                        'position.target' : $eventElement,
+                        'position.adjust.y' : 7
                     });
                 } else {
                     editEventTooltip.set({
-                        'position.target' : [e.pageX, e.pageY]
+                        'position.target' : [e.pageX, e.pageY],
+                        'position.adjust.y' : 0
                     });
                 }
                 editEventTooltip.show({
                     start : fcEvent.start.format('ddd, MMMM D, H:mm'),
-                    end : fcEvent.end ? fcEvent.end.format('ddd, MMMM D, H:mm') : false
+                    end : fcEvent.end ? fcEvent.end.format('ddd, MMMM D, H:mm') : false,
+                    id : fcEvent.id,
+                    uri : fcEvent.id,
+                    classUri : ''
                 });
             };
             
@@ -231,51 +245,7 @@ define(
             
             this.showEditForm = function (context) {
                 this.hideTooltips();
-                /*var modal = $('<div />').qtip({
-                    content: {
-                        text: 'content',
-                        title: 'test'
-                    },
-                    position: {
-                        my: 'center', at: 'center',
-                        target: $(window)
-                    },
-                    show: {
-                        ready: false,
-                        modal: {
-                            on: true,
-                            blur: true
-                        }
-                    },
-                    hide: false,
-                    style : {
-                        width : 600,
-                        classes : 'dialogue qtip-light qtip-shadow'
-                    },
-                    events: {
-                        render: function(event, api) {
-                            $('button', api.elements.content).click(function(e) {
-                                api.hide(e);
-                            });
-                        },
-                        hide: function(event, api) { api.destroy(); }
-                    }
-                }).qtip('api');
-                console.log(context);
-                $.ajax({
-                    url : context.action.url,
-                    type : 'POST',
-                    data : {
-                        classUri : context.classUri,
-                        id : context.id,
-                        uri : context.uri
-                    },
-                    success : function (response) {
-                        modal.set({'content.text' : response});
-                        modal.show();
-                    }
-                });*/
-                
+                editEventModal.show(context);
             };
         }
         

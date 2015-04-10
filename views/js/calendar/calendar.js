@@ -50,19 +50,19 @@ define(
             if (!(options.$container instanceof $) || !$.contains(document, options.$container[0])) {
                 throw new TypeError("Calendar requires $container option that should be jQuery element.");
             }
-            var defaultOpions = {
+            var defaultOptions = {
                     defaultDate : new Date(),
                     editable : true,
                     selectable : true,
                     selectHelper : false,
                     unselectAuto : false,
                     height : getCalendarHeight(),
-                    eventLimit : true, // allow "more" link when too many events
+                    eventLimit : false, // allow "more" link when too many events
                     select : _.noop
                 },
                 that = this;
 
-            options = _.assign(defaultOpions, options);
+            options = _.assign(defaultOptions, options);
             
             options.$container.fullCalendar(options);
             

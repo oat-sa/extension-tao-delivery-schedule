@@ -16,8 +16,8 @@
 	top: -28000px;
 	display: none;
 
-	max-width: 600px;
-	min-width: 50px;
+	max-width: 1000px;
+	min-width: 100px;
 
 	font-size: 10.5px;
 	line-height: 12px;
@@ -26,6 +26,13 @@
 
 	box-shadow: none;
 	padding: 0;
+        .xhtml_form form>div{
+            position : relative;
+        }
+        .xhtml_form form .ui-datepicker{
+            top: 100% !important;
+            left: 0 !important;
+        }
 }
 
 	.qtip-content{
