@@ -74,7 +74,11 @@ define(
                         $form.find('[name="end"]').val(options.end.format('YYYY-MM-DD HH:mm'));
                         
                         that.tooltip.elements.content.find('.js-create-event').on('click', function () {
-                            that.submit($form);
+                            $form.submit();
+                        });
+                        $form.on('submit', function (e) {
+                            e.preventDefault();
+                            that.submit($(this), e);
                         });
                         
                         that.callback('afterShow');
@@ -82,17 +86,16 @@ define(
                 });
             };
             
-            this.submit = function ($form) {
+            this.submit = function ($form, e) {
                 that.callback('beforeSubmit');
                 $.ajax({
                     url     : $form.attr('action'),
                     type    : $form.attr('method'),
                     data    : $form.serialize(),
-                    success : function(data) {
-                        feedback().success(__('Delivery saved'));
-                        that.callback('afterSubmit');
+                    success : function (data) {
+                        that.callback('afterSubmit', data, e);
                     },
-                    error   : function(xhr, err) {
+                    error   : function (xhr, err) {
                         feedback().warning('Something went wrong');
                     }
                 });

@@ -42,23 +42,26 @@ define(
                 this.modal = $('<div />').qtip(
                     {
                         prerender : true,
-                        content: {
-                            text: ' ',
-                            title: ' '
+                        content : {
+                            text : ' ',
+                            title : ' '
                         },
                         position: {
-                            my: 'center', at: 'center',
-                            target: $(window)
-                        },
-                        show: {
-                            ready: false,
-                            modal: {
-                                on: true,
-                                blur: true,
-                                escape: true
+                            my : 'center', at: 'center',
+                            target : $(window),
+                            adjust : {
+                                scroll : false
                             }
                         },
-                        hide: false,
+                        show : {
+                            ready : false,
+                            modal : {
+                                on : true,
+                                blur : true,
+                                escape : true
+                            }
+                        },
+                        hide : false,
                         style : {
                             width : 800,
                             classes : 'dialogue qtip-light qtip-shadow'
@@ -69,12 +72,11 @@ define(
         
             this.callback = function (name, e) {
                 if (options.callback && _.isFunction(options.callback[name])) {
-                    options.callback[name](this, e);
+                    options.callback[name].apply(this, arguments.slice(1));
                 }
             };
         
             this.hide = function () {
-                console.log('hide', this.modal.elements)
                 if (!this.modal.elements.tooltip.is(':visible')) {
                     return;
                 }

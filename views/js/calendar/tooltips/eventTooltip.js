@@ -70,7 +70,8 @@ define(
         
             this.callback = function (name, e) {
                 if (options.callback && _.isFunction(options.callback[name])) {
-                    options.callback[name](this, e);
+                    var args = Array.prototype.slice.call(arguments, 1);
+                    options.callback[name].apply(this, args);
                 }
             };
         

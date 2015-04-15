@@ -34,8 +34,12 @@ define(
             
             this.init = function () {
                 that.set({
-                    'style.width' : 900,
-                    'content.title' : 'This form is not work properly yet!'
+                    'position.my'     : 'top center', 
+                    'position.at'     : 'top center',
+                    'position.target' : $(window),
+                    'style.width'     : 900,
+                    'style.classes'   : 'edit-delivery-modal dialogue qtip-light qtip-shadow',
+                    'content.title'   : 'This form is not work properly yet!'
                 });
             };
             

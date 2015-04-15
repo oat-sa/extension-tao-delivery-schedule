@@ -27,9 +27,21 @@ define(
         'taoDeliverySchedule/calendar/tooltips/createEventTooltip',
         'taoDeliverySchedule/calendar/modals/editEventModal',
         'layout/actions',
+        'ui/feedback',
         'css!/taoDeliverySchedule/views/css/taodeliveryschedule'
     ],
-    function (_, $, binder, Calendar, EventService, EditEventTooltip, CreateEventTooltip, EditEventModal, actionManager) {
+    function (
+        _, 
+        $, 
+        binder, 
+        Calendar, 
+        EventService, 
+        EditEventTooltip, 
+        CreateEventTooltip, 
+        EditEventModal, 
+        actionManager,
+        feedback
+    ) {
         'use strict';
 
         function DeliverySchedule() {
@@ -46,7 +58,13 @@ define(
 
             this.start = function () {
                 tree = $.tree.reference($('#tree-manage_delivery_schedule'));
-                calendar = new Calendar(
+                
+                /*$('#tree-manage_delivery_schedule').on('ready.taotree', function () {
+                    console.log(calendar)
+                    calendar.exec('refetchEvents');
+                });*/
+                
+                window.calendar = calendar = new Calendar( //TO REMOVE window.calendar
                     {
                         $container : $calendarContainer,
                         select : function (start, end, e) {
@@ -69,8 +87,9 @@ define(
                         },
                         eventClick : function (fcEvent, e) {
                             createEventTooltip.hide();
-                            //tree.select_branch($('#' + fcEvent.id));
-                            that.showEditEventTooltip(fcEvent, e);
+                            tree.open_branch('#' + fcEvent.classId, false, function () {
+                                tree.select_branch($('#' + fcEvent.id));
+                            });
                         },
                         eventResizeStart : function () {
                             that.hideTooltips();
@@ -94,6 +113,8 @@ define(
                 );
         
                 eventService = new EventService(calendar);
+                
+                /* Edit event tooltip */
                 editEventTooltip = new EditEventTooltip({
                     $container : $calendarContainer,
                     callback : {
@@ -102,19 +123,8 @@ define(
                         }
                     }
                 });
-                createEventTooltip = new CreateEventTooltip({
-                    $container : $calendarContainer,
-                    callback : {
-                        afterHide : function () {
-                            calendar.exec('unselect');
-                        },
-                        afterSubmit : function () {
-                            that.hideTooltips();
-                            calendar.exec('refetchEvents');
-                        }
-                    }
-                });
-                editEventTooltip.tooltip.elements.content.on('click', '.js-edit-event', function () {
+                editEventTooltip.tooltip.elements.content.on('click', '.js-edit-event', function (e) {
+                    e.preventDefault();
                     actionManager.exec(
                         'delivery-edit', 
                         _.extend(
@@ -123,6 +133,40 @@ define(
                         )
                     );
                 });
+                editEventTooltip.tooltip.elements.content.on('click', '.js-delete-event', function (e) {
+                    e.preventDefault();
+                    actionManager.exec(
+                        'delivery-delete', 
+                        _.extend(
+                            actionManager._resourceContext, 
+                            {action : actionManager.getBy('delivery-delete')}
+                        )
+                    );
+                });
+                /* END edit event tooltip */
+                
+                /* Create event tooltip */
+                createEventTooltip = new CreateEventTooltip({
+                    $container : $calendarContainer,
+                    callback : {
+                        afterHide : function () {
+                            calendar.exec('unselect');
+                        },
+                        afterSubmit : function (data) {
+                            that.hideTooltips();
+                            feedback().info(data.message);
+                            $('#tree-manage_delivery_schedule').trigger(
+                                'refresh.taotree', 
+                                [{
+                                    selectNode : data.id
+                                }]
+                            );
+                        }
+                    }
+                });
+                /* END create event tooltip */
+                
+                /* Edit event modal */
                 editEventModal = new EditEventModal({
                     callback : {
                         afterHide : function () {
@@ -130,6 +174,7 @@ define(
                         }
                     }
                 });
+                /* END edit event modal */
                 
                 binder.register('schedule_month_mode', function () {
                     that.hideTooltips();
@@ -150,15 +195,17 @@ define(
                     that.showEditForm(context);
                 });
                 binder.register('select_event', function (treeInstance) {
-                    var fcEvent = calendar.exec('clientEvents', treeInstance.uri);
-                    if (fcEvent.length) {
-                        that.goToEvent(
-                            fcEvent[0], 
-                            function (fcEvent) {
-                                that.showEditEventTooltip(fcEvent);
-                            }
-                        );
-                    }
+                    that.calendarLoading.done(function () {
+                        var fcEvent = calendar.exec('clientEvents', treeInstance.uri);
+                        if (fcEvent.length) {
+                            that.goToEvent(
+                                fcEvent[0], 
+                                function (fcEvent) {
+                                    that.showEditEventTooltip(fcEvent);
+                                }
+                            );
+                        }
+                    });
                 });
                 binder.register('select_group', function (treeInstance) {
                     that.hideTooltips();
@@ -230,12 +277,12 @@ define(
                         'position.adjust.y' : 0
                     });
                 }
+                
                 editEventTooltip.show({
                     start : fcEvent.start.format('ddd, MMMM D, H:mm'),
                     end : fcEvent.end ? fcEvent.end.format('ddd, MMMM D, H:mm') : false,
                     id : fcEvent.id,
-                    uri : fcEvent.id,
-                    classUri : ''
+                    uri : fcEvent.uri
                 });
             };
             

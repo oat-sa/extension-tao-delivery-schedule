@@ -70,7 +70,14 @@ class Main extends \tao_actions_SaSModule
                         TAO_DELIVERY_END_PROP => $end
                     )
                 );
-                $this->returnReport($report);
+                $data = $report->getdata();
+                $result = array(
+                    'message' => $report->getMessage(),
+                    'id' => \tao_helpers_Uri::encode($data->getUri()),
+                    'uri' => $data->getUri(),
+                );
+                
+                $this->returnJson($result);
             } else {
                 $this->setData('myForm', $myForm->render());
                 $this->setView('tooltips/createEventTooltip.tpl');

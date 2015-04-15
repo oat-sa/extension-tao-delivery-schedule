@@ -68,11 +68,16 @@ class CalendarApi extends \tao_actions_CommonModule
                 continue;
             }
             
+            $classUri = key($delivery->getTypes());
+            
             $result[] = array(
                 'title' => $delivery->getLabel(),
                 'id' => \tao_helpers_Uri::encode($delivery->getUri()),
+                'uri' => $delivery->getUri(),
+                'classId' => \tao_helpers_Uri::encode($classUri),
+                'classUri' => $classUri,
                 'start' => $this->formatDate($start),
-                'end' => $this->formatDate($end)
+                'end' => $this->formatDate($end),
             );
         }
         
