@@ -24,9 +24,10 @@ define(
         'handlebars',
         'i18n',
         'ui/feedback',
+        'taoDeliverySchedule/calendar/eventService',
         'taoDeliverySchedule/lib/qtip/jquery.qtip'
     ],
-    function (_, $, eventTooltip, Handlebars, __, feedback) {
+    function (_, $, eventTooltip, Handlebars, __, feedback, eventService) {
         'use stirct';
         return function (options) {
             var that = this;
@@ -47,9 +48,9 @@ define(
                     start : options.start.format('ddd, MMMM D, H:mm'),
                     end : options.end ? options.end.format('ddd, MMMM D, H:mm') : false
                 };
-                
                 that.tooltip.set({
-                    'position.target' : [options.e.pageX, options.e.pageY]
+                    'position.target' : options.target || options.e.target
+//                    'position.adjust.y' : options.e.offsetY || 
                 });
                 
                 $.ajax({
@@ -67,7 +68,7 @@ define(
                         });
                         that.tooltip.show();
                         
-                        $form = that.tooltip.elements.content.find('form');
+                        $form = that.getForm();
                         $form.find('#label').focus();
                         
                         $form.find('[name="start"]').val(options.start.format('YYYY-MM-DD HH:mm'));
@@ -86,19 +87,39 @@ define(
                 });
             };
             
-            this.submit = function ($form, e) {
-                that.callback('beforeSubmit');
-                $.ajax({
+            /**
+             * Submit form inside the tooltip to create new event and hide tooltip.
+             * 
+             * @param {jQueryElement} $form
+             * @param {objrct} e event
+             * @returns {undefined}
+             */
+            this.submit = function (e) {
+                var $form = that.getForm();
+                eventService.createEvent({
                     url     : $form.attr('action'),
-                    type    : $form.attr('method'),
-                    data    : $form.serialize(),
-                    success : function (data) {
-                        that.callback('afterSubmit', data, e);
-                    },
-                    error   : function (xhr, err) {
-                        feedback().warning('Something went wrong');
-                    }
+                    data    : that.getFromData()
                 });
+                that.hide();
+            };
+            
+            /**
+             * Get form jQeeryElement.
+             * @returns {jQeeryElement} create delivery form ellement
+             */
+            this.getForm = function () {
+                return  that.tooltip.elements.content.find('form');
+            };
+            
+            /**
+             * Convert form data to JS object
+             * @returns {object} form data
+             */
+            this.getFromData = function () {
+                var data = {},
+                    $form = that.getForm();
+                $form.serializeArray().map(function(x){data[x.name] = x.value;});
+                return data;
             };
             
             this.init();

@@ -22,9 +22,12 @@ define(
         'jquery',
         'taoDeliverySchedule/calendar/tooltips/eventTooltip',
         'tpl!/taoDeliverySchedule/views/templates/tooltips/eventTooltip',
+        'layout/actions',
+        'layout/actions/binder',
+        'taoDeliverySchedule/calendar/eventService',
         'taoDeliverySchedule/lib/qtip/jquery.qtip'
     ],
-    function (_, $, eventTooltip, tooltipTpl) {
+    function (_, $, eventTooltip, tooltipTpl, actionManager, binder, eventService) {
         'use stirct';
         return function (options) {
             var that = this;
@@ -32,7 +35,15 @@ define(
             eventTooltip.apply(this, arguments);
             
             this.init = function () {
+                that.tooltip.elements.content.on('click', '.js-edit-event', function (e) {
+                    e.preventDefault();
+                    eventService.editEvent(that.getId());
+                });
                 
+                that.tooltip.elements.content.on('click', '.js-delete-event', function (e) {
+                    e.preventDefault();
+                    eventService.deleteEvent(that.getId());
+                });
             };
             
             this.show = function (options) {
@@ -43,6 +54,10 @@ define(
                 });
                 that.tooltip.show();
                 this.callback('afterShow');
+            };
+            
+            this.getId = function () {
+                return that.tooltip.elements.tooltip.find('input[name="id"]').val();
             };
             
             this.init();

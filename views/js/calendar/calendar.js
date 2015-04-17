@@ -50,7 +50,11 @@ define(
             if (!(options.$container instanceof $) || !$.contains(document, options.$container[0])) {
                 throw new TypeError("Calendar requires $container option that should be jQuery element.");
             }
-            var defaultOptions = {
+            var defaultOptions,
+            that = this;
+    
+            this.init = function () {
+                defaultOptions = {
                     defaultDate : new Date(),
                     editable : true,
                     selectable : true,
@@ -59,12 +63,11 @@ define(
                     height : getCalendarHeight(),
                     eventLimit : false, // allow "more" link when too many events
                     select : _.noop
-                },
-                that = this;
+                };
+                options = _.assign(defaultOptions, options);
+                options.$container.fullCalendar(options);
+            };
 
-            options = _.assign(defaultOptions, options);
-            
-            options.$container.fullCalendar(options);
             
             this.exec = function () {
                 return options.$container.fullCalendar.apply(options.$container, arguments);
@@ -80,6 +83,8 @@ define(
             this.addEvent = function (eventData) {
                 that.exec('renderEvent', eventData, true); // stick? = true
             };
+            
+            this.init();
         };
     }
 );

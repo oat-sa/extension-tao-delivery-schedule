@@ -50,9 +50,8 @@ define(
                         position : {
                             my : 'bottom center',
                             at : 'top center',
-                            target : 'mouse',
-                            viewport : options.$container,
-                            //container: options.$container
+                            //target : 'mouse',
+                            viewport : options.$container
                         },
                         show : false,
                         hide : false,

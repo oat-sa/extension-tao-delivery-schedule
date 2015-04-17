@@ -26,7 +26,7 @@ namespace oat\taoDeliverySchedule\controller;
  * @author Aleh Hutnikau <hutnikau@1pt.com>
  * @package taoDeliverySchedule
  */
-class CalendarApi extends \tao_actions_CommonModule
+class CalendarApi extends \tao_actions_SaSModule
 {
     
     public function __construct()
@@ -55,8 +55,16 @@ class CalendarApi extends \tao_actions_CommonModule
         $startProp = new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP);
         $endProp = new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP);
         
+        $assemblies = array();
+        
+        if (isset($params['uri'])) {
+            $assemblies[] = $this->getCurrentInstance();
+        } else {
+            $assemblies = $this->service->getAllAssemblies();
+        }
+        
         // TO DO get filtered deliveries list based on $from and $to params.
-        foreach ($this->service->getAllAssemblies() as $delivery) {
+        foreach ($assemblies as $delivery) {
             $deliveryProps = $delivery->getPropertiesValues(array(
                 $startProp,
                 $endProp
@@ -82,6 +90,7 @@ class CalendarApi extends \tao_actions_CommonModule
         }
         
         header('Content-type: application/json');
+        count($result) === 1 ? $result = current($result) : $result;
         echo json_encode($result);
     }
     

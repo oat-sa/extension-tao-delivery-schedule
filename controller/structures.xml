@@ -22,10 +22,10 @@
                     <action id="init-tree" name="init" url="/taoDeliverySchedule/Main/index">
                         <icon id="icon-edit"/>
                     </action>
-                    <action id="delivery-class-properties" name="Properties" binding="select_group" group="none" context="class">
+                    <action id="delivery-class-properties" name="Properties" binding="class-select" group="none" context="class">
                         <icon id="icon-edit"/>
                     </action>
-                    <action id="delivery-properties" name="Properties" binding="select_event" group="none" context="instance">
+                    <action id="delivery-properties" name="Properties" binding="delivery-select" group="none" context="instance">
                         <icon id="icon-edit"/>
                     </action>
                     <action id="delivery-filter" name="Filter" context="*" group="search" binding="filter">
@@ -37,12 +37,12 @@
                     <action id="delivery-class-new" name="New class" url="/taoDelivery/Delivery/addSubClass" context="class" group="content" binding="subClass">
                         <icon id="icon-folder-open"/>
                     </action>
-                    <action id="delivery-new" name="New delivery" binding="new_event" url="/taoDeliverySchedule/Main/wizard" context="class" group="none">
+                    <action id="delivery-new" name="New delivery" binding="delivery-new" url="/taoDeliverySchedule/Main/wizard" context="class" group="none">
                         <icon id="icon-delivery"/>
                     </action>
-                    <action id="delivery-edit" name="Edit delivery" binding="edit_event" url="/taoDelivery/Delivery/editDelivery" context="class" group="none">
+                    <action id="delivery-edit" name="Edit delivery" binding="delivery-edit" url="/taoDelivery/Delivery/editDelivery" context="class" group="none">
                     </action>
-                    <action id="delivery-delete" name="Delete" url="/taoDelivery/Delivery/delete" context="resource" group="tree" binding="removeNode">
+                    <action id="delivery-delete" name="Delete" binding="removeNode" url="/taoDelivery/Delivery/delete" context="resource" group="tree">
                         <icon id="icon-bin"/>
                     </action>
                     <action id="delivery-move" name="Move" url="/taoDelivery/Delivery/moveInstance" context="instance" group="none" binding="moveNode">

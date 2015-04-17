@@ -28,6 +28,7 @@ define(
         'taoDeliverySchedule/calendar/modals/editEventModal',
         'layout/actions',
         'ui/feedback',
+        'uri',
         'css!/taoDeliverySchedule/views/css/taodeliveryschedule'
     ],
     function (
@@ -35,12 +36,13 @@ define(
         $, 
         binder, 
         Calendar, 
-        EventService, 
+        eventService, 
         EditEventTooltip, 
         CreateEventTooltip, 
         EditEventModal, 
         actionManager,
-        feedback
+        feedback,
+        uri
     ) {
         'use strict';
 
@@ -48,23 +50,18 @@ define(
             var calendar,
                 that = this,
                 tree,
-                eventService,
                 editEventTooltip,
                 createEventTooltip,
                 editEventModal,
+                $treeElt = $('#tree-manage_delivery_schedule'),
                 $calendarContainer = $('.js-delivery-calendar');
 
             this.calendarLoading = $.Deferred();
 
             this.start = function () {
-                tree = $.tree.reference($('#tree-manage_delivery_schedule'));
+                that.initTree();
                 
-                /*$('#tree-manage_delivery_schedule').on('ready.taotree', function () {
-                    console.log(calendar)
-                    calendar.exec('refetchEvents');
-                });*/
-                
-                window.calendar = calendar = new Calendar( //TO REMOVE window.calendar
+                calendar = new Calendar(
                     {
                         $container : $calendarContainer,
                         select : function (start, end, e) {
@@ -76,7 +73,8 @@ define(
                                     {
                                         start : start,
                                         end : end,
-                                        e : e
+                                        e : e,
+                                        target : e.target
                                     },
                                     {action : actionManager.getBy('delivery-new')}
                                 )
@@ -87,15 +85,29 @@ define(
                         },
                         eventClick : function (fcEvent, e) {
                             createEventTooltip.hide();
-                            tree.open_branch('#' + fcEvent.classId, false, function () {
-                                tree.select_branch($('#' + fcEvent.id));
+                            eventService.selectEvent(fcEvent.id, fcEvent.classId);
+                        },
+                        eventResizeStart : function (fcEvent, e) {
+                            that.hideTooltips();
+                        },
+                        eventDragStart : function (fcEvent, e) {
+                            that.hideTooltips();
+                        },
+                        eventDragStop : function (fcEvent, e) {
+                            console.log(arguments);
+                        },
+                        eventResizeStop : function (fcEvent, e) {
+                            console.log(arguments);
+                        },
+                        viewRender : function () {
+                            $('.fc-scroller').on('scroll', function (e) {
+                                if (editEventTooltip.tooltip.elements.tooltip.is(':visible')) {
+                                    editEventTooltip.tooltip.reposition(e);
+                                }
+                                if (createEventTooltip.tooltip.elements.tooltip.is(':visible')) {
+                                    createEventTooltip.tooltip.reposition(e);
+                                }
                             });
-                        },
-                        eventResizeStart : function () {
-                            that.hideTooltips();
-                        },
-                        eventDragStart : function () {
-                            that.hideTooltips();
                         },
                         viewDisplay : function () {
                             that.hideTooltips();
@@ -108,40 +120,16 @@ define(
                                 that.calendarLoading.resolve();
                             }
                         },
+                        eventAfterAllRender : function () {
+                            that.hideTooltips();
+                        },
                         events : '/taoDeliverySchedule/CalendarApi'
                     }
                 );
         
-                eventService = new EventService(calendar);
-                
                 /* Edit event tooltip */
                 editEventTooltip = new EditEventTooltip({
-                    $container : $calendarContainer,
-                    callback : {
-                        afterHide : function () {
-                            calendar.exec('unselect');
-                        }
-                    }
-                });
-                editEventTooltip.tooltip.elements.content.on('click', '.js-edit-event', function (e) {
-                    e.preventDefault();
-                    actionManager.exec(
-                        'delivery-edit', 
-                        _.extend(
-                            actionManager._resourceContext, 
-                            {action : actionManager.getBy('delivery-edit')}
-                        )
-                    );
-                });
-                editEventTooltip.tooltip.elements.content.on('click', '.js-delete-event', function (e) {
-                    e.preventDefault();
-                    actionManager.exec(
-                        'delivery-delete', 
-                        _.extend(
-                            actionManager._resourceContext, 
-                            {action : actionManager.getBy('delivery-delete')}
-                        )
-                    );
+                    $container : $calendarContainer
                 });
                 /* END edit event tooltip */
                 
@@ -151,16 +139,6 @@ define(
                     callback : {
                         afterHide : function () {
                             calendar.exec('unselect');
-                        },
-                        afterSubmit : function (data) {
-                            that.hideTooltips();
-                            feedback().info(data.message);
-                            $('#tree-manage_delivery_schedule').trigger(
-                                'refresh.taotree', 
-                                [{
-                                    selectNode : data.id
-                                }]
-                            );
                         }
                     }
                 });
@@ -188,13 +166,13 @@ define(
                     that.hideTooltips();
                     calendar.exec('changeView', 'agendaDay');
                 });
-                binder.register('new_event', function (context) {
+                binder.register('delivery-new', function (context) {
                     that.showCreateEventTooltip(context);
                 });
-                binder.register('edit_event', function (context) {
+                binder.register('delivery-edit', function (context) {
                     that.showEditForm(context);
                 });
-                binder.register('select_event', function (treeInstance) {
+                binder.register('delivery-select', function (treeInstance) {
                     that.calendarLoading.done(function () {
                         var fcEvent = calendar.exec('clientEvents', treeInstance.uri);
                         if (fcEvent.length) {
@@ -207,9 +185,43 @@ define(
                         }
                     });
                 });
-                binder.register('select_group', function (treeInstance) {
+                binder.register('class-select', function (treeInstance) {
                     that.hideTooltips();
                 });
+            };
+            
+            /**
+             * Initialize tree and bind events
+             * @returns {undefined}
+             */
+            this.initTree = function () {
+                tree = $.tree.reference($treeElt);
+
+                $($treeElt).on(
+                    'refresh.taotree', 
+                    function () {
+                        calendar.exec('refetchEvents');
+                    }
+                );
+        
+                $($treeElt).on(
+                    'removenode.taotree', 
+                    function (e, data) {
+                        calendar.exec('removeEvents', [data.id]);
+                    }
+                );
+        
+                $($treeElt).on(
+                    'addnode.taotree', 
+                    function (e, data) {
+                        eventService.loadEvent(
+                            uri.encode(data.uri), 
+                            function (eventData) {
+                                calendar.exec('renderEvent', eventData);
+                            }
+                        );
+                    }
+                );
             };
             
             /**

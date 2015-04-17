@@ -6,7 +6,7 @@
         <b>{{__ 'End'}}:</b> {{end}}<br>
         {{/if}}
     </p>
-    <form>
+    <form class="hidden">
         <input type="hidden" name="id" value="{{id}}" />
         <input type="hidden" name="classUri" value="{{classUri}}" />
         <input type="hidden" name="uri" value="{{uri}}" />
