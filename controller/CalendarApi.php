@@ -92,7 +92,7 @@ class CalendarApi extends \tao_actions_SaSModule
             );
         }
         header('Content-type: application/json');
-        count($result) === 1 ? $result = current($result) : $result;
+        isset($params['uri']) ? $result = current($result) : $result;
         echo json_encode($result);
     }
     
@@ -127,14 +127,14 @@ class CalendarApi extends \tao_actions_SaSModule
             $color .= substr(md5($delivery->getUri()), 0, 6);
         }
         return $this->genColorCodeFromText($test->getUri());
-        $rgb = array(hexdec(substr($color, 0, 2)), hexdec(substr($color, 2, 2)), hexdec(substr($color, 4, 2)));
+        /*$rgb = array(hexdec(substr($color, 0, 2)), hexdec(substr($color, 2, 2)), hexdec(substr($color, 4, 2)));
         if (array_sum($rgb) > 450) {
             $rgb = array_map(function ($val) {
                 return $val / 16 * 2; 
             }, $rgb);
         }
         
-        return $this->rgb2hex($rgb);
+        return $this->rgb2hex($rgb);*/
     }
     
     private function genColorCodeFromText($text,$min_brightness=0,$spec=10)
@@ -165,12 +165,12 @@ class CalendarApi extends \tao_actions_SaSModule
     }
     
     
-    private function rgb2hex($rgb) {
+    /*private function rgb2hex($rgb) {
        $hex = "#";
        $hex .= str_pad(dechex($rgb[0]), 2, "0", STR_PAD_LEFT);
        $hex .= str_pad(dechex($rgb[1]), 2, "0", STR_PAD_LEFT);
        $hex .= str_pad(dechex($rgb[2]), 2, "0", STR_PAD_LEFT);
 
        return $hex; // returns the hex value including the number sign (#)
-    }
+    }*/
 }
