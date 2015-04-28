@@ -47,11 +47,16 @@ define(
             };
             
             this.show = function (options) {
+                var color = options.color || 'transparent';
+                
                 this.callback('beforeShow');
                 that.tooltip.set({
                     'content.text' : tooltipTpl(options),
                     'position.adjust.resize' : true
                 });
+                
+                that.tooltip.elements.titlebar.css({'border-bottom' : '2px solid ' + color});
+                
                 that.tooltip.show();
                 this.callback('afterShow');
             };

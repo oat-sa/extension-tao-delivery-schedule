@@ -35,7 +35,7 @@ class DeliveryFactory extends \taoDelivery_models_classes_SimpleDeliveryFactory
      * 
      * @param core_kernel_classes_Class $deliveryClass
      * @param core_kernel_classes_Resource $test
-     * @param string $label
+     * @param array $properties Array of properties of delivery
      * @return common_report_Report
      */
     public static function create(\core_kernel_classes_Class $deliveryClass, \core_kernel_classes_Resource $test, $properties = array()) 

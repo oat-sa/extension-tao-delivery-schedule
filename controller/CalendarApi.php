@@ -20,6 +20,8 @@
  */
 namespace oat\taoDeliverySchedule\controller;
 
+use oat\taoDeliverySchedule\helper\ColorGenerator;
+
 /**
  * Controller provides Rest API for getting deliveries.
  *
@@ -52,7 +54,6 @@ class CalendarApi extends \tao_actions_SaSModule
         $from = isset($params['start']) ? $params['start'] : null;
         $to = isset($params['end']) ? $params['start'] : null;
         
-        
         $result = array();
         $startProp = new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP);
         $endProp = new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP);
@@ -64,6 +65,10 @@ class CalendarApi extends \tao_actions_SaSModule
         } else {
             $assemblies = $this->service->getAllAssemblies();
         }
+        
+        $colorGenerator = new ColorGenerator();
+        $colorGenerator->setMaxColorValue(80);
+        $colorGenerator->setMinColorValue(20);
         
         // TO DO get filtered deliveries list based on $from and $to params.
         foreach ($assemblies as $delivery) {
@@ -88,7 +93,7 @@ class CalendarApi extends \tao_actions_SaSModule
                 'classUri' => $classUri,
                 'start' => $this->formatDate($start),
                 'end' => $this->formatDate($end),
-                'color' => $this->getColor($delivery)
+                'color' => $colorGenerator->getColor($this->getTestUri($delivery))
             );
         }
         header('Content-type: application/json');
@@ -110,67 +115,20 @@ class CalendarApi extends \tao_actions_SaSModule
     /**
      * Get color by delivery test uri
      */
-    private function getColor(\core_kernel_classes_Resource $delivery) {
-        //TO DO https://github.com/davidmerfield/randomColor/blob/master/randomColor.js
-        $color = '0x';
+    private function getTestUri(\core_kernel_classes_Resource $delivery) {
+        $result;
         $runtimeResource = $delivery->getUniquePropertyValue(new \core_kernel_classes_Property(PROPERTY_COMPILEDDELIVERY_RUNTIME));
         $actualParams = $runtimeResource->getPropertyValuesCollection(new \core_kernel_classes_Property(PROPERTY_CALLOFSERVICES_ACTUALPARAMETERIN));
         foreach ($actualParams as $actualParam) {
             $test = $actualParam->getUniquePropertyValue(new \core_kernel_classes_Property(PROPERTY_ACTUALPARAMETER_CONSTANTVALUE));
             if (get_class($test) === "core_kernel_classes_Resource") {
-                $color .= substr(md5($test->getUri()), 0, 6);
+                $result = $test->getUri();
                 break;
             }
         }
-        
-        if ($color === null) {
-            $color .= substr(md5($delivery->getUri()), 0, 6);
+        if ($result === null) {
+            $result = $delivery->getUri();
         }
-        return $this->genColorCodeFromText($test->getUri());
-        /*$rgb = array(hexdec(substr($color, 0, 2)), hexdec(substr($color, 2, 2)), hexdec(substr($color, 4, 2)));
-        if (array_sum($rgb) > 450) {
-            $rgb = array_map(function ($val) {
-                return $val / 16 * 2; 
-            }, $rgb);
-        }
-        
-        return $this->rgb2hex($rgb);*/
+        return $result;
     }
-    
-    private function genColorCodeFromText($text,$min_brightness=0,$spec=10)
-    {
-            // Check inputs
-            if(!is_int($min_brightness)) throw new Exception("$min_brightness is not an integer");
-            if(!is_int($spec)) throw new Exception("$spec is not an integer");
-            if($spec < 2 or $spec > 10) throw new Exception("$spec is out of range");
-            if($min_brightness < 0 or $min_brightness > 255) throw new Exception("$min_brightness is out of range");
-
-
-            $hash = md5($text);  //Gen hash of text
-            $colors = array();
-            for($i=0;$i<3;$i++)
-                    $colors[$i] = max(array(round(((hexdec(substr($hash,$spec*$i,$spec)))/hexdec(str_pad('',$spec,'F')))*255),$min_brightness)); //convert hash into 3 decimal values between 0 and 255
-
-            if($min_brightness > 0)  //only check brightness requirements if min_brightness is about 100
-                    while( array_sum($colors)/3 < $min_brightness )  //loop until brightness is above or equal to min_brightness
-                            for($i=0;$i<3;$i++)
-                                    $colors[$i] += 10;	//increase each color by 10
-
-            $output = '';
-
-            for($i=0;$i<3;$i++)
-                    $output .= str_pad(dechex($colors[$i]),2,0,STR_PAD_LEFT);  //convert each color to hex and append to output
-
-            return '#'.$output;
-    }
-    
-    
-    /*private function rgb2hex($rgb) {
-       $hex = "#";
-       $hex .= str_pad(dechex($rgb[0]), 2, "0", STR_PAD_LEFT);
-       $hex .= str_pad(dechex($rgb[1]), 2, "0", STR_PAD_LEFT);
-       $hex .= str_pad(dechex($rgb[2]), 2, "0", STR_PAD_LEFT);
-
-       return $hex; // returns the hex value including the number sign (#)
-    }*/
 }

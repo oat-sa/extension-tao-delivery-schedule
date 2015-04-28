@@ -48,7 +48,8 @@ define(
              *          {
              *             classUri: "http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery",
              *             end: "2015-04-18 00:00",
-             *             label: "sdfdsf"simpleWizard_sent: "1",
+             *             label: "sdfdsf",
+             *             simpleWizard_sent: "1",
              *             start: "2015-04-17 00:00",
              *             test: "http://sample/first.rdf#i1429018012670729"
              *          }
@@ -56,6 +57,7 @@ define(
              * @returns {undefined}
              */
             this.createEvent = function (options) {
+                console.log(options);
                 $.ajax({
                     url     : options.url,
                     type    : 'POST',
@@ -78,6 +80,46 @@ define(
             };
             
             /**
+             * Save
+             * @param {object} options
+             * @property {string} options.url Url address to creaet new event
+             * @property {string} options.data Event data. Example:
+             *          <pre>
+             *          {
+             *             classUri: "http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery",
+             *             start: "2015-04-17 00:00"
+             *             end: "2015-04-18 00:00",
+             *             label: "sdfdsf",
+             *             uri: "http_2_sample_1_first_0_rdf_3_i14301245512201554",
+             *             id: "http://sample/first.rdf#i14301245512201554"
+             *          }
+             *          </pre>
+             * @returns {undefined}
+             */
+            this.saveEvent = function (fcEvent) {
+                var data = {
+                    label : fcEvent.title,
+                    classUri : fcEvent.classUri,
+                    id : fcEvent.id,
+                    uri : fcEvent.uri,
+                    start : fcEvent.start.format('YYYY-MM-DD HH:mm'),
+                    end : fcEvent.end.format('YYYY-MM-DD HH:mm')
+                };
+                
+                $.ajax({
+                    url     : '/taoDeliverySchedule/Main/editDelivery',
+                    type    : 'POST',
+                    data    : data,
+                    success : function (response) {
+                        feedback().info(response.message);
+                    },
+                    error   : function (xhr, err) {
+                        feedback().warning('Something went wrong');
+                    }
+                });
+            };
+            
+            /**
              * Delete selected on the tree event
              * @returns {undefined}
              */
@@ -92,7 +134,7 @@ define(
             };
             
             /**
-             * Edit selected on the tree event
+             * Edit selected on the tree event (show edit form)
              * @returns {undefined}
              */
             this.editEvent = function (eventId) {

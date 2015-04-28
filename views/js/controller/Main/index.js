@@ -90,14 +90,18 @@ define(
                         eventResizeStart : function (fcEvent, e) {
                             that.hideTooltips();
                         },
-                        eventDragStart : function (fcEvent, e) {
-                            that.hideTooltips();
+                        /*eventDragStart : function (fcEvent, e) {
+                            //that.hideTooltips();
+                            console.log(fcEvent.end.format('YYYY-MM-DD HH:mm'))
                         },
                         eventDragStop : function (fcEvent, e) {
-                            console.log(arguments);
+                            console.log(fcEvent.end.format('YYYY-MM-DD HH:mm'))
+                        },*/
+                        eventDrop : function (fcEvent, e) {
+                            eventService.saveEvent(fcEvent);
                         },
-                        eventResizeStop : function (fcEvent, e) {
-                            console.log(arguments);
+                        eventResize : function (fcEvent, e) {
+                            eventService.saveEvent(fcEvent);
                         },
                         viewRender : function () {
                             $('.fc-scroller').on('scroll', function (e) {
@@ -294,7 +298,8 @@ define(
                     start : fcEvent.start.format('ddd, MMMM D, H:mm'),
                     end : fcEvent.end ? fcEvent.end.format('ddd, MMMM D, H:mm') : false,
                     id : fcEvent.id,
-                    uri : fcEvent.uri
+                    uri : fcEvent.uri,
+                    color : fcEvent.color
                 });
             };
             
