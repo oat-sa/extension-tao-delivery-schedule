@@ -85,7 +85,7 @@ class CalendarApi extends \tao_actions_SaSModule
             //getDeliverySettings
             $classUri = key($delivery->getTypes());
             
-            $result[] = array(
+            $rawResult = array(
                 'title' => $delivery->getLabel(),
                 'id' => \tao_helpers_Uri::encode($delivery->getUri()),
                 'uri' => $delivery->getUri(),
@@ -95,7 +95,47 @@ class CalendarApi extends \tao_actions_SaSModule
                 'end' => $this->formatDate($end),
                 'color' => $colorGenerator->getColor($this->getTestUri($delivery))
             );
+            
+            if (isset($params['full'])) {
+                //executions
+                if (\taoDelivery_models_classes_execution_ServiceProxy::singleton()->implementsMonitoring()) {
+                    $execs = \taoDelivery_models_classes_execution_ServiceProxy::singleton()->getExecutionsByDelivery($delivery);
+                    $rawResult['executions'] = count($execs);
+                }
+                //pubished
+                $rawResult['published'] = \taoDelivery_models_classes_DeliveryAssemblyService::singleton()->getCompilationDate($delivery);
+                
+                //groups
+                $groupsProperty = new \core_kernel_classes_Property(PROPERTY_GROUP_DELVIERY);
+                $domainCollection = $groupsProperty->getDomain();
+		if (!$domainCollection->isEmpty()) {
+                    $domain = $domainCollection->get(0);
+                    $groups = array_keys(
+                        $domain->searchInstances(array(
+                            $groupsProperty->getUri() => $delivery
+                        ), 
+                        array('recursive' => true, 'like' => false))
+                    );
+                    $rawResult['groups'] = \tao_helpers_Uri::encodeArray($groups);
+		}
+                
+                // excluded test takers
+                $property = new \core_kernel_classes_Property(TAO_DELIVERY_EXCLUDEDSUBJECTS_PROP);
+                $excluded = $delivery->getPropertyValues($property);
+                $rawResult['ttexcluded'] = $excluded;
+
+                // assigned test takers
+                $users = \taoDelivery_models_classes_AssignmentService::singleton()->getAssignedUsers($delivery);
+                $assigned = array_values(array_diff(array_unique($users), $excluded));
+                $rawResult['ttassigned'] = $assigned;
+                
+                //Max. number of executions
+                $rawResult['maxexec'] = (string) $delivery->getOnePropertyValue(new \core_kernel_classes_Property(TAO_DELIVERY_MAXEXEC_PROP));
+            }
+            
+            $result[] = $rawResult;
         }
+        
         header('Content-type: application/json');
         isset($params['uri']) ? $result = current($result) : $result;
         echo json_encode($result);

@@ -90,13 +90,6 @@ define(
                         eventResizeStart : function (fcEvent, e) {
                             that.hideTooltips();
                         },
-                        /*eventDragStart : function (fcEvent, e) {
-                            //that.hideTooltips();
-                            console.log(fcEvent.end.format('YYYY-MM-DD HH:mm'))
-                        },
-                        eventDragStop : function (fcEvent, e) {
-                            console.log(fcEvent.end.format('YYYY-MM-DD HH:mm'))
-                        },*/
                         eventDrop : function (fcEvent, e) {
                             eventService.saveEvent(fcEvent);
                         },

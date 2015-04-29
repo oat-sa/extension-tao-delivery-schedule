@@ -89,7 +89,7 @@ define(
              *             classUri: "http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery",
              *             start: "2015-04-17 00:00"
              *             end: "2015-04-18 00:00",
-             *             label: "sdfdsf",
+             *             label: "Delivery label",
              *             uri: "http_2_sample_1_first_0_rdf_3_i14301245512201554",
              *             id: "http://sample/first.rdf#i14301245512201554"
              *          }

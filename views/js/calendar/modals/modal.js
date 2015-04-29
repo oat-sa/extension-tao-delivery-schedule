@@ -80,9 +80,9 @@ define(
                 if (!this.modal.elements.tooltip.is(':visible')) {
                     return;
                 }
-                this.callback('beforeHide');
+                //this.callback('beforeHide');
                 this.modal.hide();
-                this.callback('afterHide');
+                //this.callback('afterHide');
             };
             
             this.set = function (options) {
