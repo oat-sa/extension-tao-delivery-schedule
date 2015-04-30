@@ -123,7 +123,7 @@ define(
                         events : '/taoDeliverySchedule/CalendarApi'
                     }
                 );
-        
+
                 /* Edit event tooltip */
                 editEventTooltip = new EditEventTooltip({
                     $container : $calendarContainer
@@ -301,6 +301,7 @@ define(
             };
             
             this.showEditForm = function (context) {
+                console.log(context);
                 this.hideTooltips();
                 editEventModal.show(context);
             };

@@ -53,9 +53,11 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     public function mapDeliveryProperties($data, $reverse = false)
     {
         $map = array(
-            \tao_helpers_Uri::encode(RDFS_LABEL) => 'label', 
-            \tao_helpers_Uri::encode(TAO_DELIVERY_START_PROP) => 'start', 
-            \tao_helpers_Uri::encode(TAO_DELIVERY_END_PROP) => 'end'
+            RDFS_LABEL => 'label', 
+            TAO_DELIVERY_START_PROP => 'start', 
+            TAO_DELIVERY_END_PROP => 'end',
+            TAO_DELIVERY_MAXEXEC_PROP => 'maxexec',
+            TAO_DELIVERY_RESULTSERVER_PROP => 'resultserver'
         );
         
         foreach ($data as $key => $val) {
@@ -71,5 +73,113 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         }
         
         return $data;
+    }
+    
+    /**
+     * Evaluate delivery params.
+     * 
+     * Example:
+     * <pre>
+     * DeliveryScheduleService::singleton()->getEvaluatedParams(
+     *     array(
+     *         'http://www.tao.lu/Ontologies/TAODelivery.rdf#PeriodStart' => '2015-04-13 00:00',
+     *         ...
+     *     )
+     * );
+     * </pre>
+     * returns:
+     * <pre>
+     * array(
+     *     'http://www.tao.lu/Ontologies/TAODelivery.rdf#PeriodStart' => '1428897600',
+     *     ...
+     * )
+     * </pre>
+     * 
+     * @param array $params Array of delivery parameters (uri=>value)
+     * @return array evaluated params
+     */
+    public function getEvaluatedParams($params)
+    {
+        $tz = new \DateTimeZone(\common_session_SessionManager::getSession()->getTimeZone());
+        if (isset($params[TAO_DELIVERY_START_PROP])) {
+            $dt = new \DateTime($params[TAO_DELIVERY_START_PROP], $tz);
+            $params[TAO_DELIVERY_START_PROP] = (string) $dt->getTimestamp();
+        }
+        if (isset($params[TAO_DELIVERY_END_PROP])) {
+            $dt = new \DateTime($params[TAO_DELIVERY_END_PROP], $tz);
+            $params[TAO_DELIVERY_END_PROP] = (string) $dt->getTimestamp();
+        }
+        return $params;
+    }
+    
+    /**
+     * Validate delivery parameters.
+     * 
+     * @param array $params Array of delivery parameters (uri=>value)
+     * @return boolean Whether the parameters are valid.
+     */
+    public function validate($params)
+    {
+        $valid = true;
+        if ($params[TAO_DELIVERY_START_PROP] >= $params[TAO_DELIVERY_END_PROP]) {
+            $valid = false;
+        }
+        return $valid;
+    }
+    
+    /**
+     * Save the delivery.
+     * 
+     * @param \core_kernel_classes_Class $delivery
+     * @param array $params Array of delivery parameters (uri=>value)
+     * @return \core_kernel_classes_Class $delivery instance
+     */
+    public function save($delivery, $params)
+    {
+        $binder = new \tao_models_classes_dataBinding_GenerisFormDataBinder($delivery);
+        $delivery = $binder->bind($params);
+        
+        if (isset($params['groups'])) {
+            $groups = array_map(array('\tao_helpers_Uri' , 'decode'), $params['groups']);
+            $this->saveGroups($delivery, $groups);
+        }
+        
+        return $delivery;
+    }
+    
+    /**
+     * Save delivery groups.
+     * 
+     * @param \core_kernel_classes_Class $resource Delivery instance
+     * @param array $values List of grups (uri)
+     * @return boolean 
+     */
+    private function saveGroups($resource, $values)
+    {
+        $property = new \core_kernel_classes_Property(PROPERTY_GROUP_DELVIERY);
+
+        $currentValues = array();
+        foreach ($property->getDomain() as $domain) {
+            $instances = $domain->searchInstances(array(
+                $property->getUri() => $resource
+            ), array('recursive' => true, 'like' => false));
+            $currentValues = array_merge($currentValues, array_keys($instances));
+        }
+
+        $toAdd = array_diff($values, $currentValues);
+        $toRemove = array_diff($currentValues, $values);
+
+        $success = true;
+        foreach ($toAdd as $uri) {
+            $subject = new \core_kernel_classes_Resource($uri);
+            $success = $success && $subject->setPropertyValue($property, $resource);
+        }
+
+        foreach ($toRemove as $uri) {
+            $subject = new \core_kernel_classes_Resource($uri);
+            $success = $success && $subject->removePropertyValue($property, $resource);
+        }
+
+        return $success;
     }
 }

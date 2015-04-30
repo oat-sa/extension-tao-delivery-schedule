@@ -22,7 +22,6 @@ namespace oat\taoDeliverySchedule\controller;
 
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\taoDeliverySchedule\form\WizardForm;
-use oat\taoDeliverySchedule\form\EditDeliveryForm;
 use oat\taoDeliverySchedule\model\DeliveryFactory;
 
 /**
@@ -44,36 +43,6 @@ class Main extends \tao_actions_SaSModule
     public function index()
     {
         $this->setView('Main/index.tpl');
-    }
-    
-    /**
-     * Edit a delivery instance
-     *
-     * @access public
-     * @author Aleh Hutnikau <hutnikau@1pt.com>
-     * @return void
-     */
-    public function editDelivery()
-    {
-        $clazz = $this->getCurrentClass();
-        $delivery = $this->getCurrentInstance();
-        
-        $form = new EditDeliveryForm($clazz, $delivery);
-        
-        $params = DeliveryScheduleService::singleton()->mapDeliveryProperties($this->getRequestParameters());
-        $form->setValues($params);
-        
-        if ($form->validate()) {
-            $propertyValues = $form->getValues();
-            // then save the property values as usual
-            $binder = new \tao_models_classes_dataBinding_GenerisFormDataBinder($delivery);
-            $delivery = $binder->bind($propertyValues);
-
-            header('Content-type: application/json');
-            echo json_encode(array('message'=>__('Delivery saved')));
-        }
-        
-        //TO DO send errors 
     }
     
     /**

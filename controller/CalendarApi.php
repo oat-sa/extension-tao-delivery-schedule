@@ -21,7 +21,7 @@
 namespace oat\taoDeliverySchedule\controller;
 
 use oat\taoDeliverySchedule\helper\ColorGenerator;
-
+use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 /**
  * Controller provides Rest API for getting deliveries.
  *
@@ -43,6 +43,9 @@ class CalendarApi extends \tao_actions_SaSModule
         switch ($this->getRequestMethod()) {
             case "GET":
                 $this->get();
+                break;
+            case "PUT":
+                $this->update();
                 break;
             throw new \common_exception_BadRequest("Only get allowed");
         }
@@ -86,6 +89,7 @@ class CalendarApi extends \tao_actions_SaSModule
             $classUri = key($delivery->getTypes());
             
             $rawResult = array(
+                'label' => $delivery->getLabel(),
                 'title' => $delivery->getLabel(),
                 'id' => \tao_helpers_Uri::encode($delivery->getUri()),
                 'uri' => $delivery->getUri(),
@@ -140,6 +144,44 @@ class CalendarApi extends \tao_actions_SaSModule
         isset($params['uri']) ? $result = current($result) : $result;
         echo json_encode($result);
     }
+    
+    /**
+     * Save a delivery instance
+     *
+     * @access public
+     * @author Aleh Hutnikau <hutnikau@1pt.com>
+     * @return void
+     */
+    public function update()
+    {
+        
+        parse_str(file_get_contents("php://input"), $data);
+        $params = DeliveryScheduleService::singleton()->mapDeliveryProperties($data);
+        if(empty($params['classUri'])){
+            throw new tao_models_classes_MissingRequestParameterException("classUri");
+        }
+        if(empty($params['uri'])){
+            throw new tao_models_classes_MissingRequestParameterException("uri");
+        }
+        
+        //$clazz =  new \core_kernel_classes_Class(\tao_helpers_Uri::decode($params['classUri']));
+        $delivery =  new \core_kernel_classes_Class(\tao_helpers_Uri::decode($params['uri']));
+        
+        $evaluatedParams = DeliveryScheduleService::singleton()->getEvaluatedParams($params);
+        
+        if (DeliveryScheduleService::singleton()->validate($evaluatedParams)) {
+            DeliveryScheduleService::singleton()->save($delivery, $evaluatedParams);
+
+            header('Content-type: application/json');
+            echo json_encode(array('message'=>__('Delivery saved')));
+            
+        } else {
+            //TO DO send errors 
+            header('HTTP/1.1 400');
+            echo json_encode(array('message'=>__('Delivery saved')));
+        }
+    }
+    
     
     /**
      * format date from Unix to ISO 8601 format

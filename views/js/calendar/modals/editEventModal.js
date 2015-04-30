@@ -25,16 +25,21 @@ define(
         'i18n',
         'generis.tree.select',
         'moment',
+        'taoDeliverySchedule/calendar/eventService',
         'taoDeliverySchedule/lib/qtip/jquery.qtip',
         'jqueryui'
     ],
-    function (_, $, modal, formTpl, __, GenerisTreeSelectClass, moment) {
+    function (_, $, modal, formTpl, __, GenerisTreeSelectClass, moment, eventService) {
         'use stirct';
         return function () {
             var that = this;
             
             modal.apply(this, arguments);
             
+            /**
+             * Initialization edit modal
+             * @returns {undefined}
+             */
             this.init = function () {
                 that.set({
                     'position.my'     : 'top center', 
@@ -48,6 +53,11 @@ define(
                 });
             };
             
+            /**
+             * Show edit delivery modal
+             * @param {object} options
+             * @param {string} options.uri Delivery uri
+             */
             this.show = function (options) {
                 this.callback('beforeShow');
                 $.ajax({
@@ -57,7 +67,6 @@ define(
                         uri : options.uri
                     },
                     success : function (response) {
-                        console.log(response);
                         var color = response.color || 'transparent';
                         
                         response.publishedFromatted = moment(response.published * 1000).format("YYYY-MM-DD HH:mm");
@@ -69,15 +78,49 @@ define(
                             'content.text'   : formTpl(response),
                             'content.title'  : response.title
                         });
+                        
                         that.modal.elements.titlebar.css({'border-bottom' : '2px solid ' + color});
                         that.modal.show();
                         
                         that.initDatepickers();
                         that.initGroupTree(response);
+                        that.initForm(response);
                     }
                 });
             };
             
+            /**
+             * Initialize form (bind validation on submit event etc.)
+             * @returns {undefined}
+             */
+            this.initForm = function () {
+                that.$form = that.modal.elements.content.find('.edit-delivery-form');
+                that.$form.on('submit', function () {
+                    if (that.validate()) {
+                        var data = that.getFormData(),
+                        fcEvent = eventService.getEventById(data.id);
+                        
+                        fcEvent.title = data.label;
+                        fcEvent.groups = data.groups;
+                        fcEvent.maxexec = data.maxexec;
+                        fcEvent.start = moment(data.start);
+                        fcEvent.end = moment(data.end);
+                        
+                        eventService.saveEvent(fcEvent, function () {
+                            that.hide();
+                        });
+                    }
+                    
+                    return false;
+                });
+            };
+            
+            /**
+             * Initialize test taker groups tress
+             * @param {object} options
+             * @param {array} options.groups List of group ids assigned to the delivery
+             * @returns {undefined}
+             */
             this.initGroupTree = function (options) {
                 that.groupTree = new GenerisTreeSelectClass('.js-groups', '/tao/GenerisTree/getData', {
                     checkedNodes: options.groups,
@@ -89,24 +132,24 @@ define(
                 });
             };
             
+            /**
+             * Initialize datepickers and timepickers.
+             * @returns {undefined}
+             */
             this.initDatepickers = function () {
-                var start = moment($('.js-delivery-start').val()),
-                    end = moment($('.js-delivery-end').val()),
+                var start = moment($('.js-delivery-start').val()).parseZone(),
+                    end = moment($('.js-delivery-end').val()).parseZone(),
                     timeList = [];
             
-                start.parseZone();
-                end.parseZone();
-                
                 for (var i = 0; i < 24; i++) {
                     var hour = (i < 10) ? ('0' + i) : i; 
-                    timeList.push(hour + ':00');
-                    timeList.push(hour + ':30');
+                    timeList.push(hour + ':00', hour + ':30');
                 }
                 
                 $('.js-delivery-start-date, .js-delivery-end-date').datepicker({
                     dateFormat : "yy-mm-dd",
                     beforeShow: function (textbox, instance) {
-                        $('#ui-datepicker-div').addClass('edit-delivery-form__datepicker');
+                        instance.dpDiv.addClass('edit-delivery-form__datepicker');
                     }
                 });
                 $('.js-delivery-start-date').datepicker('setDate', start.format('YYYY-MM-DD'));
@@ -122,10 +165,26 @@ define(
                     $(this).autocomplete("search");
                 });
                 
+                $('.js-delivery-start-time, .js-delivery-end-time').on('blur', function (e) {
+                    $(this).val($(this).val().substr(0,5));
+                });
+                
                 $('.js-delivery-start-time').val(start.format('HH:mm'));
                 $('.js-delivery-end-time').val(end.format('HH:mm'));
             };
             
+            this.updateDatetime = function () {
+                var startVal = $('.js-delivery-start-date').val() + ' ' + $('.js-delivery-start-time').val();
+                var endVal = $('.js-delivery-end-date').val() + ' ' + $('.js-delivery-end-time').val();
+                $('.js-delivery-start').val(startVal);
+                $('.js-delivery-end').val(endVal);
+            };
+            
+            /**
+             * Return message about the number of attempts. 
+             * @param {integer} executions Number of attempts
+             * @returns {string}
+             */
             this.getExecutionsMessage = function (executions) {
                 var message = __('No information available');
                 if(executions >= 0) {
@@ -138,6 +197,91 @@ define(
                     }
                 } 
                 return message;
+            };
+            
+            /**
+             * Validate form and mark/unmark error inputs.
+             * @returns {boolean} Whether the form is valid.
+             */
+            this.validate = function () {
+                var rules = {
+                    '.js-delivery-end-time, .js-delivery-start-time' : {
+                        validate : function () {
+                            return /^\d\d:\d\d$/.test($(this).val());
+                        },
+                        message : __('The format of time is invalid')
+                    },
+                    '.js-delivery-end-date, .js-delivery-start-date' : {
+                        validate : function () {
+                            return /^\d\d\d\d-\d\d-\d\d$/.test($(this).val());
+                        },
+                        message : __('The format of date is invalid')
+                    },
+                    '[name="label"]' : {
+                        validate : function () {
+                            return $(this).val().length !== 0;
+                        },
+                        message : __('This field is required')
+                    },
+                    '[name="maxexec"]' : {
+                        validate : function () {
+                            return /^\d*$/.test($(this).val());
+                        },
+                        message : __('Value must be a number')
+                    }           
+                },
+                formIsValid = true;
+                
+                that.updateDatetime();
+                
+                for (var selector in rules) {
+                    $(selector).removeClass('error');
+                    if ($(selector).data('qtip')) {
+                        $(selector).qtip('disable', true);
+                    }
+                }
+                
+                for (var selector in rules) {
+                    if ($(selector).length) {
+                        $(selector).each(function () {
+                            var valid = rules[selector].validate.apply(this);
+                            if (!valid) {
+                                if (!$(this).data('qtip')) {
+                                    $(this).qtip({
+                                        content: {
+                                            text: rules[selector].message
+                                        },
+                                        position: {
+                                            target: 'mouse', // Track the mouse as the positioning target
+                                            adjust: { x: 5, y: 5 } // Offset it slightly from under the mouse
+                                        }
+                                    });
+                                } else {
+                                    $(this).qtip('content.text', rules[selector].message);
+                                    $(selector).qtip('disable', false);
+                                }
+
+                                $(this).addClass('error');
+                            }
+                            formIsValid = formIsValid && valid;
+                        });
+                    }
+                }
+                
+                return formIsValid;
+            };
+            
+            /**
+             * Convert form data to JS object
+             * @returns {object} form data
+             */
+            this.getFormData = function () {
+                var data = {};
+                that.updateDatetime();
+                that.$form.serializeArray().map(function(x){data[x.name] = x.value;});
+                data.groups = that.groupTree.getChecked();
+                
+                return data;
             };
             
             this.init();

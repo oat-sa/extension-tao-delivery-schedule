@@ -50,7 +50,6 @@ define(
                 };
                 that.tooltip.set({
                     'position.target' : options.target || options.e.target
-//                    'position.adjust.y' : options.e.offsetY || 
                 });
                 
                 $.ajax({
@@ -98,7 +97,7 @@ define(
                 var $form = that.getForm();
                 eventService.createEvent({
                     url     : $form.attr('action'),
-                    data    : that.getFromData()
+                    data    : that.getFormData()
                 });
                 that.hide();
             };
@@ -115,7 +114,7 @@ define(
              * Convert form data to JS object
              * @returns {object} form data
              */
-            this.getFromData = function () {
+            this.getFormData = function () {
                 var data = {},
                     $form = that.getForm();
                 $form.serializeArray().map(function(x){data[x.name] = x.value;});

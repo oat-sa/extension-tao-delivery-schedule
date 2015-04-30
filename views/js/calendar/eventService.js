@@ -22,15 +22,16 @@ define(
         'jquery',
         'ui/feedback',
         'uri',
-        'layout/actions',
+        'layout/actions'
     ],
     function (_, $, feedback, uri, actionManager) {
         'use stirct';
         var instance = null;
         
-        function EventService() {
+        function EventService(calendar) {
             var that = this,
                 $treeElt = $('#tree-manage_delivery_schedule'),
+                $calendar = $('.js-delivery-calendar'),
                 tree = $.tree.reference($treeElt);
             
             if (instance !== null) {
@@ -38,6 +39,10 @@ define(
             }
             
             this.idAttrPrefix = 'fc_event_id_';
+            
+            this.getEventById = function () {
+                //c.fullCalendar( 'clientEvents', id);
+            };
             
             /**
              * Create new event
@@ -57,7 +62,6 @@ define(
              * @returns {undefined}
              */
             this.createEvent = function (options) {
-                console.log(options);
                 $.ajax({
                     url     : options.url,
                     type    : 'POST',
@@ -96,7 +100,7 @@ define(
              *          </pre>
              * @returns {undefined}
              */
-            this.saveEvent = function (fcEvent) {
+            this.saveEvent = function (fcEvent, callback) {
                 var data = {
                     label : fcEvent.title,
                     classUri : fcEvent.classUri,
@@ -106,12 +110,26 @@ define(
                     end : fcEvent.end.format('YYYY-MM-DD HH:mm')
                 };
                 
+                if (fcEvent.groups && _.isArray(fcEvent.groups)) {
+                    data.groups = fcEvent.groups;
+                }
+                if (fcEvent.maxexec !== undefined) {
+                    data.maxexec = fcEvent.maxexec;
+                }
+                
                 $.ajax({
-                    url     : '/taoDeliverySchedule/Main/editDelivery',
-                    type    : 'POST',
+                    url     : '/taoDeliverySchedule/CalendarApi',
+                    type    : 'PUT',
                     data    : data,
                     success : function (response) {
                         feedback().info(response.message);
+                        that.loadEvent(fcEvent.id, function (eventData) {
+                            $calendar.fullCalendar('updateEvent', fcEvent);
+                            
+                            if (typeof callback === 'function') {
+                                callback(eventData);
+                            }
+                        });
                     },
                     error   : function (xhr, err) {
                         feedback().warning('Something went wrong');
@@ -180,6 +198,19 @@ define(
                         }
                     }
                 });
+            };
+            
+            /**
+             * Get FullCalendar event object
+             * @param {string} id Event id. If paraneter is not given all event will be returned.
+             * @returns {object|array} FullCalendar event (@see http://fullcalendar.io/docs/event_data/Event_Object) or array of events
+             */
+            this.getEventById = function (id) {
+                var events = $calendar.fullCalendar('clientEvents', id);
+                if (events.length === 1) {
+                    return events[0];
+                }
+                return events;
             };
             
             /**

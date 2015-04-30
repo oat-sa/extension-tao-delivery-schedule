@@ -50,14 +50,14 @@ class DeliveryScheduleServiceTest extends TaoPhpUnitTestRunner
             'end' => '2015-04-14 00:00',
         );
         
-        $labelEncoded = \tao_helpers_Uri::encode(RDFS_LABEL);
-        $startEncoded = \tao_helpers_Uri::encode(TAO_DELIVERY_START_PROP);
-        $endEncoded = \tao_helpers_Uri::encode(TAO_DELIVERY_END_PROP);
+        $label = RDFS_LABEL;
+        $start = TAO_DELIVERY_START_PROP;
+        $end = TAO_DELIVERY_END_PROP;
         
         $properties = $service->mapDeliveryProperties($data);
-        $this->assertTrue(isset($properties[$labelEncoded]) && $properties[$labelEncoded] === 'Delivery label');
-        $this->assertTrue(isset($properties[$startEncoded]) && $properties[$startEncoded] === '2015-04-13 00:00');
-        $this->assertTrue(isset($properties[$endEncoded]) && $properties[$endEncoded] === '2015-04-14 00:00');
+        $this->assertTrue(isset($properties[$label]) && $properties[$label] === 'Delivery label');
+        $this->assertTrue(isset($properties[$start]) && $properties[$start] === '2015-04-13 00:00');
+        $this->assertTrue(isset($properties[$end]) && $properties[$end] === '2015-04-14 00:00');
         
         $reverceProperties = $service->mapDeliveryProperties($properties, true);
         
