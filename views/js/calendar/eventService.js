@@ -88,26 +88,27 @@ define(
              * @param {object} options
              * @property {string} options.url Url address to creaet new event
              * @property {string} options.data Event data. Example:
-             *          <pre>
-             *          {
-             *             classUri: "http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery",
-             *             start: "2015-04-17 00:00"
-             *             end: "2015-04-18 00:00",
-             *             label: "Delivery label",
-             *             uri: "http_2_sample_1_first_0_rdf_3_i14301245512201554",
-             *             id: "http://sample/first.rdf#i14301245512201554"
-             *          }
-             *          </pre>
+             *      <pre>
+             *      {
+             *         classUri: "http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery",
+             *         start: "2015-04-17 00:00"
+             *         end: "2015-04-18 00:00",
+             *         label: "Delivery label",
+             *         uri: "http_2_sample_1_first_0_rdf_3_i14301245512201554",
+             *         id: "http://sample/first.rdf#i14301245512201554"
+             *      }
+             *      </pre>
              * @returns {undefined}
              */
             this.saveEvent = function (fcEvent, callback) {
                 var data = {
-                    label : fcEvent.title,
+                    label : fcEvent.label ? fcEvent.label : fcEvent.title,
                     classUri : fcEvent.classUri,
                     id : fcEvent.id,
                     uri : fcEvent.uri,
-                    start : fcEvent.start.format('YYYY-MM-DD HH:mm'),
-                    end : fcEvent.end.format('YYYY-MM-DD HH:mm')
+                    resultserver : fcEvent.resultserver,
+                    start : fcEvent.start.clone().add(fcEvent.start._tzm, 'm').format('YYYY-MM-DD HH:mm'),
+                    end : fcEvent.end.clone().add(fcEvent.end._tzm, 'm').format('YYYY-MM-DD HH:mm')
                 };
                 
                 if (fcEvent.groups && _.isArray(fcEvent.groups)) {
@@ -124,8 +125,8 @@ define(
                     success : function (response) {
                         feedback().info(response.message);
                         that.loadEvent(fcEvent.id, function (eventData) {
-                            $calendar.fullCalendar('updateEvent', fcEvent);
-                            
+                            $calendar.fullCalendar('removeEvents', fcEvent.id);
+                            $calendar.fullCalendar('renderEvent', eventData);
                             if (typeof callback === 'function') {
                                 callback(eventData);
                             }

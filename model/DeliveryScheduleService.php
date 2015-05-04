@@ -28,7 +28,8 @@ namespace oat\taoDeliverySchedule\model;
  */
 class DeliveryScheduleService extends \tao_models_classes_Service
 {
-    
+    const TAO_DELIVERY_RRULE_PROP = 'http://www.tao.lu/Ontologies/TAODelivery.rdf#RecurrenceRule';
+
     /**
      * Change array keys in accordance with RDF properties.
      * Example:
@@ -57,7 +58,8 @@ class DeliveryScheduleService extends \tao_models_classes_Service
             TAO_DELIVERY_START_PROP => 'start', 
             TAO_DELIVERY_END_PROP => 'end',
             TAO_DELIVERY_MAXEXEC_PROP => 'maxexec',
-            TAO_DELIVERY_RESULTSERVER_PROP => 'resultserver'
+            TAO_DELIVERY_RESULTSERVER_PROP => 'resultserver',
+            self::TAO_DELIVERY_RRULE_PROP => 'rrule'
         );
         
         foreach ($data as $key => $val) {
@@ -100,7 +102,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      */
     public function getEvaluatedParams($params)
     {
-        $tz = new \DateTimeZone(\common_session_SessionManager::getSession()->getTimeZone());
+        $tz = new \DateTimeZone('UTC');
         if (isset($params[TAO_DELIVERY_START_PROP])) {
             $dt = new \DateTime($params[TAO_DELIVERY_START_PROP], $tz);
             $params[TAO_DELIVERY_START_PROP] = (string) $dt->getTimestamp();
@@ -148,6 +150,37 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     }
     
     /**
+     * Function generates array of time zones
+     * 
+     * @return array Example:
+     *         <pre>
+     *         array(
+     *           array('label' => 'Antarctica/McMurdo', 'value' => -720),
+     *           ...
+     *           array('label' => 'Pacific/Kiritimati', 'value' => 840)
+     *         )
+     *         </pre>
+     */
+    public function getTimeZones()
+    {
+        $results = array();
+        $now = new \DateTime("now", new \DateTimeZone('UTC'));
+        foreach (\DateTimeZone::listIdentifiers() as $key) {
+            $timezone = new \DateTimeZone($key);
+            
+            $offset = ($timezone->getOffset($now) / 60);
+            if ($offset == 0) {
+                $offset = '0000';
+            }
+            $results[] = array(
+                'label' => $key,
+                'value' => $offset
+            );
+        }
+        return array_values($results);
+    }
+    
+    /**
      * Save delivery groups.
      * 
      * @param \core_kernel_classes_Class $resource Delivery instance
@@ -182,4 +215,5 @@ class DeliveryScheduleService extends \tao_models_classes_Service
 
         return $success;
     }
+    
 }

@@ -301,7 +301,6 @@ define(
             };
             
             this.showEditForm = function (context) {
-                console.log(context);
                 this.hideTooltips();
                 editEventModal.show(context);
             };

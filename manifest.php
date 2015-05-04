@@ -36,7 +36,11 @@ return array(
         array('grant', 'http://www.tao.lu/Ontologies/TAODelivery.rdf#DeliveryManagerRole', array('ext'=>'taoDeliverySchedule'))
     ),
     'models' => array(),
-    'install' => array(),
+    'install' => array(
+        'rdf' => array(
+            dirname(__FILE__). '/scripts/install/deliverySchedule.rdf',
+        ),
+    ),
     'autoload' => array(
         'psr-4' => array(
             'oat\\taoDeliverySchedule\\' => dirname(__FILE__).DIRECTORY_SEPARATOR

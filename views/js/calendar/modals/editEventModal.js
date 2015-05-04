@@ -21,11 +21,12 @@ define(
         'lodash',
         'jquery',
         'taoDeliverySchedule/calendar/modals/modal',
-        'tpl!/taoDeliverySchedule/views/templates/editDeliveryForm',
+        'tpl!/taoDeliverySchedule/main/editDeliveryForm?noext', //load template from controller action. (noext extension may be useful here)
         'i18n',
         'generis.tree.select',
         'moment',
         'taoDeliverySchedule/calendar/eventService',
+        'taoDeliverySchedule/lib/jquery.serialize-object.min',
         'taoDeliverySchedule/lib/qtip/jquery.qtip',
         'jqueryui'
     ],
@@ -35,6 +36,17 @@ define(
             var that = this;
             
             modal.apply(this, arguments);
+            
+            function pad(value) {
+                return value < 10 ? '0' + value : value;
+            }
+            function createOffset(val) {
+                var sign = (offset > 0) ? "-" : "+";
+                var offset = Math.abs(val);
+                var hours = pad(Math.floor(offset / 60));
+                var minutes = pad(offset % 60);
+                return sign + hours + ":" + minutes;
+            }    
             
             /**
              * Initialization edit modal
@@ -93,18 +105,22 @@ define(
              * Initialize form (bind validation on submit event etc.)
              * @returns {undefined}
              */
-            this.initForm = function () {
+            this.initForm = function (data) {
                 that.$form = that.modal.elements.content.find('.edit-delivery-form');
+                
+                if (data.resultserver) {
+                    that.$form.find('select[name="resultserver"] option[value="' + data.resultserver + '"]').attr('selected', 'selected');
+                }
+                
                 that.$form.on('submit', function () {
                     if (that.validate()) {
                         var data = that.getFormData(),
                         fcEvent = eventService.getEventById(data.id);
                         
-                        fcEvent.title = data.label;
-                        fcEvent.groups = data.groups;
-                        fcEvent.maxexec = data.maxexec;
-                        fcEvent.start = moment(data.start);
-                        fcEvent.end = moment(data.end);
+                        _.assign(fcEvent, data);
+                        
+                        fcEvent.start = $.fullCalendar.moment.parseZone(data.start);
+                        fcEvent.end = $.fullCalendar.moment.parseZone(data.end);
                         
                         eventService.saveEvent(fcEvent, function () {
                             that.hide();
@@ -113,6 +129,14 @@ define(
                     
                     return false;
                 });
+                
+                $('.js-repeat-toggle')
+                    .prop('checked', data.recurring)
+                    .on('change', function () {
+                        $('.repeat-event-table').toggle($(this).is(':checked'));
+                    })
+                    .trigger('change');
+                
             };
             
             /**
@@ -173,11 +197,27 @@ define(
                 $('.js-delivery-end-time').val(end.format('HH:mm'));
             };
             
+            /**
+             * Parse date, time and timezone inputs and set time value in UTC timezone to hiddent inputs 
+             * that will be sent to the server.
+             * @returns {undefined}
+             */
             this.updateDatetime = function () {
-                var startVal = $('.js-delivery-start-date').val() + ' ' + $('.js-delivery-start-time').val();
-                var endVal = $('.js-delivery-end-date').val() + ' ' + $('.js-delivery-end-time').val();
-                $('.js-delivery-start').val(startVal);
-                $('.js-delivery-end').val(endVal);
+                var timezone = $('.js-delivery-time-zone').val(),
+                    startVal = $('.js-delivery-start-date').val() 
+                               + ' ' + $('.js-delivery-start-time').val() 
+                               + ' ' + createOffset(timezone),
+                    endVal =   $('.js-delivery-end-date').val() 
+                               + ' ' + $('.js-delivery-end-time').val()
+                               + ' ' + createOffset(timezone),
+                    startMoment = moment(startVal),
+                    endMoment = moment(endVal);
+            
+                startMoment.parseZone();
+                endMoment.parseZone();
+                
+                $('.js-delivery-start').val(startMoment.format('YYYY-MM-DDTHH:mm:ssZZ'));
+                $('.js-delivery-end').val(endMoment.format('YYYY-MM-DDTHH:mm:ssZZ'));
             };
             
             /**
@@ -217,33 +257,35 @@ define(
                         },
                         message : __('The format of date is invalid')
                     },
-                    '[name="label"]' : {
+                    'js-label' : {
                         validate : function () {
                             return $(this).val().length !== 0;
                         },
                         message : __('This field is required')
                     },
-                    '[name="maxexec"]' : {
+                    '.js-maxexec' : {
                         validate : function () {
                             return /^\d*$/.test($(this).val());
                         },
                         message : __('Value must be a number')
                     }           
                 },
-                formIsValid = true;
+                formIsValid = true,
+                $elements;
                 
                 that.updateDatetime();
                 
                 for (var selector in rules) {
-                    $(selector).removeClass('error');
+                    that.$form.find(selector).removeClass('error');
                     if ($(selector).data('qtip')) {
                         $(selector).qtip('disable', true);
                     }
                 }
                 
                 for (var selector in rules) {
-                    if ($(selector).length) {
-                        $(selector).each(function () {
+                    $elements = that.$form.find(selector);
+                    if ($elements.length) {
+                        $elements.each(function () {
                             var valid = rules[selector].validate.apply(this);
                             if (!valid) {
                                 if (!$(this).data('qtip')) {
@@ -258,7 +300,7 @@ define(
                                     });
                                 } else {
                                     $(this).qtip('content.text', rules[selector].message);
-                                    $(selector).qtip('disable', false);
+                                    $(this).qtip('disable', false);
                                 }
 
                                 $(this).addClass('error');
@@ -278,9 +320,8 @@ define(
             this.getFormData = function () {
                 var data = {};
                 that.updateDatetime();
-                that.$form.serializeArray().map(function(x){data[x.name] = x.value;});
+                data = that.$form.serializeObject();
                 data.groups = that.groupTree.getChecked();
-                
                 return data;
             };
             

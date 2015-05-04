@@ -135,6 +135,9 @@ class CalendarApi extends \tao_actions_SaSModule
                 
                 //Max. number of executions
                 $rawResult['maxexec'] = (string) $delivery->getOnePropertyValue(new \core_kernel_classes_Property(TAO_DELIVERY_MAXEXEC_PROP));
+                
+                //Result server
+                $rawResult['resultserver'] = (string) $delivery->getOnePropertyValue(new \core_kernel_classes_Property(TAO_DELIVERY_RESULTSERVER_PROP));
             }
             
             $result[] = $rawResult;
@@ -146,17 +149,18 @@ class CalendarApi extends \tao_actions_SaSModule
     }
     
     /**
-     * Save a delivery instance
-     *
+     * Save a delivery instance.
+     * Note: <b>start</b> and <b>start</b> parameters must be in UTC timezone.
+     * 
      * @access public
      * @author Aleh Hutnikau <hutnikau@1pt.com>
      * @return void
      */
     public function update()
     {
-        
         parse_str(file_get_contents("php://input"), $data);
         $params = DeliveryScheduleService::singleton()->mapDeliveryProperties($data);
+        
         if(empty($params['classUri'])){
             throw new tao_models_classes_MissingRequestParameterException("classUri");
         }
@@ -181,7 +185,6 @@ class CalendarApi extends \tao_actions_SaSModule
             echo json_encode(array('message'=>__('Delivery saved')));
         }
     }
-    
     
     /**
      * format date from Unix to ISO 8601 format

@@ -22,6 +22,7 @@ namespace oat\taoDeliverySchedule\controller;
 
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\taoDeliverySchedule\form\WizardForm;
+use oat\taoDeliverySchedule\form\EditDeliveryForm;
 use oat\taoDeliverySchedule\model\DeliveryFactory;
 
 /**
@@ -42,11 +43,14 @@ class Main extends \tao_actions_SaSModule
      */
     public function index()
     {
+        $this->setData('time-zone-name', \common_session_SessionManager::getSession()->getTimeZone());
+        
         $this->setView('Main/index.tpl');
     }
     
     /**
      * Create new delivery
+     * TODO - remove to oat\taoDeliverySchedule\controller\CalendarApi (create method)
      * 
      * @access public
      * @author Aleh Hutnikau <hutnikau@1pt.com>
@@ -88,4 +92,15 @@ class Main extends \tao_actions_SaSModule
         }
     }
     
+    public function editDeliveryForm() {
+        $clazz = new \core_kernel_classes_Class(CLASS_COMPILEDDELIVERY);
+        
+        $formContainer = new EditDeliveryForm($clazz);
+        $myForm = $formContainer->getForm();
+        
+        $this->setData('form', $myForm);
+        $this->setData('userTimeZone', \common_session_SessionManager::getSession()->getTimeZone());
+        $this->setData('timeZones', DeliveryScheduleService::singleton()->getTimeZones());
+        $this->setView('editDeliveryForm.tpl');
+    }
 }

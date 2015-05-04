@@ -62,7 +62,10 @@ define(
                     unselectAuto : false,
                     height : getCalendarHeight(),
                     eventLimit : false, // allow "more" link when too many events
-                    select : _.noop
+                    select : _.noop,
+                    timezone : options.$container.data('time-zone-name'),
+                    timeFormat: 'H:mm',
+                    axisFormat: 'HH:mm'
                 };
                 options = _.assign(defaultOptions, options);
                 options.$container.fullCalendar(options);
