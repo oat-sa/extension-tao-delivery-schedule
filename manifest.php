@@ -23,7 +23,7 @@ return array(
     'label' => 'Delivery schedule',
     'description' => 'An extension is used to visualize the delivery schedule in the form of a calendar.',
     'license' => 'GPL-2.0',
-    'version' => '0.1',
+    'version' => '0.1.1',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'tao' => '>=2.7.3',
@@ -41,6 +41,7 @@ return array(
             dirname(__FILE__). '/scripts/install/deliverySchedule.rdf',
         ),
     ),
+    'update' => 'oat\\taoDeliverySchedule\\scripts\\update\\Updater',
     'autoload' => array(
         'psr-4' => array(
             'oat\\taoDeliverySchedule\\' => dirname(__FILE__).DIRECTORY_SEPARATOR

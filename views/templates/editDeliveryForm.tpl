@@ -75,6 +75,7 @@ $userTimeZone = get_data('userTimeZone');
                                     <label class="form_desc">{{__ 'Repeats'}}</label>
                                 </td>
                                 <td>
+                                    <input name="rrule[value]" type="hidden" value="{{rrule}}">
                                     <select name="rrule[freq]">
                                         <option value="daily" title="Daily">Daily</option>
                                         <option value="weekly" title="Weekly">Weekly</option>
@@ -122,7 +123,7 @@ $userTimeZone = get_data('userTimeZone');
                                     </select>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr class="js-byday-row">
                                 <td>
                                     <label class="form_desc">{{__ 'Repeat on'}}</label>
                                 </td>
@@ -130,47 +131,62 @@ $userTimeZone = get_data('userTimeZone');
                                     <div>
                                         <span>
                                             <label title="Monday">
+                                                <input name="rrule[byday][MO]" value="0" type="hidden" title="{{__ 'Monday'}}">
                                                 <input name="rrule[byday][MO]" value="1" type="checkbox" title="{{__ 'Monday'}}">
                                                 Mo
                                             </label>
                                         </span>
                                         <span>
                                             <label title="Tuesday">
+                                                <input name="rrule[byday][TU]" value="0" type="hidden" title="{{__ 'Monday'}}">
                                                 <input name="rrule[byday][TU]" value="1" type="checkbox" title="{{__ 'Tuesday'}}">
                                                 Tu
                                             </label>
                                         </span>
                                         <span>
                                             <label title="Wednesday">
+                                                <input name="rrule[byday][WE]" value="0" type="hidden" title="{{__ 'Monday'}}">
                                                 <input name="rrule[byday][WE]" value="1" type="checkbox" title="{{__ 'Wednesday'}}">
                                                 We
                                             </label>
                                         </span>
                                         <span>
                                             <label title="Thursday">
+                                                <input name="rrule[byday][TH]" value="0" type="hidden" title="{{__ 'Monday'}}">
                                                 <input name="rrule[byday][TH]" value="1" type="checkbox" title="{{__ 'Thursday'}}">
                                                 Th
                                             </label>
                                         </span>
                                         <span>
                                             <label title="Friday">
+                                                <input name="rrule[byday][FR]" value="0" type="hidden" title="{{__ 'Monday'}}">
                                                 <input name="rrule[byday][FR]" value="1" type="checkbox" title="{{__ 'Friday'}}">
                                                 Fr
                                             </label>
                                         </span>
                                         <span>
                                             <label title="Saturday">
+                                                <input name="rrule[byday][SA]" value="0" type="hidden" title="{{__ 'Monday'}}">
                                                 <input name="rrule[byday][SA]" value="1" type="checkbox" title="{{__ 'Saturday'}}">
                                                 Sa
                                             </label>
                                         </span>
                                         <span>
                                             <label title="Sunday">
+                                                <input name="rrule[byday][SU]" value="0" type="hidden" title="{{__ 'Monday'}}">
                                                 <input name="rrule[byday][SU]" value="1" type="checkbox" title="{{__ 'Sunday'}}">
                                                 Su
                                             </label>
                                         </span>
                                     </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label class="form_desc">{{__ 'Count'}}</label>
+                                </td>
+                                <td>
+                                    <input name="rrule[count]" value="1" type="text" title="{{__ 'Count'}}">
                                 </td>
                             </tr>
                         </table>

@@ -20,6 +20,8 @@
 
 namespace oat\taoDeliverySchedule\form;
 
+use oat\taoDeliverySchedule\model\DeliveryScheduleService;
+
 /**
  * @access public
  * @package taoDeliverySchedule
@@ -70,6 +72,12 @@ class EditDeliveryForm extends \tao_actions_form_Instance
                 \tao_helpers_form_FormFactory::getValidator('NotEmpty')
             ));
             $this->form->addElement($resultServerElt);
+        }
+        
+        $recurrenceRuleElt = $this->form->getElement(\tao_helpers_Uri::encode(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP));
+        if ($recurrenceRuleElt !== null) {
+            $recurrenceRuleElt->setName('rrule');
+            $this->form->addElement($recurrenceRuleElt);
         }
     }
 }

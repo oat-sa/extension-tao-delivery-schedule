@@ -86,6 +86,8 @@ define(
                         response.ttexcludedMessage = response.ttexcluded.length ? __('%d test-taker(s) are excluded', String(response.ttexcluded.length)) : '';
                         response.ttassignedMessage = response.ttassigned.length ? __('Delivery is assigned to %d test-takers', String(response.ttassigned.length)) : '';
                         
+                        //response.rrule = 'FREQ=weekly;INTERVAL=2;BYDAY=MO,WE,TH;COUNT=5'; //TODO REMOVE
+                        
                         that.modal.set({
                             'content.text'   : formTpl(response),
                             'content.title'  : response.title
@@ -122,6 +124,9 @@ define(
                         fcEvent.start = $.fullCalendar.moment.parseZone(data.start);
                         fcEvent.end = $.fullCalendar.moment.parseZone(data.end);
                         
+                        //console.log(data);
+                        //return false;
+                        
                         eventService.saveEvent(fcEvent, function () {
                             that.hide();
                         });
@@ -130,13 +135,20 @@ define(
                     return false;
                 });
                 
+                that.parseRrule();
+                
                 $('.js-repeat-toggle')
-                    .prop('checked', data.recurring)
+                    .prop('checked', data.rrule)
                     .on('change', function () {
                         $('.repeat-event-table').toggle($(this).is(':checked'));
                     })
                     .trigger('change');
-                
+            
+                $('[name="rrule[freq]"]')
+                    .on('change', function () {
+                        $('.js-byday-row').toggle($(this).val() === 'weekly');
+                    })
+                    .trigger('change');
             };
             
             /**
@@ -218,6 +230,60 @@ define(
                 
                 $('.js-delivery-start').val(startMoment.format('YYYY-MM-DDTHH:mm:ssZZ'));
                 $('.js-delivery-end').val(endMoment.format('YYYY-MM-DDTHH:mm:ssZZ'));
+            };
+            
+            /**
+             * Parse recurence rule params and store processed value in hidden input
+             * that will be sent to the server.
+             * @returns {string} recurrence rule
+             */
+            this.updateRrule = function () {
+                var value = '',
+                    data = that.$form.serializeObject(),
+                    days = [];
+                
+                if ($('.js-repeat-toggle').is(':checked')) {
+                    value += 'FREQ=' + data.rrule.freq;
+                    value += ';INTERVAL=' + data.rrule.interval;
+                    
+                    if (data.rrule.freq === 'weekly') {
+                        $.each(data.rrule.byday, function (key, val) {
+                            if (val === '1') {
+                                days.push(key);
+                            }
+                        });
+                        value += ';BYDAY=' + (days.join(','));
+                    }
+                    
+                    value += ';COUNT=' + data.rrule.count;
+                } else {
+                    value = '0';
+                }
+                $('[name="rrule[value]"]').val(value);
+                
+                return value;
+            };
+            
+            /**
+             * Function parse rrule and populate inputs by appropriate values.
+             * @returns {undefined}
+             */
+            this.parseRrule = function () {
+                var rule = $('[name="rrule[value]"]').val(),
+                    days,
+                    values = rule.split(';');
+            
+                $.each(values, function (key, value) {
+                    value = value.split('=');
+                    if (value[0].toLowerCase() !== 'byday') {
+                        $('[name="rrule[' + value[0].toLowerCase() + ']"]').val(value[1]);
+                    } else {
+                        days = value[1].split(',');
+                        $.each(days, function (dayNum, day) {
+                            $('[name="rrule[byday][' + day + ']"]').prop('checked', true);
+                        });
+                    }
+                });
             };
             
             /**
@@ -320,6 +386,7 @@ define(
             this.getFormData = function () {
                 var data = {};
                 that.updateDatetime();
+                that.updateRrule();
                 data = that.$form.serializeObject();
                 data.groups = that.groupTree.getChecked();
                 return data;
