@@ -1,6 +1,15 @@
 <?php  
 $timeZones = get_data('timeZones');
 $userTimeZone = get_data('userTimeZone');
+$days = array(
+    'MO' => 'Monday',
+    'TU' => 'Tuesday',
+    'WE' => 'Wednesday',
+    'TH' => 'Thursday',
+    'FR' => 'Friday',
+    'SA' => 'Saturday',
+    'SU' => 'Sunday',
+);
 ?>
 <span class="event-tooltip__close js-close icon icon-result-nok"></span>
 <div>
@@ -75,12 +84,12 @@ $userTimeZone = get_data('userTimeZone');
                                     <label class="form_desc">{{__ 'Repeats'}}</label>
                                 </td>
                                 <td>
-                                    <input name="rrule[value]" type="hidden" value="{{rrule}}">
+                                    <input name="recurrence" type="hidden" value="{{rrule}}">
                                     <select name="rrule[freq]">
-                                        <option value="daily" title="Daily">Daily</option>
-                                        <option value="weekly" title="Weekly">Weekly</option>
-                                        <option value="monthly" title="Monthly">Monthly</option>
-                                        <option value="yearly" title="Yearly">Yearly</option>
+                                        <option value="3" title="<?= __('Daily') ?>"><?= __('Daily') ?></option>
+                                        <option value="2" title="<?= __('Weekly') ?>"><?= __('Weekly') ?></option>
+                                        <option value="1" title="<?= __('Monthly') ?>"><?= __('Monthly') ?></option>
+                                        <option value="0" title="<?= __('Yearly') ?>"><?= __('Yearly') ?></option>
                                     </select>
                                 </td>
                             </tr>
@@ -90,36 +99,9 @@ $userTimeZone = get_data('userTimeZone');
                                 </td>
                                 <td>
                                     <select name="rrule[interval]">
-                                        <option value="1">1</option>
-                                        <option value="2">2</option>
-                                        <option value="3">3</option>
-                                        <option value="4">4</option>
-                                        <option value="5">5</option>
-                                        <option value="6">6</option>
-                                        <option value="7">7</option>
-                                        <option value="8">8</option>
-                                        <option value="9">9</option>
-                                        <option value="10">10</option>
-                                        <option value="11">11</option>
-                                        <option value="12">12</option>
-                                        <option value="13">13</option>
-                                        <option value="14">14</option>
-                                        <option value="15">15</option>
-                                        <option value="16">16</option>
-                                        <option value="17">17</option>
-                                        <option value="18">18</option>
-                                        <option value="19">19</option>
-                                        <option value="20">20</option>
-                                        <option value="21">21</option>
-                                        <option value="22">22</option>
-                                        <option value="23">23</option>
-                                        <option value="24">24</option>
-                                        <option value="25">25</option>
-                                        <option value="26">26</option>
-                                        <option value="27">27</option>
-                                        <option value="28">28</option>
-                                        <option value="29">29</option>
-                                        <option value="30">30</option>
+                                        <?php for ($i = 1; $i <= 30; $i++): ?>
+                                        <option value="<?= $i ?>"><?= $i ?></option>
+                                        <?php endfor; ?>
                                     </select>
                                 </td>
                             </tr>
@@ -129,55 +111,20 @@ $userTimeZone = get_data('userTimeZone');
                                 </td>
                                 <td>
                                     <div>
+                                        <?php 
+                                        $i = 0;
+                                        foreach ($days as $abbr => $name): 
+                                        ?>
                                         <span>
-                                            <label title="Monday">
-                                                <input name="rrule[byday][MO]" value="0" type="hidden" title="{{__ 'Monday'}}">
-                                                <input name="rrule[byday][MO]" value="1" type="checkbox" title="{{__ 'Monday'}}">
-                                                Mo
+                                            <label title="<?= __($name) ?>">
+                                                <input name="rrule[byweekday][]" value="<?= $i ?>" type="checkbox" title="{{<?= __($name) ?>}}">
+                                                <?= $abbr ?>
                                             </label>
                                         </span>
-                                        <span>
-                                            <label title="Tuesday">
-                                                <input name="rrule[byday][TU]" value="0" type="hidden" title="{{__ 'Monday'}}">
-                                                <input name="rrule[byday][TU]" value="1" type="checkbox" title="{{__ 'Tuesday'}}">
-                                                Tu
-                                            </label>
-                                        </span>
-                                        <span>
-                                            <label title="Wednesday">
-                                                <input name="rrule[byday][WE]" value="0" type="hidden" title="{{__ 'Monday'}}">
-                                                <input name="rrule[byday][WE]" value="1" type="checkbox" title="{{__ 'Wednesday'}}">
-                                                We
-                                            </label>
-                                        </span>
-                                        <span>
-                                            <label title="Thursday">
-                                                <input name="rrule[byday][TH]" value="0" type="hidden" title="{{__ 'Monday'}}">
-                                                <input name="rrule[byday][TH]" value="1" type="checkbox" title="{{__ 'Thursday'}}">
-                                                Th
-                                            </label>
-                                        </span>
-                                        <span>
-                                            <label title="Friday">
-                                                <input name="rrule[byday][FR]" value="0" type="hidden" title="{{__ 'Monday'}}">
-                                                <input name="rrule[byday][FR]" value="1" type="checkbox" title="{{__ 'Friday'}}">
-                                                Fr
-                                            </label>
-                                        </span>
-                                        <span>
-                                            <label title="Saturday">
-                                                <input name="rrule[byday][SA]" value="0" type="hidden" title="{{__ 'Monday'}}">
-                                                <input name="rrule[byday][SA]" value="1" type="checkbox" title="{{__ 'Saturday'}}">
-                                                Sa
-                                            </label>
-                                        </span>
-                                        <span>
-                                            <label title="Sunday">
-                                                <input name="rrule[byday][SU]" value="0" type="hidden" title="{{__ 'Monday'}}">
-                                                <input name="rrule[byday][SU]" value="1" type="checkbox" title="{{__ 'Sunday'}}">
-                                                Su
-                                            </label>
-                                        </span>
+                                        <?php
+                                            $i++;
+                                            endforeach; 
+                                        ?>
                                     </div>
                                 </td>
                             </tr>
