@@ -77,7 +77,8 @@ class CalendarApi extends \tao_actions_SaSModule
         foreach ($assemblies as $delivery) {
             $deliveryProps = $delivery->getPropertiesValues(array(
                 $startProp,
-                $endProp
+                $endProp,
+                new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP)
             ));
             
             $start = (string) current($deliveryProps[TAO_DELIVERY_START_PROP]);
@@ -97,7 +98,8 @@ class CalendarApi extends \tao_actions_SaSModule
                 'classUri' => $classUri,
                 'start' => $this->formatDate($start),
                 'end' => $this->formatDate($end),
-                'color' => $colorGenerator->getColor($this->getTestUri($delivery))
+                'color' => $colorGenerator->getColor($this->getTestUri($delivery)),
+                'recurrence' => (string) current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])
             );
             
             if (isset($params['full'])) {

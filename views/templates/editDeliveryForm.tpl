@@ -84,7 +84,7 @@ $days = array(
                                     <label class="form_desc">{{__ 'Repeats'}}</label>
                                 </td>
                                 <td>
-                                    <input name="recurrence" type="hidden" value="{{rrule}}">
+                                    <input name="recurrence" type="hidden" value="{{recurrence}}">
                                     <select name="rrule[freq]">
                                         <option value="3" title="<?= __('Daily') ?>"><?= __('Daily') ?></option>
                                         <option value="2" title="<?= __('Weekly') ?>"><?= __('Weekly') ?></option>
@@ -134,6 +134,14 @@ $days = array(
                                 </td>
                                 <td>
                                     <input name="rrule[count]" value="1" type="text" title="{{__ 'Count'}}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label class="form_desc">{{__ 'Summary'}}</label>
+                                </td>
+                                <td>
+                                    <span class="js-rrule-summary"></span>
                                 </td>
                             </tr>
                         </table>

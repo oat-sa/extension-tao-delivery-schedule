@@ -59,7 +59,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
             TAO_DELIVERY_END_PROP => 'end',
             TAO_DELIVERY_MAXEXEC_PROP => 'maxexec',
             TAO_DELIVERY_RESULTSERVER_PROP => 'resultserver',
-            self::TAO_DELIVERY_RRULE_PROP => 'rrule'
+            self::TAO_DELIVERY_RRULE_PROP => 'recurrence'
         );
         
         foreach ($data as $key => $val) {

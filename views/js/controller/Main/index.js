@@ -83,6 +83,9 @@ define(
                         eventRender : function (fcEvent, $element) {
                             $element.attr('id', eventService.idAttrPrefix + fcEvent.id);
                         },
+                        eventAfterRender : function (event, element, view) {
+                            console.log(event);
+                        },
                         eventClick : function (fcEvent, e) {
                             createEventTooltip.hide();
                             eventService.selectEvent(fcEvent.id, fcEvent.classId);

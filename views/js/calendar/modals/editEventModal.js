@@ -28,13 +28,14 @@ define(
         'generis.tree.select',
         'moment',
         'taoDeliverySchedule/calendar/eventService',
-        'taoDeliverySchedule/lib/rrule/rrule',
+        'taoDeliverySchedule/lib/rrule/rrule.amd',
         'taoDeliverySchedule/lib/jquery.serialize-object.min',
         'taoDeliverySchedule/lib/qtip/jquery.qtip',
         'jqueryui'
     ],
     function (_, $, modal, formTpl, __, GenerisTreeSelectClass, moment, eventService) {
         'use strict';
+        
         return function () {
             var that = this;
 
@@ -46,7 +47,7 @@ define(
 
             function createOffset(val) {
                 var offset = Math.abs(val),
-                    sign = (offset > 0) ? "-" : "+",
+                    sign = (offset < 0) ? "-" : "+",
                     hours = pad(Math.floor(offset / 60)),
                     minutes = pad(offset % 60);
 
@@ -118,34 +119,37 @@ define(
                 if (data.resultserver) {
                     that.$form.find('select[name="resultserver"] option[value="' + data.resultserver + '"]').attr('selected', 'selected');
                 }
-
-                that.$form.on('submit', function () {
+                
+                that.$form.on('submit', function (e) {
+                    e.preventDefault();
+                    
                     if (that.validate()) {
-                        var data = that.getFormData(),
-                            fcEvent = eventService.getEventById(data.id);
+                        var formData = that.getFormData(),
+                            fcEvent = eventService.getEventById(formData.id);
 
-                        _.assign(fcEvent, data);
+                        _.assign(fcEvent, formData);
 
-                        fcEvent.start = $.fullCalendar.moment.parseZone(data.start);
-                        fcEvent.end = $.fullCalendar.moment.parseZone(data.end);
-
-//                        console.log(data);
-//                        return false;
+                        fcEvent.start = $.fullCalendar.moment.parseZone(formData.start);
+                        fcEvent.end = $.fullCalendar.moment.parseZone(formData.end);
 
                         eventService.saveEvent(fcEvent, function () {
                             that.hide();
                         });
                     }
-
-                    return false;
                 });
-
-                that.parseRrule();
+                
+                that.$form.on('change', 'input, select', function() {
+                    that.validate();
+                });
+                
+                that.parseRrule(data);
 
                 $('.js-repeat-toggle')
-                    .prop('checked', data.rrule)
+                    .prop('checked', !!data.recurrence)
                     .on('change', function () {
                         $('.repeat-event-table').toggle($(this).is(':checked'));
+                        $('.js-byday-row input[type="checkbox"]').prop('checked', false);
+                        that.updateRruleValue();
                     })
                     .trigger('change');
 
@@ -154,6 +158,10 @@ define(
                         $('.js-byday-row').toggle($(this).val() == RRule.WEEKLY);
                     })
                     .trigger('change');
+            
+                $('[name^="rrule["]').on('change', function () {
+                    that.updateRruleValue();
+                });
             };
 
             /**
@@ -236,24 +244,27 @@ define(
              * @see {@link http://tools.ietf.org/html/rfc2445}
              * @returns {string} recurrence rule
              */
-            this.updateRruleValue = function () {
-                var value = '0',
-                    data = that.$form.serializeObject(),
+            this.updateRruleValue = function (formData) {
+                var value = '',
+                    data = formData || that.$form.serializeObject(),
                     rrule,
                     rruleData = _.clone(data.rrule);
-            
+                
                 rruleData.dtstart = that.getStartMoment().clone().utc().toDate();
                 
                 if ($('.js-repeat-toggle').is(':checked')) {
                     var rrule = new RRule(rruleData);
                     value = rrule.toString();
+                    $('.js-rrule-summary').text(RRule.fromString(rrule.toString()).toText());
                 }
+                
                 $('[name="recurrence"]').val(value);
+                
                 return value;
             };
             
             /**
-             * Function parse rrule and populate inputs by appropriate values.
+             * Function parse rrule value obtained from the server and populate inputs by appropriate values.
              * @see {@link http://tools.ietf.org/html/rfc2445}
              * @returns {undefined}
              */
@@ -261,7 +272,6 @@ define(
                 var rule = $('[name="recurrence"]').val().toUpperCase(),
                     rrule,
                     startMoment = that.getStartMoment();
-                
                 if (!rule) {
                     return;
                 }
@@ -282,6 +292,7 @@ define(
                         }
                     }
                 });
+                this.updateRruleValue();
             };
             
             /**
@@ -330,6 +341,12 @@ define(
                     '.js-maxexec' : {
                         validate : function () {
                             return /^\d*$/.test($(this).val());
+                        },
+                        message : __('Value must be a number')
+                    },   
+                    '[name="rrule[count]"]' : {
+                        validate : function () {
+                            return /^\d*$/.test($(this).val()) || !$('.js-repeat-toggle').is(':checked');
                         },
                         message : __('Value must be a number')
                     }           
