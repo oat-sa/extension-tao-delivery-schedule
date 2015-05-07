@@ -174,6 +174,16 @@ define(
              * @returns {undefined}
              */
             this.selectEvent = function (eventId, classId) {
+                
+                if ($('#' + eventId).length == 0) {
+                    
+                    tree.select_branch($('#' + classId + ' .more'));
+                    $treeElt.one('delete.taotree', function (e, elt) {
+                        if ($(elt).hasClass('more')) {
+                            tree.select_branch($('#' + eventId));
+                        }
+                    });
+                }
                 if (classId) {
                     tree.open_branch('#' + classId, false, function () {
                         tree.select_branch($('#' + eventId));

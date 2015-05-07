@@ -111,6 +111,9 @@ class DeliveryScheduleService extends \tao_models_classes_Service
             $dt = new \DateTime($params[TAO_DELIVERY_END_PROP], $tz);
             $params[TAO_DELIVERY_END_PROP] = (string) $dt->getTimestamp();
         }
+        if (isset($params[TAO_DELIVERY_RESULTSERVER_PROP])) {
+            $params[TAO_DELIVERY_RESULTSERVER_PROP] = \tao_helpers_Uri::decode($params[TAO_DELIVERY_RESULTSERVER_PROP]);
+        }
         return $params;
     }
     

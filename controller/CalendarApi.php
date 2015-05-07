@@ -126,8 +126,8 @@ class CalendarApi extends \tao_actions_SaSModule
 		}
                 
                 // excluded test takers
-                $property = new \core_kernel_classes_Property(TAO_DELIVERY_EXCLUDEDSUBJECTS_PROP);
-                $excluded = $delivery->getPropertyValues($property);
+                $excludedSubjProperty = new \core_kernel_classes_Property(TAO_DELIVERY_EXCLUDEDSUBJECTS_PROP);
+                $excluded = $delivery->getPropertyValues($excludedSubjProperty);
                 $rawResult['ttexcluded'] = $excluded;
 
                 // assigned test takers
@@ -136,10 +136,13 @@ class CalendarApi extends \tao_actions_SaSModule
                 $rawResult['ttassigned'] = $assigned;
                 
                 //Max. number of executions
-                $rawResult['maxexec'] = (string) $delivery->getOnePropertyValue(new \core_kernel_classes_Property(TAO_DELIVERY_MAXEXEC_PROP));
+                $deliveryMaxexecProperty = new \core_kernel_classes_Property(TAO_DELIVERY_MAXEXEC_PROP);
+                $rawResult['maxexec'] = (string) $delivery->getOnePropertyValue($deliveryMaxexecProperty);
                 
                 //Result server
-                $rawResult['resultserver'] = (string) $delivery->getOnePropertyValue(new \core_kernel_classes_Property(TAO_DELIVERY_RESULTSERVER_PROP));
+                $resultServerProp = new \core_kernel_classes_Property(TAO_DELIVERY_RESULTSERVER_PROP);
+                $rawResult['resultserver'] = $delivery->getOnePropertyValue($resultServerProp)->getUri();
+                $rawResult['resultserver'] = \tao_helpers_Uri::encode($rawResult['resultserver']);
             }
             
             $result[] = $rawResult;
