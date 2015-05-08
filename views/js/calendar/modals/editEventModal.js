@@ -131,7 +131,7 @@ define(
 
                         fcEvent.start = $.fullCalendar.moment.parseZone(formData.start);
                         fcEvent.end = $.fullCalendar.moment.parseZone(formData.end);
-
+                        
                         eventService.saveEvent(fcEvent, function () {
                             that.hide();
                         });
@@ -148,7 +148,6 @@ define(
                     .prop('checked', !!data.recurrence)
                     .on('change', function () {
                         $('.repeat-event-table').toggle($(this).is(':checked'));
-                        $('.js-byday-row input[type="checkbox"]').prop('checked', false);
                         that.updateRruleValue();
                     })
                     .trigger('change');
@@ -279,8 +278,10 @@ define(
                 rule += ';DTSTART=' + startMoment.clone().utc().format('YYYYMMDDTHHmmss') + 'Z';
                 
                 rrule = RRule.fromString(rule);
-                
                 $.each(rrule.options, function (key, value) {
+                    if (!rrule.origOptions[key]) {
+                        return;
+                    }
                     var $input = $('[name^="rrule[' + key.toLowerCase() + ']"]');
                     if ($input && $input.length) {
                         if (_.isArray(value)) {

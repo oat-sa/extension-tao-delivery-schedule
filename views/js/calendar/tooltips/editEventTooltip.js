@@ -34,6 +34,10 @@ define(
             
             eventTooltip.apply(this, arguments);
             
+            /**
+             * Init event tooltip
+             * @returns {undefined}
+             */
             this.init = function () {
                 that.tooltip.elements.content.on('click', '.js-edit-event', function (e) {
                     e.preventDefault();
@@ -44,25 +48,56 @@ define(
                     e.preventDefault();
                     eventService.deleteEvent(that.getId());
                 });
+                
+                that.tooltip.elements.content.on('click', '.js-go-to-parent-event', function (e) {
+                    e.preventDefault();
+                    var fcEvent = eventService.getEventById(that.getId());
+                    if (fcEvent.parentEventId) {
+                        eventService.selectEvent(fcEvent.parentEventId);
+                    }
+                });
             };
             
-            this.show = function (options) {
-                var color = options.color || 'transparent';
+            /**
+             * Show tooltip
+             * @returns {undefined}
+             */
+            this.show = function (fcEvent) {
+                var tplOptions = {
+                    start : fcEvent.start.format('ddd, MMMM D, H:mm'),
+                    end : fcEvent.end ? fcEvent.end.format('ddd, MMMM D, H:mm') : false,
+                    color : fcEvent.color || 'transparent',
+                    fcEvent : fcEvent
+                };
                 
                 this.callback('beforeShow');
+                
                 that.tooltip.set({
-                    'content.text' : tooltipTpl(options),
-                    'position.adjust.resize' : true
+                    'content.text' : tooltipTpl(tplOptions),
+                    'position.adjust.resize' : true,
+                    'content.title' : '<b>' + fcEvent.title + '</b>'
                 });
                 
-                that.tooltip.elements.titlebar.css({'border-bottom' : '2px solid ' + color});
+                that.tooltip.elements.titlebar.css({'border-bottom' : '2px solid ' + tplOptions.color});
                 
                 that.tooltip.show();
                 this.callback('afterShow');
             };
             
+            /**
+             * Get event id
+             * @returns {string}
+             */
             this.getId = function () {
                 return that.tooltip.elements.tooltip.find('input[name="id"]').val();
+            };
+            
+            /**
+             * Get event class uri
+             * @returns {string}
+             */
+            this.getClassUri = function () {
+                return that.tooltip.elements.tooltip.find('input[name="classUri"]').val();
             };
             
             this.init();

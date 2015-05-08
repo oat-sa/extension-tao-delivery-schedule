@@ -21,10 +21,11 @@ define(
         'lodash',
         'jquery',
         'ui/feedback',
-        'uri',
-        'layout/actions'
+        'layout/actions',
+        'moment',
+        'taoDeliverySchedule/lib/rrule/rrule.amd'
     ],
-    function (_, $, feedback, uri, actionManager) {
+    function (_, $, feedback, actionManager, moment) {
         'use stirct';
         var instance = null;
         
@@ -106,11 +107,22 @@ define(
                     classUri : fcEvent.classUri,
                     id : fcEvent.id,
                     uri : fcEvent.uri,
-                    resultserver : fcEvent.resultserver,
                     start : fcEvent.start.clone().add(fcEvent.start._tzm, 'm').format('YYYY-MM-DD HH:mm'),
                     end : fcEvent.end.clone().add(fcEvent.end._tzm, 'm').format('YYYY-MM-DD HH:mm'),
-                    recurrence : fcEvent.recurrence
+                    recurrence : ''
                 };
+                
+                if (fcEvent.resultserver) {
+                    data.resultserver = fcEvent.resultserver;
+                }
+                
+                if (fcEvent.recurrence) {
+                    var rruleOptions = RRule.parseString(fcEvent.recurrence),
+                        rrule;
+                    rruleOptions.dtstart = fcEvent.start.clone().add(fcEvent.start._tzm, 'm').toDate();
+                    rrule = new RRule(rruleOptions);
+                    data.recurrence = rrule.toString();
+                }
                 
                 if (fcEvent.groups && _.isArray(fcEvent.groups)) {
                     data.groups = fcEvent.groups;
@@ -126,8 +138,21 @@ define(
                     success : function (response) {
                         feedback().info(response.message);
                         that.loadEvent(fcEvent.id, function (eventData) {
+                            var recurringEvents = that.getRecurringEvents(eventData);
+                            
+                            if (fcEvent.recurringEventIds) {
+                                $.each(fcEvent.recurringEventIds, function (rEventKey, rEventId) {
+                                    $calendar.fullCalendar('removeEvents', rEventId);
+                                });
+                            }
                             $calendar.fullCalendar('removeEvents', fcEvent.id);
+                            
                             $calendar.fullCalendar('renderEvent', eventData);
+                            
+                            $.each(recurringEvents, function (rEventKey, rEventData) {
+                                $calendar.fullCalendar('renderEvent', rEventData);
+                            });
+                            
                             if (typeof callback === 'function') {
                                 callback(eventData);
                             }
@@ -174,9 +199,7 @@ define(
              * @returns {undefined}
              */
             this.selectEvent = function (eventId, classId) {
-                
                 if ($('#' + eventId).length == 0) {
-                    
                     tree.select_branch($('#' + classId + ' .more'));
                     $treeElt.one('delete.taotree', function (e, elt) {
                         if ($(elt).hasClass('more')) {
@@ -233,6 +256,41 @@ define(
              */
             this.getEventElement = function (id) {
                 return $('#' + that.idAttrPrefix + id);
+            };
+            
+            this.getRecurringEvents = function (event) {
+                var events = [];
+            
+                if (event.recurrence) {
+                    var diff = moment(event.end).diff(moment(event.start)),
+                        rrule = RRule.fromString(event.recurrence);
+
+                    event.recurringEventIds = [];
+                    
+                    $.each(rrule.all(), function (rEventKey, rEventDate) {
+                        var startMoment = moment(rEventDate),
+                            endMoment = moment(rEventDate).add(diff, 'ms'),
+                            rEvent = _.cloneDeep(event);
+
+                        rEvent.start = startMoment.utc().format('YYYY-MM-DDTHH:mm:ssZZ');
+                        if (rEvent.start === event.start) {
+                            return;
+                        }
+                        
+                        rEvent.end = endMoment.utc().format('YYYY-MM-DDTHH:mm:ssZZ');
+                        rEvent.id = event.id + rEventKey;
+                        rEvent.subEvent = true;
+                        rEvent.parentEventId = event.id;
+                        rEvent.className = ['sub-event'];
+                        //rEvent.editable = false;
+                        
+                        event.recurringEventIds.push(rEvent.id);
+                        events.push(rEvent);
+                    });
+                    
+                }
+                
+                return events;
             };
         };
         

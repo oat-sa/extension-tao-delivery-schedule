@@ -8,6 +8,7 @@
     
 }
 .event-tooltip__controls {
+    overflow : hidden;
     a:last-child {
         float: right;
     }
@@ -158,5 +159,16 @@ body #ui-datepicker-div.edit-delivery-form__datepicker {
     }
     .tree-checkbox li>a.clicked {
         border: 1px solid transparent;
+    }
+}
+
+.sub-event {
+    padding-right: 12px;
+    &:after {
+        content: "\e629";
+        font-family: tao;
+        position: absolute;
+        right: 3px;
+        top: 1px;
     }
 }

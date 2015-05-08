@@ -16,10 +16,12 @@
  * Copyright (c) 2015 (original work) Open Assessment Technologies SA;
  *               
  */
+/*global define*/
 define(
     [
         'lodash',
         'jquery',
+        'i18n',
         'layout/actions/binder',
         'taoDeliverySchedule/calendar/calendar',
         'taoDeliverySchedule/calendar/eventService',
@@ -27,32 +29,34 @@ define(
         'taoDeliverySchedule/calendar/tooltips/createEventTooltip',
         'taoDeliverySchedule/calendar/modals/editEventModal',
         'layout/actions',
-        'ui/feedback',
         'uri',
+        'ui/feedback',
+        'taoDeliverySchedule/lib/rrule/rrule.amd',
         'css!/taoDeliverySchedule/views/css/taodeliveryschedule'
     ],
     function (
-        _, 
-        $, 
-        binder, 
-        Calendar, 
-        eventService, 
-        EditEventTooltip, 
-        CreateEventTooltip, 
-        EditEventModal, 
+        _,
+        $,
+        __,
+        binder,
+        Calendar,
+        eventService,
+        EditEventTooltip,
+        CreateEventTooltip,
+        EditEventModal,
         actionManager,
-        feedback,
-        uri
+        uri,
+        feedback
     ) {
         'use strict';
 
         function DeliverySchedule() {
             var calendar,
                 that = this,
-                tree,
                 editEventTooltip,
                 createEventTooltip,
                 editEventModal,
+                tree,
                 $treeElt = $('#tree-manage_delivery_schedule'),
                 $calendarContainer = $('.js-delivery-calendar');
 
@@ -60,16 +64,16 @@ define(
 
             this.start = function () {
                 that.initTree();
-                
+
                 calendar = new Calendar(
                     {
                         $container : $calendarContainer,
                         select : function (start, end, e) {
                             editEventTooltip.hide();
                             actionManager.exec(
-                                'delivery-new', 
+                                'delivery-new',
                                 _.extend(
-                                    actionManager._resourceContext, 
+                                    actionManager._resourceContext,
                                     {
                                         start : start,
                                         end : end,
@@ -83,21 +87,32 @@ define(
                         eventRender : function (fcEvent, $element) {
                             $element.attr('id', eventService.idAttrPrefix + fcEvent.id);
                         },
-                        eventAfterRender : function (event, element, view) {
-                            //console.log(event);
-                        },
                         eventClick : function (fcEvent, e) {
                             createEventTooltip.hide();
-                            eventService.selectEvent(fcEvent.id, fcEvent.classId);
+                            if (fcEvent.subEvent) {
+                                that.showEditEventTooltip(fcEvent);
+                            } else {
+                                eventService.selectEvent(fcEvent.id, fcEvent.classId);
+                            }
                         },
                         eventResizeStart : function (fcEvent, e) {
                             that.hideTooltips();
                         },
-                        eventDrop : function (fcEvent, e) {
-                            eventService.saveEvent(fcEvent);
+                        eventDrop : function (fcEvent, e, revertFunc) {
+                            if (fcEvent.subEvent) {
+                                revertFunc();
+                                feedback().info(__("Sub delivery cannot be changed."));
+                            } else {
+                                eventService.saveEvent(fcEvent);
+                            }
                         },
-                        eventResize : function (fcEvent, e) {
-                            eventService.saveEvent(fcEvent);
+                        eventResize : function (fcEvent, e, revertFunc) {
+                            if (fcEvent.subEvent) {
+                                revertFunc();
+                                feedback().info(__("Sub delivery cannot be changed."));
+                            } else {
+                                eventService.saveEvent(fcEvent);
+                            }
                         },
                         viewRender : function () {
                             $('.fc-scroller').on('scroll', function (e) {
@@ -120,10 +135,34 @@ define(
                                 that.calendarLoading.resolve();
                             }
                         },
-                        eventAfterAllRender : function () {
+                        viewDestroy : function () {
                             that.hideTooltips();
                         },
-                        events : '/taoDeliverySchedule/CalendarApi'
+                        eventAfterAllRender : function () {
+                            //that.hideTooltips();
+                        },
+                        events: function(start, end, timezone, callback) {
+                            $.ajax({
+                                url: '/taoDeliverySchedule/CalendarApi',
+                                dataType: 'json',
+                                data: {
+                                    start: start.unix(),
+                                    end: end.unix()
+                                },
+                                success: function(response) {
+                                    var events = [];
+                                        
+                                    $.each(response, function (key, event) {
+                                        var recurringEvents = eventService.getRecurringEvents(event);
+                                        events.push(event);
+                                        $.each(recurringEvents, function (rEventKey, rEventVal) {
+                                            events.push(rEventVal);
+                                        });
+                                    });
+                                    callback(events);
+                                }
+                            });
+                        }
                     }
                 );
 
@@ -132,7 +171,7 @@ define(
                     $container : $calendarContainer
                 });
                 /* END edit event tooltip */
-                
+
                 /* Create event tooltip */
                 createEventTooltip = new CreateEventTooltip({
                     $container : $calendarContainer,
@@ -143,7 +182,7 @@ define(
                     }
                 });
                 /* END create event tooltip */
-                
+
                 /* Edit event modal */
                 editEventModal = new EditEventModal({
                     callback : {
@@ -153,7 +192,7 @@ define(
                     }
                 });
                 /* END edit event modal */
-                
+
                 binder.register('schedule_month_mode', function () {
                     that.hideTooltips();
                     calendar.exec('changeView', 'month');
@@ -177,7 +216,7 @@ define(
                         var fcEvent = calendar.exec('clientEvents', treeInstance.uri);
                         if (fcEvent.length) {
                             that.goToEvent(
-                                fcEvent[0], 
+                                fcEvent[0],
                                 function (fcEvent) {
                                     that.showEditEventTooltip(fcEvent);
                                 }
@@ -185,37 +224,38 @@ define(
                         }
                     });
                 });
+                
                 binder.register('class-select', function (treeInstance) {
                     that.hideTooltips();
                 });
             };
-            
+
             /**
-             * Initialize tree and bind events
+             * Initialize tree and bind events.
              * @returns {undefined}
              */
             this.initTree = function () {
                 tree = $.tree.reference($treeElt);
 
                 $($treeElt).on(
-                    'refresh.taotree', 
+                    'refresh.taotree',
                     function () {
                         calendar.exec('refetchEvents');
                     }
                 );
-        
+
                 $($treeElt).on(
-                    'removenode.taotree', 
+                    'removenode.taotree',
                     function (e, data) {
                         calendar.exec('removeEvents', [data.id]);
                     }
                 );
-        
+
                 $($treeElt).on(
-                    'addnode.taotree', 
+                    'addnode.taotree',
                     function (e, data) {
                         eventService.loadEvent(
-                            uri.encode(data.uri), 
+                            uri.encode(data.uri),
                             function (eventData) {
                                 calendar.exec('renderEvent', eventData);
                             }
@@ -223,11 +263,11 @@ define(
                     }
                 );
             };
-            
+
             /**
              * Moves the calendar to an event. 
              * If calendar has a scrollbar then it will be scrolled to start of event.
-             * Callback function will be inwoked after all event will be loaded.
+             * Callback function will be invoked after all event will be loaded.
              * @param {object} fcEvent Calendar event
              * @param {funcrion} callback
              * @returns {undefined}
@@ -247,7 +287,7 @@ define(
                     }
                 });
             };
-            
+
             /**
              * Hide all tooltips on calendar
              * @returns {undefined}
@@ -256,7 +296,7 @@ define(
                 editEventTooltip.hide();
                 createEventTooltip.hide();
             };
-            
+
             /**
              * Show event tooltip
              * @param {object} fcEvent Calendar event
@@ -264,20 +304,19 @@ define(
              * @returns {undefined}
              */
             this.showEditEventTooltip = function (fcEvent, e) {
-                var $eventElement = eventService.getEventElement(fcEvent.id);
+                var $eventElement = eventService.getEventElement(fcEvent.id),
+                    $moreLinks;
+            
                 calendar.exec('unselect');
-                
+
                 if (!$eventElement.length) {
                     return;
                 }
-                    
-                editEventTooltip.set({
-                    'content.title' : '<b>' + fcEvent.title + '</b>'
-                });
+
                 if (e === undefined || e.isTrigger) {
                     if (!$eventElement.is(':visible')) {
-                       var $moreLinks = $eventElement.closest('.fc-content-skeleton').find('a.fc-more');
-                       $eventElement = $moreLinks.eq(0);
+                        $moreLinks = $eventElement.closest('.fc-content-skeleton').find('a.fc-more');
+                        $eventElement = $moreLinks.eq(0);
                     }
                     editEventTooltip.set({
                         'position.target' : $eventElement,
@@ -289,26 +328,32 @@ define(
                         'position.adjust.y' : 0
                     });
                 }
-                
-                editEventTooltip.show({
-                    start : fcEvent.start.format('ddd, MMMM D, H:mm'),
-                    end : fcEvent.end ? fcEvent.end.format('ddd, MMMM D, H:mm') : false,
-                    id : fcEvent.id,
-                    uri : fcEvent.uri,
-                    color : fcEvent.color
-                });
+
+                editEventTooltip.show(fcEvent);
             };
             
+            /**
+             * Show create delivery tooltip.
+             * @param {object} context Action context (uri, classUri, id, start, end etc.).
+             * @see {@link /tao/views/js/layout/actions.js} for further information.
+             * @returns {undefined}
+             */
             this.showCreateEventTooltip = function (context) {
                 createEventTooltip.show(context);
             };
             
+            /**
+             * Show delivery edit form in modal window.
+             * @param {object} context Action context (uri, classUri, id, start, end etc.).
+             * @see {@link /tao/views/js/layout/actions.js} for further information.
+             * @returns {undefined}
+             */
             this.showEditForm = function (context) {
                 this.hideTooltips();
                 editEventModal.show(context);
             };
         }
-        
+
         return new DeliverySchedule();
     }
 );

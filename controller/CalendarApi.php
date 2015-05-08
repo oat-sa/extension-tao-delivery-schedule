@@ -167,10 +167,10 @@ class CalendarApi extends \tao_actions_SaSModule
         $params = DeliveryScheduleService::singleton()->mapDeliveryProperties($data);
         
         if(empty($params['classUri'])){
-            throw new tao_models_classes_MissingRequestParameterException("classUri");
+            throw new \tao_models_classes_MissingRequestParameterException("classUri");
         }
         if(empty($params['uri'])){
-            throw new tao_models_classes_MissingRequestParameterException("uri");
+            throw new \tao_models_classes_MissingRequestParameterException("uri");
         }
         
         //$clazz =  new \core_kernel_classes_Class(\tao_helpers_Uri::decode($params['classUri']));
