@@ -129,24 +129,24 @@ define(
                     data.maxexec = fcEvent.maxexec;
                 }
                 
-                
                 $.ajax({
                     url     : '/taoDeliverySchedule/CalendarApi',
                     type    : 'PUT',
                     data    : data,
                     success : function (response) {
                         that.loadEvent(fcEvent.id, function (eventData) {
-                            var recurringEvents = that.getRecurringEvents(eventData),
+                            var eventsToAdd = that.getRecurringEvents(eventData),
                                 eventsToRemove = fcEvent.recurringEventIds || [];
-                                
                             eventsToRemove.push(fcEvent.id);
+                            eventsToAdd.push(eventData);
                             
                             $calendar.fullCalendar('removeEvents', function (eventToRemove) {
                                 return eventsToRemove.indexOf(eventToRemove.id) !== -1;
                             });
                             
-                            recurringEvents.push(eventData);
-                            $calendar.fullCalendar('addEventSource', recurringEvents);
+                            $.each(eventsToAdd, function (rEventKey, rEventData) { //use addEventSource here would be better
+                                $calendar.fullCalendar('renderEvent', rEventData);
+                            });
                             
                             if (typeof callback === 'function') {
                                 callback(eventData);
