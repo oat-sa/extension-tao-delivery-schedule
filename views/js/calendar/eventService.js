@@ -23,9 +23,10 @@ define(
         'ui/feedback',
         'layout/actions',
         'moment',
+        'layout/loading-bar',
         'taoDeliverySchedule/lib/rrule/rrule.amd'
     ],
-    function (_, $, feedback, actionManager, moment) {
+    function (_, $, feedback, actionManager, moment, loadingBar) {
         'use stirct';
         var instance = null;
         
@@ -40,10 +41,6 @@ define(
             }
             
             this.idAttrPrefix = 'fc_event_id_';
-            
-            this.getEventById = function () {
-                //c.fullCalendar( 'clientEvents', id);
-            };
             
             /**
              * Create new event
@@ -102,6 +99,7 @@ define(
              * @returns {undefined}
              */
             this.saveEvent = function (fcEvent, callback) {
+                loadingBar.start();
                 var data = {
                     label : fcEvent.label ? fcEvent.label : fcEvent.title,
                     classUri : fcEvent.classUri,
@@ -131,34 +129,35 @@ define(
                     data.maxexec = fcEvent.maxexec;
                 }
                 
+                
                 $.ajax({
                     url     : '/taoDeliverySchedule/CalendarApi',
                     type    : 'PUT',
                     data    : data,
                     success : function (response) {
-                        feedback().info(response.message);
                         that.loadEvent(fcEvent.id, function (eventData) {
-                            var recurringEvents = that.getRecurringEvents(eventData);
+                            var recurringEvents = that.getRecurringEvents(eventData),
+                                eventsToRemove = fcEvent.recurringEventIds || [];
+                                
+                            eventsToRemove.push(fcEvent.id);
                             
-                            if (fcEvent.recurringEventIds) {
-                                $.each(fcEvent.recurringEventIds, function (rEventKey, rEventId) {
-                                    $calendar.fullCalendar('removeEvents', rEventId);
-                                });
-                            }
-                            $calendar.fullCalendar('removeEvents', fcEvent.id);
-                            
-                            $calendar.fullCalendar('renderEvent', eventData);
-                            
-                            $.each(recurringEvents, function (rEventKey, rEventData) {
-                                $calendar.fullCalendar('renderEvent', rEventData);
+                            $calendar.fullCalendar('removeEvents', function (eventToRemove) {
+                                return eventsToRemove.indexOf(eventToRemove.id) !== -1;
                             });
+                            
+                            recurringEvents.push(eventData);
+                            $calendar.fullCalendar('addEventSource', recurringEvents);
                             
                             if (typeof callback === 'function') {
                                 callback(eventData);
                             }
+                            
+                            feedback().info(response.message);
+                            loadingBar.stop();
                         });
                     },
                     error   : function (xhr, err) {
+                        loadingBar.stop();
                         feedback().warning('Something went wrong');
                     }
                 });
