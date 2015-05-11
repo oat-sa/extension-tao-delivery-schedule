@@ -114,6 +114,8 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         if (isset($params[TAO_DELIVERY_RESULTSERVER_PROP])) {
             $params[TAO_DELIVERY_RESULTSERVER_PROP] = \tao_helpers_Uri::decode($params[TAO_DELIVERY_RESULTSERVER_PROP]);
         }
+        unset($params['uri']);
+        unset($params['classUri']);
         return $params;
     }
     
@@ -217,6 +219,58 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         }
 
         return $success;
+    }
+    
+    /**
+     * Get all deliveries in time range.
+     * @param integer $form Timestamp
+     * @param integer $to Timestamp
+     */
+    public function getAssemblies($from, $to)
+    {
+        $assemblies = \taoDelivery_models_classes_DeliveryAssemblyService::singleton()->getAllAssemblies();
+        
+        $startProp = new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP);
+        $endProp = new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP);
+        
+        $result = array();
+        $timeZone = new \DateTimeZone('UTC');
+        
+        $filterStartDate = \DateTime::createFromFormat('U', $from, $timeZone);
+        $filterEndDate = \DateTime::createFromFormat('U', $to, $timeZone);
+        
+        foreach ($assemblies as $delivery) {
+            $deliveryProps = $delivery->getPropertiesValues(array(
+                $startProp,
+                $endProp,
+                new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP)
+            ));
+            
+            $deliveryStartTs = (integer) current($deliveryProps[TAO_DELIVERY_START_PROP])->literal;
+            $deliveryEndTs = (integer) current($deliveryProps[TAO_DELIVERY_END_PROP])->literal;
+            
+            if ((!$deliveryStartTs || !$deliveryEndTs)) {
+                continue;
+            }
+            
+            $rrule = (string) current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]);
+            
+            if (empty($rrule)) {
+                if (($deliveryStartTs < $from && $deliveryEndTs < $from) || ($deliveryStartTs > $to && $deliveryEndTs > $to)) {
+                    continue;
+                }
+                $result[] = $delivery;
+            } else {
+                $rule = new \Recurr\Rule($rrule);
+                $transformer = new \Recurr\Transformer\ArrayTransformer();
+                $rEvents = $transformer->transform($rule)->startsBetween($filterStartDate, $filterEndDate);
+                
+                if(count($rEvents) !== 0) {
+                    $result[] = $delivery;
+                }
+            }
+        }
+        return $result;
     }
     
 }

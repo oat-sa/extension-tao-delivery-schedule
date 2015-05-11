@@ -37,7 +37,8 @@ class CalendarApi extends \tao_actions_SaSModule
     {
         parent::__construct();
         $this->tz = new \DateTimeZone(\common_session_SessionManager::getSession()->getTimeZone());
-        $this->service = \taoDelivery_models_classes_DeliveryAssemblyService::singleton();
+        $this->assemblyService = \taoDelivery_models_classes_DeliveryAssemblyService::singleton();
+        $this->scheduleService = DeliveryScheduleService::singleton();
     }
     
     public function index(){
@@ -54,11 +55,16 @@ class CalendarApi extends \tao_actions_SaSModule
         }
     }
     
+    /**
+     * Function returns list of deliveries in JSON format. 
+     * If <b>_GET['uri']</b> parameter is given then will be returned appropriate record.
+     * If <b>$_GET['full']</b> parameter is given (not empty) then for each delivery will be fetched extended data (e.g. groups, number of executions etc.).
+     */
     public function get()
     {
         $params = $this->getRequestParameters();
-        $from = isset($params['start']) ? $params['start'] : null;
-        $to = isset($params['end']) ? $params['start'] : null;
+        $from = isset($params['start']) ? (integer) $params['start'] : null;
+        $to = isset($params['end']) ? (integer) $params['end'] : null;
         
         $result = array();
         $startProp = new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP);
@@ -69,7 +75,7 @@ class CalendarApi extends \tao_actions_SaSModule
         if (isset($params['uri'])) {
             $assemblies[] = $this->getCurrentInstance();
         } else {
-            $assemblies = $this->service->getAllAssemblies();
+            $assemblies = $this->scheduleService->getAssemblies($from, $to);
         }
         
         $colorGenerator = new ColorGenerator();
@@ -127,11 +133,15 @@ class CalendarApi extends \tao_actions_SaSModule
      */
     public function create()
     {
-        $params = DeliveryScheduleService::singleton()->mapDeliveryProperties($this->getRequestParameters());
-        if (DeliveryScheduleService::singleton()->validate($params)) {
+        $params = $this->scheduleService->mapDeliveryProperties($this->getRequestParameters());
+        if ($this->scheduleService->validate($params)) {
             $test = new \core_kernel_classes_Resource($params['test']);
             $deliveryClass = new \core_kernel_classes_Class($params['classUri']);
-            $report = DeliveryFactory::create($deliveryClass, $test, $params);
+            $report = DeliveryFactory::create($deliveryClass, $test, array(
+                TAO_DELIVERY_START_PROP => $params[TAO_DELIVERY_START_PROP],
+                TAO_DELIVERY_END_PROP => $params[TAO_DELIVERY_END_PROP],
+                RDFS_LABEL => $params[RDFS_LABEL]
+            ));
             $data = $report->getdata();
             
             $result = array(
@@ -159,7 +169,7 @@ class CalendarApi extends \tao_actions_SaSModule
     public function update()
     {
         parse_str(file_get_contents("php://input"), $data);
-        $params = DeliveryScheduleService::singleton()->mapDeliveryProperties($data);
+        $params = $this->scheduleService->mapDeliveryProperties($data);
         
         if(empty($params['classUri'])){
             throw new \tao_models_classes_MissingRequestParameterException("classUri");
@@ -171,10 +181,10 @@ class CalendarApi extends \tao_actions_SaSModule
         //$clazz =  new \core_kernel_classes_Class(\tao_helpers_Uri::decode($params['classUri']));
         $delivery =  new \core_kernel_classes_Class(\tao_helpers_Uri::decode($params['uri']));
         
-        $evaluatedParams = DeliveryScheduleService::singleton()->getEvaluatedParams($params);
+        $evaluatedParams = $this->scheduleService->getEvaluatedParams($params);
         
-        if (DeliveryScheduleService::singleton()->validate($evaluatedParams)) {
-            DeliveryScheduleService::singleton()->save($delivery, $evaluatedParams);
+        if ($this->scheduleService->validate($evaluatedParams)) {
+            $this->scheduleService->save($delivery, $evaluatedParams);
 
             header('Content-type: application/json');
             echo json_encode(array('message'=>__('Delivery saved')));
