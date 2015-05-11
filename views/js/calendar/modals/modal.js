@@ -29,60 +29,47 @@ define(
          * 
          * @constructor
          * @property {object}         options Modal options.
-         * @property {object}         options.callback List of tooltip callbacks
-         * @property {function}       options.callback.beforeHide 
-         * @property {function}       options.callback.afterHide
-         * @property {function}       options.callback.beforeShow
-         * @property {function}       options.callback.aftersShow
          */
         return function (options) {
-            var that = this;
+            var that = this,
+                defaultOptions = {
+                    prerender : true,
+                    content : {
+                        text : ' ',
+                        title : ' '
+                    },
+                    position: {
+                        my : 'center', at: 'center',
+                        target : $(window),
+                        adjust : {
+                            scroll : false
+                        }
+                    },
+                    show : {
+                        ready : false,
+                        modal : {
+                            on : true,
+                            blur : true,
+                            escape : true
+                        }
+                    },
+                    hide : false,
+                    style : {
+                        width : 800,
+                        classes : 'dialogue qtip-light qtip-shadow'
+                    }
+                };
             
             this.init = function () {
-                this.modal = $('<div />').qtip(
-                    {
-                        prerender : true,
-                        content : {
-                            text : ' ',
-                            title : ' '
-                        },
-                        position: {
-                            my : 'center', at: 'center',
-                            target : $(window),
-                            adjust : {
-                                scroll : false
-                            }
-                        },
-                        show : {
-                            ready : false,
-                            modal : {
-                                on : true,
-                                blur : true,
-                                escape : true
-                            }
-                        },
-                        hide : false,
-                        style : {
-                            width : 800,
-                            classes : 'dialogue qtip-light qtip-shadow'
-                        }
-                    }
-                ).qtip('api');
-            };
-        
-            this.callback = function (name, e) {
-                if (options.callback && _.isFunction(options.callback[name])) {
-                    options.callback[name].apply(this, arguments.slice(1));
-                }
+                options = _.merge(defaultOptions, options);
+                this.modal = $('<div />').qtip(options).qtip('api');
             };
         
             this.hide = function () {
                 if (!this.modal.elements.tooltip.is(':visible')) {
                     return;
                 }
-                //this.callback('beforeHide');
                 this.modal.hide();
-                //this.callback('afterHide');
             };
             
             this.set = function (options) {

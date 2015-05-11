@@ -66,4 +66,21 @@ class DeliveryScheduleServiceTest extends TaoPhpUnitTestRunner
         
         $this->assertTrue($reverceProperties === $data);
     }
+    
+    public function testGetEvaluatedParams()
+    {
+        $service = DeliveryScheduleService::singleton();
+        
+        $params = array(
+            TAO_DELIVERY_START_PROP => '2015-05-05T00:00:00+0000',
+            TAO_DELIVERY_END_PROP => '2015-05-05T05:00:00+0000',
+            TAO_DELIVERY_RESULTSERVER_PROP => 'http_2_www_0_tao_0_lu_1_Ontologies_1_TAOResultServer_0_rdf_3_void'
+        );
+        
+        $eveluatedParams = $service->getEvaluatedParams($params);
+        
+        $this->assertEquals(1430784000, $eveluatedParams[TAO_DELIVERY_START_PROP]);
+        $this->assertEquals(1430802000, $eveluatedParams[TAO_DELIVERY_END_PROP]);
+        $this->assertEquals('http://www.tao.lu/Ontologies/TAOResultServer.rdf#void', $eveluatedParams[TAO_DELIVERY_RESULTSERVER_PROP]);
+    }
 }

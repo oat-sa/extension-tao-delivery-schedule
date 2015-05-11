@@ -90,7 +90,9 @@ define(
                         eventClick : function (fcEvent, e) {
                             createEventTooltip.hide();
                             if (fcEvent.subEvent) {
-                                that.showEditEventTooltip(fcEvent);
+                                that.goToEvent(fcEvent, function () {
+                                    that.showEditEventTooltip(fcEvent);
+                                });
                             } else {
                                 eventService.selectEvent(fcEvent.id, fcEvent.classId);
                             }
@@ -101,7 +103,7 @@ define(
                         eventDrop : function (fcEvent, e, revertFunc) {
                             if (fcEvent.subEvent) {
                                 revertFunc();
-                                feedback().info(__("Sub delivery cannot be changed."));
+                                feedback().warning(__("Sub delivery cannot be changed."));
                             } else {
                                 eventService.saveEvent(fcEvent);
                             }
@@ -109,7 +111,7 @@ define(
                         eventResize : function (fcEvent, e, revertFunc) {
                             if (fcEvent.subEvent) {
                                 revertFunc();
-                                feedback().info(__("Sub delivery cannot be changed."));
+                                feedback().warning(__("Sub delivery cannot be changed."));
                             } else {
                                 eventService.saveEvent(fcEvent);
                             }
@@ -138,9 +140,6 @@ define(
                         viewDestroy : function () {
                             that.hideTooltips();
                         },
-                        eventAfterAllRender : function () {
-                            //that.hideTooltips();
-                        },
                         events: function(start, end, timezone, callback) {
                             $.ajax({
                                 url: '/taoDeliverySchedule/CalendarApi',
@@ -152,6 +151,7 @@ define(
                                 success: function(response) {
                                     var events = [];
                                         
+                                    calendar.exec('removeEvents');
                                     $.each(response, function (key, event) {
                                         var recurringEvents = eventService.getRecurringEvents(event);
                                         events.push(event);
@@ -159,6 +159,7 @@ define(
                                             events.push(rEventVal);
                                         });
                                     });
+                                    
                                     callback(events);
                                 }
                             });
@@ -168,15 +169,19 @@ define(
 
                 /* Edit event tooltip */
                 editEventTooltip = new EditEventTooltip({
-                    $container : $calendarContainer
+                    position : {
+                        viewport : $calendarContainer,
+                    }
                 });
                 /* END edit event tooltip */
 
                 /* Create event tooltip */
                 createEventTooltip = new CreateEventTooltip({
-                    $container : $calendarContainer,
-                    callback : {
-                        afterHide : function () {
+                    position : {
+                        viewport : $calendarContainer,
+                    },
+                    events : {
+                        hide : function () {
                             calendar.exec('unselect');
                         }
                     }
@@ -184,13 +189,7 @@ define(
                 /* END create event tooltip */
 
                 /* Edit event modal */
-                editEventModal = new EditEventModal({
-                    callback : {
-                        afterHide : function () {
-                            calendar.exec('unselect');
-                        }
-                    }
-                });
+                editEventModal = new EditEventModal();
                 /* END edit event modal */
 
                 binder.register('schedule_month_mode', function () {
@@ -247,7 +246,17 @@ define(
                 $($treeElt).on(
                     'removenode.taotree',
                     function (e, data) {
-                        calendar.exec('removeEvents', [data.id]);
+                        var fcEvent = eventService.getEventById(data.id);
+                        if (fcEvent) {
+                            var eventsToBeRemoved = [fcEvent.id];
+                            if (fcEvent.recurringEventIds && fcEvent.recurringEventIds.length) {
+                                eventsToBeRemoved = eventsToBeRemoved.concat(fcEvent.recurringEventIds);
+                            }
+                            
+                            calendar.exec('removeEvents', function (eventToRemove) {
+                                return eventsToBeRemoved.indexOf(eventToRemove.id) !== -1;
+                            });
+                        }
                     }
                 );
 
@@ -278,6 +287,7 @@ define(
                     var $eventElement = eventService.getEventElement(fcEvent.id),
                         $scroller = $calendarContainer.find('.fc-scroller'),
                         pos;
+                        
                     if ($scroller.length) {
                         pos = $eventElement.offset().top - $scroller.offset().top + $scroller.scrollTop();
                         $scroller.scrollTop(pos);
@@ -318,6 +328,7 @@ define(
                         $moreLinks = $eventElement.closest('.fc-content-skeleton').find('a.fc-more');
                         $eventElement = $moreLinks.eq(0);
                     }
+                    
                     editEventTooltip.set({
                         'position.target' : $eventElement,
                         'position.adjust.y' : 7

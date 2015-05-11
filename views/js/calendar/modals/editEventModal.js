@@ -77,7 +77,6 @@ define(
              * @param {string} options.uri Delivery uri
              */
             this.show = function (options) {
-                this.callback('beforeShow');
                 $.ajax({
                     url : '/taoDeliverySchedule/CalendarApi?full=1',
                     type : 'GET',
@@ -91,8 +90,6 @@ define(
                         response.executionsMessage = that.getExecutionsMessage(response.executions);
                         response.ttexcludedMessage = response.ttexcluded.length ? __('%d test-taker(s) are excluded', String(response.ttexcluded.length)) : '';
                         response.ttassignedMessage = response.ttassigned.length ? __('Delivery is assigned to %d test-takers', String(response.ttassigned.length)) : '';
-
-                        //response.rrule = 'FREQ=weekly;INTERVAL=2;BYDAY=MO,WE,TH,SU;COUNT=5'; //TODO REMOVE
 
                         that.modal.set({
                             'content.text'   : formTpl(response),

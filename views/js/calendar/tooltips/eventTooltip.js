@@ -30,57 +30,51 @@ define(
          * @constructor
          * @property {object}         options Tooltop options.
          * @property {jQueryElement}  options.$container Determines the HTML element which the tooltip is appended to
-         * @property {object}         options.callback List of tooltip callbacks
-         * @property {function}       options.callback.beforeHide 
-         * @property {function}       options.callback.afterHide
-         * @property {function}       options.callback.beforeShow
-         * @property {function}       options.callback.aftersShow
          */
         return function (options) {
-            var that = this;
-        
-            this.init = function () {
-                this.tooltip = $('<div/>').qtip(
-                    {
-                        prerender : true,
-                        content : {
-                            text : ' ',
-                            title : ' '
-                        },
-                        position : {
-                            my : 'bottom center',
-                            at : 'top center',
-                            //target : 'mouse',
-                            viewport : options.$container
-                        },
-                        show : false,
-                        hide : false,
-                        style : {
-                            width : 280,
-                            classes : 'qtip-light qtip-shadow'
+            var that = this,
+                defaultOptions = {
+                    prerender : true,
+                    content : {
+                        text : ' ',
+                        title : ' '
+                    },
+                    position : {
+                        my : 'bottom center',
+                        at : 'top center',
+                        adjust: {
+                            scroll: false,
+                            method: 'shift'
                         }
+                    },
+                    show : false,
+                    hide : false,
+                    style : {
+                        width : 280,
+                        classes : 'qtip-light qtip-shadow'
                     }
-                ).qtip('api');
-        
+                };
+            
+            
+            this.init = function () {
+                options = _.merge(defaultOptions, options);
+                this.tooltip = $('<div/>').qtip(options).qtip('api');
                 this.tooltip.elements.content.on('click', '.js-close', function () {
                     that.hide();
                 });
             };
         
-            this.callback = function (name, e) {
-                if (options.callback && _.isFunction(options.callback[name])) {
-                    var args = Array.prototype.slice.call(arguments, 1);
-                    options.callback[name].apply(this, args);
-                }
-            };
-        
+            /**
+             * Hide tooltip
+             * @fires eventTooltip#hide:eventTooltip.hide
+             * @returns {undefined}
+             */
             this.hide = function () {
                 if (!this.tooltip.elements.tooltip.is(':visible')) {
                     return;
                 }
-                this.callback('beforeHide');
                 this.tooltip.hide();
-                this.callback('afterHide');
+                
             };
             
             this.set = function (options) {

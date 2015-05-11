@@ -33,7 +33,11 @@ define(
             var that = this;
             
             eventTooltip.apply(this, arguments);
-                 
+            
+            /**
+             * Init create event tooltip
+             * @returns {undefined}
+             */
             this.init = function () {
                 that.set({
                     'content.title' : __('Create a new delivery'),
@@ -43,7 +47,6 @@ define(
             };
             
             this.show = function (options) {
-                this.callback('beforeShow');
                 var tplOptions = {
                     start : options.start.format('ddd, MMMM D, H:mm'),
                     end : options.end ? options.end.format('ddd, MMMM D, H:mm') : false
@@ -53,8 +56,8 @@ define(
                 });
                 
                 $.ajax({
-                    url : options.action.url,
-                    type : 'POST',
+                    url :  '/taoDeliverySchedule/main/createDeliveryForm',
+                    type : 'GET',
                     data : {
                         classUri : options.classUri,
                         id : options.id
@@ -80,8 +83,6 @@ define(
                             e.preventDefault();
                             that.submit($(this), e);
                         });
-                        
-                        that.callback('afterShow');
                     }
                 });
             };
@@ -94,10 +95,8 @@ define(
              * @returns {undefined}
              */
             this.submit = function (e) {
-                var $form = that.getForm();
                 eventService.createEvent({
-                    url     : $form.attr('action'),
-                    data    : that.getFormData()
+                    data : that.getFormData()
                 });
                 that.hide();
             };

@@ -70,8 +70,6 @@ define(
                     fcEvent : fcEvent
                 };
                 
-                this.callback('beforeShow');
-                
                 that.tooltip.set({
                     'content.text' : tooltipTpl(tplOptions),
                     'position.adjust.resize' : true,
@@ -81,7 +79,6 @@ define(
                 that.tooltip.elements.titlebar.css({'border-bottom' : '2px solid ' + tplOptions.color});
                 
                 that.tooltip.show();
-                this.callback('afterShow');
             };
             
             /**

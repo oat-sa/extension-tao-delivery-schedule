@@ -47,21 +47,21 @@ define(
              * @param {object} options
              * @property {string} options.url Url address to creaet new event
              * @property {string} options.data Event data. Example:
-             *          <pre>
-             *          {
-             *             classUri: "http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery",
-             *             end: "2015-04-18 00:00",
-             *             label: "sdfdsf",
-             *             simpleWizard_sent: "1",
-             *             start: "2015-04-17 00:00",
-             *             test: "http://sample/first.rdf#i1429018012670729"
-             *          }
-             *          </pre>
+         *          <pre>
+         *          {
+         *             classUri: "http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery",
+         *             end: "2015-04-18 00:00",
+         *             label: "sdfdsf",
+         *             simpleWizard_sent: "1",
+         *             start: "2015-04-17 00:00",
+         *             test: "http://sample/first.rdf#i1429018012670729"
+         *          }
+         *          </pre>
              * @returns {undefined}
              */
             this.createEvent = function (options) {
                 $.ajax({
-                    url     : options.url,
+                    url     : '/taoDeliverySchedule/CalendarApi',
                     type    : 'POST',
                     data    : options.data,
                     success : function (response) {
@@ -135,18 +135,17 @@ define(
                     data    : data,
                     success : function (response) {
                         that.loadEvent(fcEvent.id, function (eventData) {
-                            var eventsToAdd = that.getRecurringEvents(eventData),
-                                eventsToRemove = fcEvent.recurringEventIds || [];
-                            eventsToRemove.push(fcEvent.id);
-                            eventsToAdd.push(eventData);
+                            var eventsToBeAdded = that.getRecurringEvents(eventData),
+                                eventsToBeRemoved = fcEvent.recurringEventIds || [];
+                                
+                            eventsToBeRemoved.push(fcEvent.id);
+                            eventsToBeAdded.push(eventData);
                             
                             $calendar.fullCalendar('removeEvents', function (eventToRemove) {
-                                return eventsToRemove.indexOf(eventToRemove.id) !== -1;
+                                return eventsToBeRemoved.indexOf(eventToRemove.id) !== -1;
                             });
                             
-                            $.each(eventsToAdd, function (rEventKey, rEventData) { //use addEventSource here would be better
-                                $calendar.fullCalendar('renderEvent', rEventData);
-                            });
+                            $calendar.fullCalendar('addEventSource', eventsToBeAdded);
                             
                             if (typeof callback === 'function') {
                                 callback(eventData);
@@ -200,6 +199,7 @@ define(
             this.selectEvent = function (eventId, classId) {
                 if ($('#' + eventId).length == 0) {
                     tree.select_branch($('#' + classId + ' .more'));
+                    //after the `more` element has been deleted.
                     $treeElt.one('delete.taotree', function (e, elt) {
                         if ($(elt).hasClass('more')) {
                             tree.select_branch($('#' + eventId));
