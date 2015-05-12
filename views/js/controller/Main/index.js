@@ -85,16 +85,23 @@ define(
                             );
                         },
                         eventRender : function (fcEvent, $element) {
-                            $element.attr('id', eventService.idAttrPrefix + fcEvent.id);
+                            $element.addClass(eventService.classAttrPrefix + fcEvent.id);
+                            if (fcEvent.recurringEventIds) {
+                                $element.append('<span class="recurring-count">1</span>');
+                            }
+                            if (fcEvent.subEvent && fcEvent.subEventNum) {
+                                $element.append('<span class="recurring-count">' + (fcEvent.subEventNum + 1) + '</span>');
+                            }
                         },
                         eventClick : function (fcEvent, e) {
                             createEventTooltip.hide();
+                            
                             if (fcEvent.subEvent) {
                                 that.goToEvent(fcEvent, function () {
-                                    that.showEditEventTooltip(fcEvent);
+                                    that.showEditEventTooltip(fcEvent, e);
                                 });
                             } else {
-                                eventService.selectEvent(fcEvent.id, fcEvent.classId);
+                                that.selectEvent(fcEvent.id, fcEvent.classId, e);
                             }
                         },
                         eventResizeStart : function (fcEvent, e) {
@@ -171,6 +178,11 @@ define(
                 editEventTooltip = new EditEventTooltip({
                     position : {
                         viewport : $calendarContainer,
+                    },
+                    events : {
+                        hide : function () {
+                            eventService.highlightEvent(false);
+                        }
                     }
                 });
                 /* END edit event tooltip */
@@ -211,6 +223,10 @@ define(
                     that.showEditForm(context);
                 });
                 binder.register('delivery-select', function (treeInstance) {
+                    if (treeInstance.uri === editEventTooltip.getId() && editEventTooltip.isShown()) {
+                        return;
+                    }
+                    
                     that.calendarLoading.done(function () {
                         var fcEvent = calendar.exec('clientEvents', treeInstance.uri);
                         if (fcEvent.length) {
@@ -328,6 +344,8 @@ define(
                 if (!$eventElement.length) {
                     return;
                 }
+                
+                eventService.highlightEvent(fcEvent);
 
                 if (e === undefined || e.isTrigger) {
                     if (!$eventElement.is(':visible')) {
@@ -345,7 +363,7 @@ define(
                         'position.adjust.y' : 0
                     });
                 }
-
+                
                 editEventTooltip.show(fcEvent);
             };
             
@@ -368,6 +386,52 @@ define(
             this.showEditForm = function (context) {
                 this.hideTooltips();
                 editEventModal.show(context);
+            };
+            
+            /**
+             * Select event on the tree by Id
+             * @param {string} eventId
+             * @param {string} classId
+             * @param {object} e
+             * @returns {undefined}
+             */
+            this.selectEvent = function (eventId, classId, e) {
+                //select event on the tree
+                if ($('#' + eventId).length == 0) {
+                    tree.select_branch($('#' + classId + ' .more'));
+                    //after the `more` element has been deleted.
+                    $treeElt.one('delete.taotree', function (e, elt) {
+                        if ($(elt).hasClass('more')) {
+                            tree.select_branch($('#' + eventId));
+                        }
+                    });
+                }
+                if (classId) {
+                    tree.open_branch('#' + classId, false, function () {
+                        tree.select_branch($('#' + eventId));
+                    });
+                } else {
+                    tree.select_branch($('#' + eventId));
+                }
+                
+                //select event on the calendar
+                that.calendarLoading.done(function () {
+                    var fcEvent = calendar.exec('clientEvents', eventId);
+                    if (fcEvent.length) {
+                        that.goToEvent(fcEvent[0], that.showEditEventTooltip(fcEvent[0], e));
+                    } else {
+                        eventService.loadEvent(
+                            eventId,
+                            function (eventData) {
+                                calendar.exec('renderEvent', eventData);
+                                var fcEvent = calendar.exec('clientEvents', eventId);
+                                if (fcEvent.length) {
+                                    that.goToEvent(fcEvent[0], that.showEditEventTooltip(fcEvent[0], e));
+                                }
+                            }
+                        );
+                    }
+                });
             };
         }
 

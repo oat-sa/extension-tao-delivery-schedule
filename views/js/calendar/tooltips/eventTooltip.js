@@ -70,11 +70,18 @@ define(
              * @returns {undefined}
              */
             this.hide = function () {
-                if (!this.tooltip.elements.tooltip.is(':visible')) {
+                if (!this.isShown()) {
                     return;
                 }
                 this.tooltip.hide();
-                
+            };
+            
+            /**
+             * Whether tooltip is shown.
+             * @returns {boolean}
+             */
+            this.isShown = function () {
+                return this.tooltip.elements.tooltip.is(':visible');
             };
             
             this.set = function (options) {

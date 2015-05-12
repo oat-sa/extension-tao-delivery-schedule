@@ -3,7 +3,7 @@
 <structures>
     <structure id="delivery_schedule" name="Delivery schedule" level="4" group="main">
         <description>Prepare, publish deliveries sessions.</description>
-        <icon id="icon-table" src=""/>
+        <icon id="icon-calendar" src=""/>
         <sections>
             <section id="manage_delivery_schedule" name="Delivery schedule" url="/taoDeliverySchedule/Main/index">
                 <trees>

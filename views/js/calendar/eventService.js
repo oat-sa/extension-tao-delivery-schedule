@@ -40,23 +40,23 @@ define(
                 throw new Error("Cannot instantiate more than one EventService, use EventService.getInstance()");
             }
             
-            this.idAttrPrefix = 'fc_event_id_';
+            this.classAttrPrefix = 'fc_event_id_';
             
             /**
              * Create new event
              * @param {object} options
              * @property {string} options.url Url address to creaet new event
              * @property {string} options.data Event data. Example:
-         *          <pre>
-         *          {
-         *             classUri: "http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery",
-         *             end: "2015-04-18 00:00",
-         *             label: "sdfdsf",
-         *             simpleWizard_sent: "1",
-         *             start: "2015-04-17 00:00",
-         *             test: "http://sample/first.rdf#i1429018012670729"
-         *          }
-         *          </pre>
+             *      <pre>
+             *      {
+             *         classUri: "http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery",
+             *         end: "2015-04-18 00:00",
+             *         label: "sdfdsf",
+             *         simpleWizard_sent: "1",
+             *         start: "2015-04-17 00:00",
+             *         test: "http://sample/first.rdf#i1429018012670729"
+             *      }
+             *      </pre>
              * @returns {undefined}
              */
             this.createEvent = function (options) {
@@ -192,31 +192,6 @@ define(
             };
             
             /**
-             * Select event on the tree by Id
-             * @param {string} eventId
-             * @param {string} classId
-             * @returns {undefined}
-             */
-            this.selectEvent = function (eventId, classId) {
-                if ($('#' + eventId).length == 0) {
-                    tree.select_branch($('#' + classId + ' .more'));
-                    //after the `more` element has been deleted.
-                    $treeElt.one('delete.taotree', function (e, elt) {
-                        if ($(elt).hasClass('more')) {
-                            tree.select_branch($('#' + eventId));
-                        }
-                    });
-                }
-                if (classId) {
-                    tree.open_branch('#' + classId, false, function () {
-                        tree.select_branch($('#' + eventId));
-                    });
-                } else {
-                    tree.select_branch($('#' + eventId));
-                }
-            };
-            
-            /**
              * Load event by Id from the server
              * 
              * @param {string} eventId
@@ -249,15 +224,20 @@ define(
             };
             
             /**
-             * Get event jQuery DOM element by id 
+             * Get event jQuery DOM elements by id 
              * 
              * @param {string} id Event id
              * @returns {jQuery element}
              */
             this.getEventElement = function (id) {
-                return $('#' + that.idAttrPrefix + id);
+                return $('.' + that.classAttrPrefix + id);
             };
             
+            /**
+             * Function create recurring events if for initial event specified recurrence rule
+             * @param {object} event Fullcalendar event.
+             * @returns {Array} array of recurring fullcalendar events.
+             */
             this.getRecurringEvents = function (event) {
                 var events = [];
             
@@ -265,7 +245,7 @@ define(
                     var diff = moment(event.end).diff(moment(event.start)),
                         rrule = RRule.fromString(event.recurrence);
 
-                    event.recurringEventIds = [];
+                    var recurringEventIds = [];
                     
                     $.each(rrule.all(), function (rEventKey, rEventDate) {
                         var startMoment = moment(rEventDate),
@@ -280,18 +260,36 @@ define(
                         rEvent.end = endMoment.utc().format('YYYY-MM-DDTHH:mm:ssZZ');
                         rEvent.id = event.id + rEventKey;
                         rEvent.subEvent = true;
+                        rEvent.subEventNum = rEventKey;
                         rEvent.parentEventId = event.id;
                         rEvent.className = ['sub-event'];
                         //rEvent.editable = false;
-                        
-                        event.recurringEventIds.push(rEvent.id);
+                        recurringEventIds.push(rEvent.id);
                         event.className = ['recurring-event'];
                         events.push(rEvent);
                     });
-                    
+                    event.recurringEventIds = recurringEventIds;
                 }
                 
                 return events;
+            };
+            
+            /**
+             * Function highlights event element (or elements for long events) by adding <b>fc-selected</b> class
+             * @param {object} fcEvent Fullcalendar event object.
+             * @param {boolean} deselectedOther Whether other event must be deselected. True by default.
+             * @returns {undefined}
+             */
+            this.highlightEvent = function (fcEvent, deselectedOther) {
+                if (deselectedOther === undefined) {
+                   deselectedOther = true; 
+                }
+                if (deselectedOther) {
+                    $('.fc-event.fc-selected').removeClass('fc-selected');
+                }
+                if (fcEvent.id) {
+                    $('.' + that.classAttrPrefix + fcEvent.id).addClass('fc-selected');
+                }
             };
         };
         

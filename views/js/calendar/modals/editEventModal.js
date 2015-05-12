@@ -212,7 +212,7 @@ define(
                     },
                     appendTo : '.edit-delivery-form'
                 }).click(function(event, ui){     
-                    $(this).autocomplete("search");
+                    $(this).autocomplete('search', '');
                 });
                 
                 $('.js-delivery-start-time, .js-delivery-end-time').on('blur', function (e) {

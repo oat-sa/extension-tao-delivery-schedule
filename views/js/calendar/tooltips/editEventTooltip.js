@@ -53,7 +53,8 @@ define(
                     e.preventDefault();
                     var fcEvent = eventService.getEventById(that.getId());
                     if (fcEvent.parentEventId) {
-                        eventService.selectEvent(fcEvent.parentEventId);
+                        //eventService.selectEvent(fcEvent.parentEventId);
+                        $('.' + eventService.classAttrPrefix + fcEvent.parentEventId).trigger('click');
                     }
                 });
             };
