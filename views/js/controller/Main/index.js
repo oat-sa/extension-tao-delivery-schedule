@@ -185,6 +185,9 @@ define(
                         }
                     }
                 });
+                editEventTooltip.tooltip.elements.tooltip.on('go-to-parent-event', function (e, data) {
+                    that.selectEvent(data.fcEvent.parentEventId);
+                });
                 /* END edit event tooltip */
 
                 /* Create event tooltip */
@@ -397,7 +400,7 @@ define(
              */
             this.selectEvent = function (eventId, classId, e) {
                 //select event on the tree
-                if ($('#' + eventId).length == 0) {
+                if ($('#tree-manage_delivery_schedule #' + eventId).length == 0) {
                     tree.select_branch($('#' + classId + ' .more'));
                     //after the `more` element has been deleted.
                     $treeElt.one('delete.taotree', function (e, elt) {

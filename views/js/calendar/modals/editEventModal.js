@@ -279,7 +279,7 @@ define(
                 }
                 
                 rule += ';DTSTART=' + startMoment.clone().utc().format('YYYYMMDDTHHmmss') + 'Z';
-                
+                console.log(rule);
                 rrule = RRule.fromString(rule);
                 $.each(rrule.options, function (key, value) {
                     if (!rrule.origOptions[key]) {
@@ -407,8 +407,7 @@ define(
                     startVal = $('.js-delivery-start-date').val() 
                                + ' ' + $('.js-delivery-start-time').val() 
                                + ' ' + createOffset(timezone),
-                    startMoment = moment(startVal);
-            
+                    startMoment = moment(startVal, 'YYYY-MM-DD HH:mm Z');
                 return startMoment;
             };
             
@@ -421,7 +420,7 @@ define(
                     endVal =   $('.js-delivery-end-date').val() 
                                + ' ' + $('.js-delivery-end-time').val()
                                + ' ' + createOffset(timezone),
-                    endMoment = moment(endVal);
+                    endMoment = moment(endVal, 'YYYY-MM-DD HH:mm Z');
             
                 return endMoment;
             };
