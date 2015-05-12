@@ -214,10 +214,16 @@ define(
                     that.calendarLoading.done(function () {
                         var fcEvent = calendar.exec('clientEvents', treeInstance.uri);
                         if (fcEvent.length) {
-                            that.goToEvent(
-                                fcEvent[0],
-                                function (fcEvent) {
-                                    that.showEditEventTooltip(fcEvent);
+                            that.goToEvent(fcEvent[0], that.showEditEventTooltip);
+                        } else {
+                            eventService.loadEvent(
+                                treeInstance.uri,
+                                function (eventData) {
+                                    calendar.exec('renderEvent', eventData);
+                                    var fcEvent = calendar.exec('clientEvents', treeInstance.uri);
+                                    if (fcEvent.length) {
+                                        that.goToEvent(fcEvent[0], that.showEditEventTooltip);
+                                    }
                                 }
                             );
                         }
