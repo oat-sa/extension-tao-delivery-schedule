@@ -100,6 +100,7 @@ define(
              */
             this.saveEvent = function (fcEvent, callback) {
                 loadingBar.start();
+                
                 var data = {
                     label : fcEvent.label ? fcEvent.label : fcEvent.title,
                     classUri : fcEvent.classUri,
@@ -117,7 +118,7 @@ define(
                 if (fcEvent.recurrence) {
                     var rruleOptions = RRule.parseString(fcEvent.recurrence),
                         rrule;
-                    rruleOptions.dtstart = fcEvent.start.clone().add(fcEvent.start._tzm, 'm').toDate();
+                    rruleOptions.dtstart = fcEvent.start.clone().toDate();
                     rrule = new RRule(rruleOptions);
                     data.recurrence = rrule.toString();
                 }
@@ -284,6 +285,7 @@ define(
                         //rEvent.editable = false;
                         
                         event.recurringEventIds.push(rEvent.id);
+                        event.className = ['recurring-event'];
                         events.push(rEvent);
                     });
                     

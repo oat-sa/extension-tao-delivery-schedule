@@ -172,3 +172,13 @@ body #ui-datepicker-div.edit-delivery-form__datepicker {
         top: 1px;
     }
 }
+.recurring-event {
+    padding-right: 12px;
+    &:after {
+        content: "\ea2e";
+        font-family: tao;
+        position: absolute;
+        right: 3px;
+        top: 1px;
+    }
+}

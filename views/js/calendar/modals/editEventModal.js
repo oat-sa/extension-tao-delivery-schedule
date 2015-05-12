@@ -202,11 +202,16 @@ define(
                 
                 $('.js-delivery-start-time, .js-delivery-end-time').autocomplete({
                     source : function (request, response) {
-                        response(timeList);
+                        response(_.filter(timeList, function (val) {
+                            return val.indexOf(request.term) === 0;
+                        }));
                     },
                     minLength: 0,
+                    close: function(event, ui) {
+                        $(this).trigger('change');
+                    },
                     appendTo : '.edit-delivery-form'
-                }).focus(function(event, ui){     
+                }).click(function(event, ui){     
                     $(this).autocomplete("search");
                 });
                 
@@ -237,6 +242,7 @@ define(
             /**
              * Parse recurence rule params and store processed value in hidden input
              * that will be sent to the server.
+             * @param {object} formData Form data. If not given then data will be fetched from form automatically.
              * @see {@link http://tools.ietf.org/html/rfc2445}
              * @returns {string} recurrence rule
              */
