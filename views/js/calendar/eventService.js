@@ -82,6 +82,11 @@ define(
                                     }]);
                                 
                                     feedback().info(response.message);
+                                    
+                                    if(typeof options.success === 'function') {
+                                        options.success();
+                                    }
+                                    
                                     loadingBar.stop();
                                 }
                             );
@@ -90,13 +95,16 @@ define(
                     error : function (xhr, err) {
                         var message = that.getRequestErrorMessage(xhr);
                         feedback().warning(message, {encodeHtml : false});
+                        if(typeof options.error === 'function') {
+                            options.error();
+                        }
                         loadingBar.stop();
                     }
                 });
             };
             
             /**
-             * Save
+             * Save event
              * @param {object} options
              * @property {string} options.url Url address to creaet new event
              * @property {string} options.data Event data. Example:
@@ -306,9 +314,9 @@ define(
                         rEvent.className = ['sub-event'];
                         //rEvent.editable = false;
                         recurringEventIds.push(rEvent.id);
-                        event.className = ['recurring-event'];
                         events.push(rEvent);
                     });
+                    event.className = ['recurring-event'];
                     event.recurringEventIds = recurringEventIds;
                 }
                 

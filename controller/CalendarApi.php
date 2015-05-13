@@ -155,21 +155,19 @@ class CalendarApi extends \tao_actions_SaSModule
             $params['classUri'] = CLASS_COMPILEDDELIVERY;
         }
         if ($this->scheduleService->validate($this->scheduleService->getEvaluatedParams($params))) {
-            $test = new \core_kernel_classes_Resource($params['test']);
-            $deliveryClass = new \core_kernel_classes_Class($params['classUri']);
-            $report = DeliveryFactory::create($deliveryClass, $test, array(
-                TAO_DELIVERY_START_PROP => $params[TAO_DELIVERY_START_PROP],
-                TAO_DELIVERY_END_PROP => $params[TAO_DELIVERY_END_PROP],
-                RDFS_LABEL => $params[RDFS_LABEL]
-            ));
-            $data = $report->getdata();
-            
-            $result = array(
-                'message' => $report->getMessage(),
-                'id' => \tao_helpers_Uri::encode($data->getUri()),
-                'uri' => $data->getUri(),
-            );
-            $this->sendData($result);
+            $report = $this->scheduleService->create($params);
+            if ($report->getType() == \common_report_Report::TYPE_SUCCESS) {
+                $data = $report->getdata();
+
+                $result = array(
+                    'message' => $report->getMessage(),
+                    'id' => \tao_helpers_Uri::encode($data->getUri()),
+                    'uri' => $data->getUri(),
+                );
+                $this->sendData($result);
+            } else {
+                $this->sendData(array('errors' => $report->getErrors()), 400);
+            }
         } else {
             $this->sendData(
                 array(

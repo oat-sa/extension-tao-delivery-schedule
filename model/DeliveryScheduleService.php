@@ -133,13 +133,15 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     /**
      * Function returns list of errors in the delivery data.
      * @param array $data delivery data (uri=>value) 
-     * (eveluate {@link self::getEvaluatedParams()} and map {@link self::mapDeliveryProperties()} raw data before)
+     * (evaluate {@link self::getEvaluatedParams()} raw data before)
      */
     public function getErrors($data)
     {
-        $errors = array();
+        $data = $this->mapDeliveryProperties($data);
         
+        $errors = array();
         $notEmptyValidator = new \tao_helpers_form_validators_NotEmpty();
+        $numericValidator = new \tao_helpers_form_validators_Numeric();
         
         if (!$notEmptyValidator->evaluate($data[TAO_DELIVERY_START_PROP])) {
             $errors[TAO_DELIVERY_START_PROP] = $notEmptyValidator->getMessage();
@@ -147,15 +149,16 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         if (!$notEmptyValidator->evaluate($data[TAO_DELIVERY_END_PROP])) {
             $errors[TAO_DELIVERY_END_PROP] = $notEmptyValidator->getMessage();
         }
-        if (!$notEmptyValidator->evaluate($data[RDFS_LABEL])) {
-            $errors[RDFS_LABEL] = $notEmptyValidator->getMessage();
+        if ($data[TAO_DELIVERY_END_PROP] < $data[TAO_DELIVERY_START_PROP]) {
+            $errors[TAO_DELIVERY_START_PROP] = __('start date must be before end date');
         }
         if (!$notEmptyValidator->evaluate($data[RDFS_LABEL])) {
             $errors[RDFS_LABEL] = $notEmptyValidator->getMessage();
         }
-        if (!$notEmptyValidator->evaluate($data[RDFS_LABEL])) {
-            $data['test'] = $notEmptyValidator->getMessage();
+        if (isset($data[TAO_DELIVERY_MAXEXEC_PROP]) && !$numericValidator->evaluate($data[TAO_DELIVERY_MAXEXEC_PROP])) {
+            $errors[TAO_DELIVERY_MAXEXEC_PROP] = $numericValidator->getMessage();
         }
+        
         return $errors;
     }
     
@@ -166,7 +169,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      * @param array $params Array of delivery parameters (uri=>value)
      * @return \core_kernel_classes_Class $delivery instance
      */
-    public function save($delivery, $params)
+    public function save(\core_kernel_classes_Class $delivery, array $params)
     {
         $binder = new \tao_models_classes_dataBinding_GenerisFormDataBinder($delivery);
         $delivery = $binder->bind($params);
@@ -175,8 +178,37 @@ class DeliveryScheduleService extends \tao_models_classes_Service
             $groups = array_map(array('\tao_helpers_Uri' , 'decode'), $params['groups']);
             $this->saveGroups($delivery, $groups);
         }
-        
         return $delivery;
+    }
+    
+    /**
+     * Create delivery.
+     * 
+     * @param array $params Array of delivery parameters (uri=>value)
+     * Example: 
+     * <pre>
+     * array(
+     *   'test' => 'http://sample/first.rdf#i1429716287341629', //test uri (required)
+     *   'start' => '2015-04-27 00:00', //start date in 'Y-m-d H:i' format (required)
+     *   'end' => '2015-04-27 00:00', //start date in 'Y-m-d H:i' format (required)
+     *   'label' => 'Delivery Label', //start date in 'Y-m-d H:i' format (required)
+     *   'classUri' => 'http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery',
+     * )
+     * </pre>
+     * @return report
+     */
+    public function create(array $params)
+    {
+        $test = new \core_kernel_classes_Resource($params['test']);
+        $deliveryClass = new \core_kernel_classes_Class($params['classUri']);
+        
+        $report = DeliveryFactory::create($deliveryClass, $test, array(
+            TAO_DELIVERY_START_PROP => $params[TAO_DELIVERY_START_PROP],
+            TAO_DELIVERY_END_PROP => $params[TAO_DELIVERY_END_PROP],
+            RDFS_LABEL => $params[RDFS_LABEL]
+        ));
+        
+        return $report;
     }
     
     /**

@@ -96,9 +96,11 @@ define(
              */
             this.submit = function (e) {
                 eventService.createEvent({
-                    data : that.getFormData()
+                    data : that.getFormData(),
+                    success : function () {
+                        that.hide();
+                    }
                 });
-                that.hide();
             };
             
             /**

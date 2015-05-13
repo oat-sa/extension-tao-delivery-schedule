@@ -173,7 +173,9 @@ define(
                         }
                     }
                 );
-
+        
+                $.fn.qtip.zindex = 1000;
+                
                 /* Edit event tooltip */
                 editEventTooltip = new EditEventTooltip({
                     position : {
