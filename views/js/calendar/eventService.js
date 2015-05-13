@@ -68,16 +68,24 @@ define(
                     global : false,
                     dataType : 'json',
                     success : function (response) {
-                        feedback().info(response.message);
                         if (response.uri) {
-                            $treeElt.trigger('addnode.taotree', [{
-                                'uri'       : response.uri,
-                                'parent'    : options.data.classUri,
-                                'label'     : options.data.label,
-                                'cssClass'  : 'node-instance'
-                            }]);
+                            that.loadEvent(
+                                response.id,
+                                function (eventData) {
+                                    $calendar.fullCalendar('renderEvent', eventData);
+                                    
+                                    $treeElt.trigger('addnode.taotree', [{
+                                        'uri'       : response.uri,
+                                        'parent'    : options.data.classUri,
+                                        'label'     : options.data.label,
+                                        'cssClass'  : 'node-instance'
+                                    }]);
+                                
+                                    feedback().info(response.message);
+                                    loadingBar.stop();
+                                }
+                            );
                         }
-                        loadingBar.stop();
                     },
                     error : function (xhr, err) {
                         var message = that.getRequestErrorMessage(xhr);

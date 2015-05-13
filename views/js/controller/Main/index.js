@@ -284,18 +284,6 @@ define(
                         }
                     }
                 );
-
-                $($treeElt).on(
-                    'addnode.taotree',
-                    function (e, data) {
-                        eventService.loadEvent(
-                            uri.encode(data.uri),
-                            function (eventData) {
-                                calendar.exec('renderEvent', eventData);
-                            }
-                        );
-                    }
-                );
             };
 
             /**
