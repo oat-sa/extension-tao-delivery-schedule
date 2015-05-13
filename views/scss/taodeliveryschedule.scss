@@ -1,6 +1,10 @@
 @import "./inc/fullcalendar";
 @import "./inc/jquery.qtip";
 
+.delivery-calendar {
+    width: 100%;
+    max-width: 100%;
+}
 .event-tooltip {
     position: relative;
 }
@@ -100,6 +104,9 @@ body #ui-datepicker-div.edit-delivery-form__datepicker {
         margin-top: 0;
         margin-left: 0;
     }
+    .tree ul ins {
+        vertical-align: middle;
+    }
     .edit-delivery-form_time-row {
         input, select {
             width: 15%;
@@ -165,7 +172,7 @@ body #ui-datepicker-div.edit-delivery-form__datepicker {
 .sub-event {
     padding-right: 14px;
     &:after {
-        content: "\e984";
+        content: "\ea2e";
         font-family: tao;
         position: absolute;
         right: 1px;

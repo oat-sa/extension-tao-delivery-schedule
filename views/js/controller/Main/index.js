@@ -307,7 +307,10 @@ define(
              * @returns {undefined}
              */
             this.goToEvent = function (fcEvent, callback) {
-                calendar.exec('gotoDate', fcEvent.start);
+                //if the event is not presented on the calendar then move the calendar to appropriate date. 
+                if (!eventService.getEventElement(fcEvent.id).length) {
+                    calendar.exec('gotoDate', fcEvent.start);
+                }
                 that.calendarLoading.done(function () {
                     var $eventElement = eventService.getEventElement(fcEvent.id),
                         $scroller = $calendarContainer.find('.fc-scroller'),
@@ -392,10 +395,11 @@ define(
             };
             
             /**
-             * Select event on the tree by Id
+             * Select event and show edit tooltip.
              * @param {string} eventId
              * @param {string} classId
-             * @param {object} e
+             * @param {object} e If triggered by clicking on the event 
+             *                   then the tooltip coordinates will be the same as click coordinates.
              * @returns {undefined}
              */
             this.selectEvent = function (eventId, classId, e) {

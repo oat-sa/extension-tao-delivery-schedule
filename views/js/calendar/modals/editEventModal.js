@@ -279,7 +279,6 @@ define(
                 }
                 
                 rule += ';DTSTART=' + startMoment.clone().utc().format('YYYYMMDDTHHmmss') + 'Z';
-                console.log(rule);
                 rrule = RRule.fromString(rule);
                 $.each(rrule.options, function (key, value) {
                     if (!rrule.origOptions[key]) {
@@ -336,7 +335,7 @@ define(
                         },
                         message : __('The format of date is invalid')
                     },
-                    'js-label' : {
+                    '.js-label' : {
                         validate : function () {
                             return $(this).val().length !== 0;
                         },

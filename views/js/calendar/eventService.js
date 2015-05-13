@@ -60,10 +60,13 @@ define(
              * @returns {undefined}
              */
             this.createEvent = function (options) {
+                loadingBar.start();
                 $.ajax({
-                    url     : '/taoDeliverySchedule/CalendarApi',
-                    type    : 'POST',
-                    data    : options.data,
+                    url : '/taoDeliverySchedule/CalendarApi',
+                    type : 'POST',
+                    data : options.data,
+                    global : false,
+                    dataType : 'json',
                     success : function (response) {
                         feedback().info(response.message);
                         if (response.uri) {
@@ -74,9 +77,12 @@ define(
                                 'cssClass'  : 'node-instance'
                             }]);
                         }
+                        loadingBar.stop();
                     },
-                    error   : function (xhr, err) {
-                        feedback().warning('Something went wrong');
+                    error : function (xhr, err) {
+                        var message = that.getRequestErrorMessage(xhr);
+                        feedback().warning(message, {encodeHtml : false});
+                        loadingBar.stop();
                     }
                 });
             };
@@ -102,12 +108,12 @@ define(
                 loadingBar.start();
                 
                 var data = {
-                    label : fcEvent.label ? fcEvent.label : fcEvent.title,
-                    classUri : fcEvent.classUri,
-                    id : fcEvent.id,
-                    uri : fcEvent.uri,
-                    start : fcEvent.start.clone().add(fcEvent.start._tzm, 'm').format('YYYY-MM-DD HH:mm'),
-                    end : fcEvent.end.clone().add(fcEvent.end._tzm, 'm').format('YYYY-MM-DD HH:mm'),
+                    label      : fcEvent.label === undefined ? fcEvent.title : fcEvent.label,
+                    classUri   : fcEvent.classUri,
+                    id         : fcEvent.id,
+                    uri        : fcEvent.uri,
+                    start      : fcEvent.start.clone().add(fcEvent.start._tzm, 'm').format('YYYY-MM-DD HH:mm'),
+                    end        : fcEvent.end.clone().add(fcEvent.end._tzm, 'm').format('YYYY-MM-DD HH:mm'),
                     recurrence : ''
                 };
                 
@@ -134,6 +140,8 @@ define(
                     url     : '/taoDeliverySchedule/CalendarApi',
                     type    : 'PUT',
                     data    : data,
+                    global : false,
+                    dataType : 'json',
                     success : function (response) {
                         that.loadEvent(fcEvent.id, function (eventData) {
                             var eventsToBeAdded = that.getRecurringEvents(eventData),
@@ -158,7 +166,8 @@ define(
                     },
                     error   : function (xhr, err) {
                         loadingBar.stop();
-                        feedback().warning('Something went wrong');
+                        var message = that.getRequestErrorMessage(xhr);
+                        feedback().warning(message, {encodeHtml : false});
                     }
                 });
             };
@@ -175,6 +184,30 @@ define(
                         {action : actionManager.getBy('delivery-delete')}
                     )
                 );
+            };
+            
+            /**
+             * Function parse response and returns error message
+             * @param {object} xhr jqXHR object.
+             * @returns {xhr.responseText|responseJSON.message|String}
+             */
+            this.getRequestErrorMessage = function (xhr) {
+                var message = '';
+                try {
+                    var responseJSON = $.parseJSON(xhr.responseText);
+                    if (responseJSON.errors) {
+                        $.each(responseJSON.errors, function (key, val) {
+                            message += key + ': ' + val + "<br>";
+                        });
+                    } else if (responseJSON.message) {
+                        message = responseJSON.message;
+                    } else {
+                        message = xhr.responseText;
+                    }
+                } catch (e) {
+                    message = xhr.responseText;
+                }
+                return message;
             };
             
             /**

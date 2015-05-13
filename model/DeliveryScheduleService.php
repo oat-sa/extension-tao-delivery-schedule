@@ -122,16 +122,41 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     /**
      * Validate delivery parameters.
      * 
-     * @param array $params Array of delivery parameters (uri=>value)
+     * @param array $params array of delivery parameters (uri=>value)
      * @return boolean Whether the parameters are valid.
      */
     public function validate($params)
     {
-        $valid = true;
-        if ($params[TAO_DELIVERY_START_PROP] >= $params[TAO_DELIVERY_END_PROP]) {
-            $valid = false;
+        return empty($this->getErrors($params));
+    }
+    
+    /**
+     * Function returns list of errors in the delivery data.
+     * @param array $data delivery data (uri=>value) 
+     * (eveluate {@link self::getEvaluatedParams()} and map {@link self::mapDeliveryProperties()} raw data before)
+     */
+    public function getErrors($data)
+    {
+        $errors = array();
+        
+        $notEmptyValidator = new \tao_helpers_form_validators_NotEmpty();
+        
+        if (!$notEmptyValidator->evaluate($data[TAO_DELIVERY_START_PROP])) {
+            $errors[TAO_DELIVERY_START_PROP] = $notEmptyValidator->getMessage();
         }
-        return $valid;
+        if (!$notEmptyValidator->evaluate($data[TAO_DELIVERY_END_PROP])) {
+            $errors[TAO_DELIVERY_END_PROP] = $notEmptyValidator->getMessage();
+        }
+        if (!$notEmptyValidator->evaluate($data[RDFS_LABEL])) {
+            $errors[RDFS_LABEL] = $notEmptyValidator->getMessage();
+        }
+        if (!$notEmptyValidator->evaluate($data[RDFS_LABEL])) {
+            $errors[RDFS_LABEL] = $notEmptyValidator->getMessage();
+        }
+        if (!$notEmptyValidator->evaluate($data[RDFS_LABEL])) {
+            $data['test'] = $notEmptyValidator->getMessage();
+        }
+        return $errors;
     }
     
     /**
