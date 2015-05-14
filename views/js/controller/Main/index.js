@@ -179,7 +179,7 @@ define(
                 /* Edit event tooltip */
                 editEventTooltip = new EditEventTooltip({
                     position : {
-                        viewport : $calendarContainer,
+                        viewport : $(document)
                     },
                     events : {
                         hide : function () {
@@ -195,7 +195,7 @@ define(
                 /* Create event tooltip */
                 createEventTooltip = new CreateEventTooltip({
                     position : {
-                        viewport : $calendarContainer,
+                        viewport : $(document)
                     },
                     events : {
                         hide : function () {
@@ -342,21 +342,28 @@ define(
                 }
                 
                 eventService.highlightEvent(fcEvent);
-
+                
                 if (e === undefined || e.isTrigger) {
                     if (!$eventElement.is(':visible')) {
                         $moreLinks = $eventElement.closest('.fc-content-skeleton').find('a.fc-more');
                         $eventElement = $moreLinks.eq(0);
                     }
-                    
                     editEventTooltip.set({
-                        'position.target' : $eventElement,
-                        'position.adjust.y' : 7
+                        'position.target' : $eventElement
+                    });
+                    editEventTooltip.set({
+                        'position.adjust.y' : 4,
+                        'position.adjust.x' : 0,
+                        'position.my' : 'bottom center',
+                        'position.at' : 'top center'
                     });
                 } else {
                     editEventTooltip.set({
-                        'position.target' : [e.pageX, e.pageY],
-                        'position.adjust.y' : 0
+                        'position.adjust.y' : e.offsetY,
+                        'position.adjust.x' : e.offsetX,
+                        'position.target' : e.currentTarget,
+                        'position.my' : 'bottom center',
+                        'position.at' : 'top left'
                     });
                 }
                 

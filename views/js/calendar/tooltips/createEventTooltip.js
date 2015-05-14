@@ -56,7 +56,7 @@ define(
                 });
                 
                 $.ajax({
-                    url :  '/taoDeliverySchedule/main/createDeliveryForm',
+                    url : '/taoDeliverySchedule/main/createDeliveryForm',
                     type : 'GET',
                     data : {
                         classUri : options.classUri,
