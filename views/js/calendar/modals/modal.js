@@ -61,6 +61,7 @@ define(
                 };
             
             this.init = function () {
+                $.fn.qtip.modal_zindex = 8800;
                 options = _.merge(defaultOptions, options);
                 this.modal = $('<div />').qtip(options).qtip('api');
             };
