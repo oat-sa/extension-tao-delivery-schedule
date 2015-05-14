@@ -327,7 +327,57 @@ class DeliveryScheduleService extends \tao_models_classes_Service
                 }
             }
         }
+        
         return $result;
     }
     
+    /**
+     * Get delivery settings specific for schedule extension.
+     * @param \core_kernel_classes_Resource $delivery
+     * @return array list of settings (key => value)
+     * Some of values depends on the user language (e.g. <i>rruleSummary</i>)
+     * Example:
+     * <pre>
+     * array(
+     *   'http://www.tao.lu/Ontologies/TAODelivery.rdf#RecurrenceRule' => 'FREQ=WEEKLY;INTERVAL=1;COUNT=5;DTSTART=20150507T010000Z',
+     *   'rruleSummary' => 'weekly for 5 times',
+     * )
+     * </pre>
+     */
+    public function getDeliverySettings(\core_kernel_classes_Resource $delivery)
+    {
+        $settings = array();
+        
+        $deliveryProps = $delivery->getPropertiesValues(array(
+            new \core_kernel_classes_Property(self::TAO_DELIVERY_RRULE_PROP),
+        ));
+        $rrule = (string) current($deliveryProps[self::TAO_DELIVERY_RRULE_PROP]);
+
+        if ($rrule) {
+            $rule = new \Recurr\Rule($rrule, new \DateTime());
+            
+            try {
+                $userLang = substr(\common_session_SessionManager::getSession()->getInterfaceLanguage(), 0, 2);
+                $rruleTranslator = new \Recurr\Transformer\Translator($userLang);
+            } catch (\InvalidArgumentException $e) {
+                //fallback to english
+                $rruleTranslator = new \Recurr\Transformer\Translator('en');
+            }
+            $textTransformer = new \Recurr\Transformer\TextTransformer($rruleTranslator);
+            $settings[self::TAO_DELIVERY_RRULE_PROP] = $rrule;
+            $settings['rruleSummary'] = $textTransformer->transform($rule);
+            
+            $transformer = new \Recurr\Transformer\ArrayTransformer();
+            $recurrenceCollection  = $transformer->transform($rule);
+            
+            if (count($recurrenceCollection)) {
+                $firstRecurranse = $recurrenceCollection->first();
+                $lastRecurranse = $recurrenceCollection->last();
+                $settings['from'] = $firstRecurranse->getStart()->getTimestamp();
+                $settings['until'] = $lastRecurranse->getEnd()->getTimestamp();
+            }
+        }
+        
+        return $settings;
+    }
 }
