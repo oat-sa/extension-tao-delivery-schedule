@@ -251,10 +251,16 @@ define(
                 $.ajax({
                     url : '/taoDeliverySchedule/CalendarApi?uri=' + eventId,
                     type : 'GET',
+                    global : false,
                     success : function (data) {
                         if (typeof callback === 'function') {
                             callback(data);
                         }
+                    },
+                    error : function (xhr) {
+                        loadingBar.stop();
+                        var message = that.getRequestErrorMessage(xhr);
+                        feedback().error(message, {encodeHtml : false});
                     }
                 });
             };

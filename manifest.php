@@ -38,8 +38,11 @@ return array(
     'models' => array(),
     'install' => array(
         'rdf' => array(
-            dirname(__FILE__). '/scripts/install/deliverySchedule.rdf',
+            dirname(__FILE__). '/scripts/install/deliverySchedule.rdf'
         ),
+    ),
+    'uninstall' => array(
+        
     ),
     'update' => 'oat\\taoDeliverySchedule\\scripts\\update\\Updater',
     'autoload' => array(

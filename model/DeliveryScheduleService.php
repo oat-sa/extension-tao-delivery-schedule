@@ -303,12 +303,12 @@ class DeliveryScheduleService extends \tao_models_classes_Service
                 new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP)
             ));
             
-            $deliveryStartTs = (integer) current($deliveryProps[TAO_DELIVERY_START_PROP])->literal;
-            $deliveryEndTs = (integer) current($deliveryProps[TAO_DELIVERY_END_PROP])->literal;
-            
-            if ((!$deliveryStartTs || !$deliveryEndTs)) {
+            if(empty($deliveryProps[TAO_DELIVERY_START_PROP]) || empty($deliveryProps[TAO_DELIVERY_END_PROP])) {
                 continue;
             }
+            
+            $deliveryStartTs = (integer) current($deliveryProps[TAO_DELIVERY_START_PROP])->literal;
+            $deliveryEndTs = (integer) current($deliveryProps[TAO_DELIVERY_END_PROP])->literal;
             
             $rrule = (string) current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]);
             

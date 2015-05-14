@@ -137,7 +137,11 @@ class CalendarApi extends \tao_actions_SaSModule
             $result[] = $rawResult;
         }
         
-        $this->sendData(isset($requestParams['uri']) ? current($result) : $result);
+        if (empty($result) && isset($requestParams['uri'])) {
+            $this->sendData(array('message' => 'Not found'), 404);    
+        } else {
+            $this->sendData(isset($requestParams['uri']) ? current($result) : $result);
+        }
     }
     
     /**

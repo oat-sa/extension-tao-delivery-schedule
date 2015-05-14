@@ -174,7 +174,7 @@ define(
                     }
                 );
         
-                $.fn.qtip.zindex = 1000;
+                $.fn.qtip.zindex = 9000;
                 
                 /* Edit event tooltip */
                 editEventTooltip = new EditEventTooltip({
