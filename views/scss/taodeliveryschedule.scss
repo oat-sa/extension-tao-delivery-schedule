@@ -31,6 +31,10 @@
 }
 
 .qtip-modal {
+    .qtip-title {
+        font-size: 14px;
+        font-weight: normal;
+    }
     .qtip-tip {
         visibility: hidden;
     }

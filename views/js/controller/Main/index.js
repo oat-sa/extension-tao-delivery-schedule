@@ -97,6 +97,7 @@ define(
                             createEventTooltip.hide();
                             
                             if (fcEvent.subEvent) {
+                                that.selectTreeNode(fcEvent.parentEventId, fcEvent.classId);
                                 that.goToEvent(fcEvent, function () {
                                     that.showEditEventTooltip(fcEvent, e);
                                 });
@@ -396,27 +397,12 @@ define(
              * @param {string} eventId
              * @param {string} classId
              * @param {object} e If triggered by clicking on the event 
-             *                   then the tooltip coordinates will be the same as click coordinates.
+             * then the tooltip coordinates will be the same as click coordinates.
              * @returns {undefined}
              */
             this.selectEvent = function (eventId, classId, e) {
                 //select event on the tree
-                if ($('#tree-manage_delivery_schedule #' + eventId).length == 0) {
-                    tree.select_branch($('#' + classId + ' .more'));
-                    //after the `more` element has been deleted.
-                    $treeElt.one('delete.taotree', function (e, elt) {
-                        if ($(elt).hasClass('more')) {
-                            tree.select_branch($('#' + eventId));
-                        }
-                    });
-                }
-                if (classId) {
-                    tree.open_branch('#' + classId, false, function () {
-                        tree.select_branch($('#' + eventId));
-                    });
-                } else {
-                    tree.select_branch($('#' + eventId));
-                }
+                that.selectTreeNode(eventId, classId);
                 
                 //select event on the calendar
                 that.calendarLoading.done(function () {
@@ -436,6 +422,33 @@ define(
                         );
                     }
                 });
+            };
+            
+            /**
+             * Select node on the tree
+             * @param {string} eventId
+             * @param {string} classId
+             * @returns {undefined}
+             */
+            this.selectTreeNode = function (eventId, classId) {
+                //if node under the 'more' button
+                if ($('#tree-manage_delivery_schedule #' + eventId).length == 0) {
+                    tree.select_branch($('#' + classId + ' .more'));
+                    //after the `more` element has been deleted.
+                    $treeElt.one('delete.taotree', function (e, elt) {
+                        if ($(elt).hasClass('more')) {
+                            tree.select_branch($('#' + eventId));
+                        }
+                    });
+                }
+                
+                if (classId) {
+                    tree.open_branch('#' + classId, false, function () {
+                        tree.select_branch($('#' + eventId));
+                    });
+                } else {
+                    tree.select_branch($('#' + eventId));
+                }
             };
         }
 

@@ -211,7 +211,7 @@ define(
                 var message = '';
                 try {
                     var responseJSON = $.parseJSON(xhr.responseText);
-                    if (responseJSON.errors) {
+                    if (responseJSON.errors && !_.isEmpty(responseJSON.errors)) {
                         $.each(responseJSON.errors, function (key, val) {
                             message += key + ': ' + val + "<br>";
                         });
@@ -220,9 +220,11 @@ define(
                     } else {
                         message = xhr.responseText;
                     }
+                    
                 } catch (e) {
                     message = xhr.responseText;
                 }
+                
                 return message;
             };
             

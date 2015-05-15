@@ -170,7 +170,7 @@ class CalendarApi extends \tao_actions_SaSModule
                 );
                 $this->sendData($result);
             } else {
-                $this->sendData(array('errors' => $report->getErrors()), 400);
+                $this->sendData(array('message' => $report->getMessage(), 'errors' => $report->getErrors()), 400);
             }
         } else {
             $this->sendData(
