@@ -140,7 +140,13 @@ define(
                 if (fcEvent.recurrence) {
                     var rruleOptions = RRule.parseString(fcEvent.recurrence),
                         rrule;
-                    rruleOptions.dtstart = fcEvent.start.clone().toDate();
+                    
+                    if (fcEvent.start._ambigZone) {
+                        rruleOptions.dtstart = fcEvent.start.clone().add(-that.getCurrentTZOffset(), 'm').toDate();
+                    } else {
+                        rruleOptions.dtstart = fcEvent.start.clone().toDate();
+                    }
+                    
                     rrule = new RRule(rruleOptions);
                     data.recurrence = rrule.toString();
                 }
@@ -250,8 +256,10 @@ define(
              * @returns {undefined}
              */
             this.loadEvent = function (eventId, callback) {
+                var timeZone = that.getCurrentTZName();
+                
                 $.ajax({
-                    url : '/taoDeliverySchedule/CalendarApi?uri=' + eventId,
+                    url : '/taoDeliverySchedule/CalendarApi?uri=' + eventId + '&timeZone=' + that.getCurrentTZName(),
                     type : 'GET',
                     global : false,
                     success : function (data) {
@@ -297,11 +305,11 @@ define(
              */
             this.getRecurringEvents = function (event) {
                 var events = [];
-            
                 if (event.recurrence) {
                     var diff = moment(event.end).diff(moment(event.start)),
-                        rrule = RRule.fromString(event.recurrence);
-
+                        rrule = RRule.fromString(event.recurrence),
+                        zone = moment(event.start).parseZone().zone();
+                
                     var recurringEventIds = [];
                     
                     $.each(rrule.all(), function (rEventKey, rEventDate) {
@@ -309,12 +317,12 @@ define(
                             endMoment = moment(rEventDate).add(diff, 'ms'),
                             rEvent = _.cloneDeep(event);
 
-                        rEvent.start = startMoment.utc().format('YYYY-MM-DDTHH:mm:ssZZ');
+                        rEvent.start = startMoment.zone(zone).format('YYYY-MM-DDTHH:mm:ssZZ');
                         if (rEvent.start === event.start) {
                             return;
                         }
                         
-                        rEvent.end = endMoment.utc().format('YYYY-MM-DDTHH:mm:ssZZ');
+                        rEvent.end = endMoment.zone(zone).format('YYYY-MM-DDTHH:mm:ssZZ');
                         rEvent.id = event.id + rEventKey;
                         rEvent.subEvent = true;
                         rEvent.subEventNum = rEventKey;
@@ -347,6 +355,30 @@ define(
                 if (fcEvent.id) {
                     $('.' + that.classAttrPrefix + fcEvent.id).addClass('fc-selected');
                 }
+            };
+            
+            /**
+             * Get time zone name from the select box on the calendar toolbar.
+             * @returns {String} Example 'Europe/Luxembourg'
+             */
+            this.getCurrentTZName = function () {
+                var timeZone = $.trim($('.js-time-zone-list').find('option:selected').text());
+                if (timeZone === '') {
+                    timeZone = 'UTC';
+                }
+                return timeZone;
+            };
+            
+            /**
+             * Get time zone offset in minutes from the select box on the calendar toolbar.
+             * @returns {integer} Example 120
+             */
+            this.getCurrentTZOffset = function () {
+                var offset = parseInt($('.js-time-zone-list').val());
+                if (isNaN(offset)) {
+                    offset = 0;
+                }
+                return offset;
             };
         };
         

@@ -31,6 +31,7 @@ define(
         'layout/actions',
         'uri',
         'ui/feedback',
+        'tpl!/taoDeliverySchedule/main/timeZoneList?noext',
         'taoDeliverySchedule/lib/rrule/rrule.amd',
         'css!/taoDeliverySchedule/views/css/taodeliveryschedule'
     ],
@@ -46,7 +47,8 @@ define(
         EditEventModal,
         actionManager,
         uri,
-        feedback
+        feedback,
+        timeZoneListTpl
     ) {
         'use strict';
 
@@ -58,13 +60,15 @@ define(
                 editEventModal,
                 tree,
                 $treeElt = $('#tree-manage_delivery_schedule'),
-                $calendarContainer = $('.js-delivery-calendar');
-
+                $calendarContainer = $('.js-delivery-calendar'),
+                timeZone = $('.js-delivery-calendar').data('time-zone-name') || 'UTC',
+                $tzSelect = $(timeZoneListTpl());
+            
             this.calendarLoading = $.Deferred();
 
             this.start = function () {
                 that.initTree();
-
+                
                 calendar = new Calendar(
                     {
                         $container : $calendarContainer,
@@ -78,7 +82,8 @@ define(
                                         start : start,
                                         end : end,
                                         e : e,
-                                        target : e.target
+                                        target : e.target,
+                                        timeZone : $tzSelect.val()
                                     },
                                     {action : actionManager.getBy('delivery-new')}
                                 )
@@ -148,9 +153,9 @@ define(
                         viewDestroy : function () {
                             that.hideTooltips();
                         },
-                        events: function(start, end, timezone, callback) {
+                        events : function(start, end, timezone, callback) {
                             $.ajax({
-                                url: '/taoDeliverySchedule/CalendarApi',
+                                url: '/taoDeliverySchedule/CalendarApi?timeZone=' + timeZone,
                                 dataType: 'json',
                                 data: {
                                     start: start.unix(),
@@ -174,7 +179,9 @@ define(
                         }
                     }
                 );
-        
+                
+                that.initTzSelect();
+                
                 $.fn.qtip.zindex = 9000;
                 
                 /* Edit event tooltip */
@@ -254,6 +261,22 @@ define(
                 
                 binder.register('class-select', function (treeInstance) {
                     that.hideTooltips();
+                });
+            };
+            
+            /**
+             * Initialize time zone selectbox.
+             * @returns {undefined}
+             */
+            this.initTzSelect = function () {
+                $tzSelect.find('option:contains(' + timeZone + ')').attr('selected', 'selected');
+                
+                $('.fc-toolbar .fc-right').prepend($tzSelect);
+                
+                $tzSelect.on('change', function () {
+                    that.hideTooltips();
+                    timeZone = eventService.getCurrentTZName();
+                    calendar.exec('refetchEvents');
                 });
             };
 

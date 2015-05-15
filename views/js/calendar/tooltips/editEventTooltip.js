@@ -53,7 +53,6 @@ define(
                     e.preventDefault();
                     var fcEvent = eventService.getEventById(that.getId());
                     if (fcEvent.parentEventId) {
-                        //$('.' + eventService.classAttrPrefix + fcEvent.parentEventId).trigger('click');
                         that.tooltip.elements.tooltip.trigger('go-to-parent-event', {fcEvent : fcEvent});
                     }
                 });

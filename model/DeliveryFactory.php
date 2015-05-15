@@ -49,7 +49,8 @@ class DeliveryFactory extends \taoDelivery_models_classes_SimpleDeliveryFactory
         
         $report = $compiler->compile();
         if ($report->getType() == \common_report_Report::TYPE_SUCCESS) {
-            $tz = new \DateTimeZone(\common_session_SessionManager::getSession()->getTimeZone());
+            //$tz = new \DateTimeZone(\common_session_SessionManager::getSession()->getTimeZone());
+            $tz = new \DateTimeZone('UTC');
             
             if (!empty($properties[TAO_DELIVERY_START_PROP])) {
                 $dt = new \DateTime($properties[TAO_DELIVERY_START_PROP], $tz);

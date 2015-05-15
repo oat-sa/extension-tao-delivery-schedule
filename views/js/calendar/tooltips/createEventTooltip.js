@@ -47,10 +47,15 @@ define(
             };
             
             this.show = function (options) {
+                var timeZone = parseInt(options.timeZone),
+                    startUTCStr = options.start.clone().zone(timeZone).format('YYYY-MM-DD HH:mm'),
+                    endUTCStr = options.end.clone().zone(timeZone).format('YYYY-MM-DD HH:mm');
+                
                 var tplOptions = {
                     start : options.start.format('ddd, MMMM D, H:mm'),
                     end : options.end ? options.end.format('ddd, MMMM D, H:mm') : false
                 };
+                
                 that.tooltip.set({
                     'position.target' : options.target || options.e.target
                 });
@@ -73,8 +78,8 @@ define(
                         $form = that.getForm();
                         $form.find('#label').focus();
                         
-                        $form.find('[name="start"]').val(options.start.format('YYYY-MM-DD HH:mm'));
-                        $form.find('[name="end"]').val(options.end.format('YYYY-MM-DD HH:mm'));
+                        $form.find('[name="start"]').val(startUTCStr);
+                        $form.find('[name="end"]').val(endUTCStr);
                         
                         that.tooltip.elements.content.find('.js-create-event').on('click', function () {
                             $form.submit();

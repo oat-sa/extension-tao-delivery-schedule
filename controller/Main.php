@@ -73,4 +73,10 @@ class Main extends \tao_actions_SaSModule
         $this->setData('timeZones', DeliveryScheduleService::singleton()->getTimeZones());
         $this->setView('editDeliveryForm.tpl');
     }
+    
+    public function timeZoneList() 
+    {
+        $this->setData('timeZones', DeliveryScheduleService::singleton()->getTimeZones());
+        $this->setView('timeZoneList.tpl');
+    }
 }

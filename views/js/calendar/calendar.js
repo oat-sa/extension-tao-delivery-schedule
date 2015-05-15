@@ -63,7 +63,7 @@ define(
                     height : getCalendarHeight(),
                     eventLimit : false, // allow "more" link when too many events
                     select : _.noop,
-                    timezone : options.$container.data('time-zone-name'),
+                    //timezone : options.$container.data('time-zone-name'),
                     timeFormat: 'H:mm',
                     axisFormat: 'HH:mm'
                 };

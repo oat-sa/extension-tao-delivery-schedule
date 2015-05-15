@@ -125,10 +125,9 @@ define(
                             fcEvent = eventService.getEventById(formData.id);
 
                         _.assign(fcEvent, formData);
-
                         fcEvent.start = $.fullCalendar.moment.parseZone(formData.start);
                         fcEvent.end = $.fullCalendar.moment.parseZone(formData.end);
-                        
+
                         eventService.saveEvent(fcEvent, function () {
                             that.hide();
                         });

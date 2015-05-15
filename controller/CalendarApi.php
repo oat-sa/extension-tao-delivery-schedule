@@ -37,7 +37,11 @@ class CalendarApi extends \tao_actions_SaSModule
     public function __construct()
     {
         parent::__construct();
-        $this->tz = new \DateTimeZone(\common_session_SessionManager::getSession()->getTimeZone());
+        $tzName = $this->getRequestParameter('timeZone') === null ? 
+                \common_session_SessionManager::getSession()->getTimeZone()
+                : $this->getRequestParameter('timeZone');
+        
+        $this->tz = new \DateTimeZone($tzName);
         $this->assemblyService = \taoDelivery_models_classes_DeliveryAssemblyService::singleton();
         $this->scheduleService = DeliveryScheduleService::singleton();
         
