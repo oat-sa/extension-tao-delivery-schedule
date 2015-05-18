@@ -174,7 +174,12 @@ class CalendarApi extends \tao_actions_SaSModule
                 );
                 $this->sendData($result);
             } else {
-                $this->sendData(array('message' => $report->getMessage(), 'errors' => $report->getErrors()), 400);
+                $this->sendData(
+                    array(
+                        'message' => $report->getMessage(), 
+                        'errors' => $report->getErrors()
+                    ), 
+                400);
             }
         } else {
             $this->sendData(
@@ -183,7 +188,7 @@ class CalendarApi extends \tao_actions_SaSModule
                     'errors' => $this->scheduleService->mapDeliveryProperties(
                         $this->scheduleService->getErrors($params), 
                         true
-                    ),
+                    )
                 ), 
                 400
             );
@@ -202,7 +207,7 @@ class CalendarApi extends \tao_actions_SaSModule
     {
         parse_str(file_get_contents("php://input"), $data);
         $params = $this->scheduleService->mapDeliveryProperties($data);
-        
+
         if(empty($params['classUri'])){
             throw new \tao_models_classes_MissingRequestParameterException("classUri");
         }
@@ -225,7 +230,8 @@ class CalendarApi extends \tao_actions_SaSModule
                     'errors' =>  $this->scheduleService->mapDeliveryProperties(
                         $this->scheduleService->getErrors($params), 
                         true
-                    )
+                    ),
+                    'errorType' => 'warning'
                 ), 
                 400
             );

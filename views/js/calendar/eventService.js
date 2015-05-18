@@ -118,9 +118,11 @@ define(
              *         id: "http://sample/first.rdf#i14301245512201554"
              *      }
              *      </pre>
+             * @param {function} callback success callback
+             * @param {function} errorCallback error callback
              * @returns {undefined}
              */
-            this.saveEvent = function (fcEvent, callback) {
+            this.saveEvent = function (fcEvent, callback, errorCallback) {
                 loadingBar.start();
                 
                 var data = {
@@ -159,9 +161,9 @@ define(
                 }
                 
                 $.ajax({
-                    url     : '/taoDeliverySchedule/CalendarApi',
-                    type    : 'PUT',
-                    data    : data,
+                    url : '/taoDeliverySchedule/CalendarApi',
+                    type : 'PUT',
+                    data : data,
                     global : false,
                     dataType : 'json',
                     success : function (response) {
@@ -186,10 +188,13 @@ define(
                             loadingBar.stop();
                         });
                     },
-                    error   : function (xhr, err) {
+                    error : function (xhr, err) {
                         loadingBar.stop();
                         var message = that.getRequestErrorMessage(xhr);
                         feedback().warning(message, {encodeHtml : false});
+                        if (typeof errorCallback === 'function') {
+                            errorCallback();
+                        }
                     }
                 });
             };
@@ -236,6 +241,7 @@ define(
             
             /**
              * Edit selected on the tree event (show edit form)
+             * @todo loading event by eventId parameter
              * @returns {undefined}
              */
             this.editEvent = function (eventId) {
@@ -259,7 +265,7 @@ define(
                 var timeZone = that.getCurrentTZName();
                 
                 $.ajax({
-                    url : '/taoDeliverySchedule/CalendarApi?uri=' + eventId + '&timeZone=' + that.getCurrentTZName(),
+                    url : '/taoDeliverySchedule/CalendarApi?uri=' + eventId + '&timeZone=' + timeZone,
                     type : 'GET',
                     global : false,
                     success : function (data) {

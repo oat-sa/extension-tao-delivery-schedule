@@ -118,7 +118,7 @@ define(
                                 revertFunc();
                                 feedback().warning(__("Sub delivery cannot be changed."));
                             } else {
-                                eventService.saveEvent(fcEvent);
+                                eventService.saveEvent(fcEvent, _.noop, function () {revertFunc()});
                             }
                         },
                         eventResize : function (fcEvent, e, revertFunc) {
@@ -126,7 +126,7 @@ define(
                                 revertFunc();
                                 feedback().warning(__("Sub delivery cannot be changed."));
                             } else {
-                                eventService.saveEvent(fcEvent);
+                                eventService.saveEvent(fcEvent, _.noop, function () {revertFunc()});
                             }
                         },
                         viewRender : function () {
