@@ -102,7 +102,7 @@ define(
                             createEventTooltip.hide();
                             
                             if (fcEvent.subEvent) {
-                                that.selectTreeNode(fcEvent.parentEventId, fcEvent.classId);
+                                //that.selectTreeNode(fcEvent.parentEventId, fcEvent.classId);
                                 that.goToEvent(fcEvent, function () {
                                     that.showEditEventTooltip(fcEvent, e);
                                 });
@@ -367,7 +367,7 @@ define(
                 
                 eventService.highlightEvent(fcEvent);
                 
-                if (e === undefined || e.isTrigger) {
+                if (typeof e === 'undefined' || e.isTrigger) {
                     if (!$eventElement.is(':visible')) {
                         $moreLinks = $eventElement.closest('.fc-content-skeleton').find('a.fc-more');
                         $eventElement = $moreLinks.eq(0);
@@ -383,14 +383,14 @@ define(
                     });
                 } else {
                     editEventTooltip.set({
-                        'position.adjust.y' : e.offsetY,
-                        'position.adjust.x' : e.offsetX,
+                        'position.adjust.y' : e.offsetY || (e.pageY - $eventElement.offset().top),
+                        'position.adjust.x' : e.offsetX || (e.pageX - $eventElement.offset().left),
                         'position.target' : e.currentTarget,
                         'position.my' : 'bottom center',
                         'position.at' : 'top left'
                     });
                 }
-                
+
                 editEventTooltip.show(fcEvent);
             };
             

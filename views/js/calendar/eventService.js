@@ -200,7 +200,7 @@ define(
             };
             
             /**
-             * Delete selected on the tree event
+             * Delete delivery selected on the tree
              * @returns {undefined}
              */
             this.deleteEvent = function (eventId) {
