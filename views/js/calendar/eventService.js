@@ -216,7 +216,7 @@ define(
             /**
              * Function parse response and returns error message
              * @param {object} xhr jqXHR object.
-             * @returns {xhr.responseText|responseJSON.message|String}
+             * @returns {string} error message
              */
             this.getRequestErrorMessage = function (xhr) {
                 var message = '';
@@ -237,21 +237,6 @@ define(
                 }
                 
                 return message;
-            };
-            
-            /**
-             * Edit selected on the tree event (show edit form)
-             * @todo loading event by eventId parameter
-             * @returns {undefined}
-             */
-            this.editEvent = function (eventId) {
-                actionManager.exec(
-                    'delivery-edit', 
-                    _.extend(
-                        actionManager._resourceContext, 
-                        {action : actionManager.getBy('delivery-edit')}
-                    )
-                );
             };
             
             /**

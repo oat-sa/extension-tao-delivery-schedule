@@ -73,15 +73,15 @@ define(
 
             /**
              * Show edit delivery modal
-             * @param {object} options
+             * @param {object} fcEvent fullcalendar event object
              * @param {string} options.uri Delivery uri
              */
-            this.show = function (options) {
+            this.show = function (fcEvent) {
                 $.ajax({
                     url : '/taoDeliverySchedule/CalendarApi?full=1',
                     type : 'GET',
                     data : {
-                        uri : options.uri
+                        uri : fcEvent.id
                     },
                     success : function (response) {
                         var color = response.color || 'transparent';

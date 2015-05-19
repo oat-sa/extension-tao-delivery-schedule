@@ -41,7 +41,21 @@ define(
             this.init = function () {
                 that.tooltip.elements.content.on('click', '.js-edit-event', function (e) {
                     e.preventDefault();
-                    eventService.editEvent(that.getId());
+                    actionManager.exec(
+                        'delivery-edit', 
+                        _.extend(
+                            actionManager._resourceContext, 
+                            {action : actionManager.getBy('delivery-edit')}
+                        )
+                    );
+                });
+                
+                that.tooltip.set({
+                    events : {
+                        hide : function () {
+                            eventService.highlightEvent(false);
+                        }
+                    }
                 });
                 
                 that.tooltip.elements.content.on('click', '.js-delete-event', function (e) {

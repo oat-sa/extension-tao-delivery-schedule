@@ -12,7 +12,7 @@
                           dataUrl="/taoDelivery/Delivery/getOntologyData"
                           rootNode="http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery"
                           selectClass="delivery-class-properties"
-                          selectInstance="delivery-properties"
+                          selectInstance="delivery-select"
                           moveInstance="delivery-move"
                           init="init-tree"
                           delete="delivery-delete" 
@@ -25,7 +25,7 @@
                     <action id="delivery-class-properties" name="Properties" binding="class-select" group="none" context="class">
                         <icon id="icon-edit"/>
                     </action>
-                    <action id="delivery-properties" name="Properties" binding="delivery-select" group="none" context="instance">
+                    <action id="delivery-select" name="Properties" binding="delivery-select" group="none" context="instance">
                         <icon id="icon-edit"/>
                     </action>
                     <action id="delivery-class-new" name="New class" url="/taoDelivery/Delivery/addSubClass" context="resource" group="tree" binding="subClass">

@@ -100,15 +100,7 @@ define(
                         },
                         eventClick : function (fcEvent, e) {
                             createEventTooltip.hide();
-                            
-                            if (fcEvent.subEvent) {
-                                //that.selectTreeNode(fcEvent.parentEventId, fcEvent.classId);
-                                that.goToEvent(fcEvent, function () {
-                                    that.showEditEventTooltip(fcEvent, e);
-                                });
-                            } else {
-                                that.selectEvent(fcEvent.id, fcEvent.classId, e);
-                            }
+                            that.selectEvent(fcEvent.id, e);
                         },
                         eventResizeStart : function (fcEvent, e) {
                             that.hideTooltips();
@@ -118,7 +110,7 @@ define(
                                 revertFunc();
                                 feedback().warning(__("Sub delivery cannot be changed."));
                             } else {
-                                eventService.saveEvent(fcEvent, _.noop, function () {revertFunc()});
+                                eventService.saveEvent(fcEvent, _.noop, function () {revertFunc();});
                             }
                         },
                         eventResize : function (fcEvent, e, revertFunc) {
@@ -126,7 +118,7 @@ define(
                                 revertFunc();
                                 feedback().warning(__("Sub delivery cannot be changed."));
                             } else {
-                                eventService.saveEvent(fcEvent, _.noop, function () {revertFunc()});
+                                eventService.saveEvent(fcEvent, _.noop, function () {revertFunc();});
                             }
                         },
                         viewRender : function () {
@@ -184,38 +176,14 @@ define(
                 
                 $.fn.qtip.zindex = 9000;
                 
-                /* Edit event tooltip */
-                editEventTooltip = new EditEventTooltip({
-                    position : {
-                        viewport : $(document)
-                    },
-                    events : {
-                        hide : function () {
-                            eventService.highlightEvent(false);
-                        }
-                    }
-                });
+                editEventTooltip = new EditEventTooltip();
                 editEventTooltip.tooltip.elements.tooltip.on('go-to-parent-event', function (e, data) {
                     that.selectEvent(data.fcEvent.parentEventId);
                 });
-                /* END edit event tooltip */
 
-                /* Create event tooltip */
-                createEventTooltip = new CreateEventTooltip({
-                    position : {
-                        viewport : $(document)
-                    },
-                    events : {
-                        hide : function () {
-                            calendar.exec('unselect');
-                        }
-                    }
-                });
-                /* END create event tooltip */
+                createEventTooltip = new CreateEventTooltip();
 
-                /* Edit event modal */
                 editEventModal = new EditEventModal();
-                /* END edit event modal */
 
                 binder.register('schedule_month_mode', function () {
                     that.hideTooltips();
@@ -233,32 +201,13 @@ define(
                     that.showCreateEventTooltip(context);
                 });
                 binder.register('delivery-edit', function (context) {
-                    that.showEditForm(context);
+                    that.showEditEventModal(context);
                 });
                 binder.register('delivery-select', function (treeInstance) {
-                    if (treeInstance.uri === editEventTooltip.getId() && editEventTooltip.isShown()) {
-                        return;
+                    if (!editEventTooltip.isShown() || editEventTooltip.getId() !== treeInstance.uri) {
+                        that.selectEvent(treeInstance.uri);
                     }
-                    
-                    that.calendarLoading.done(function () {
-                        var fcEvent = calendar.exec('clientEvents', treeInstance.uri);
-                        if (fcEvent.length) {
-                            that.goToEvent(fcEvent[0], that.showEditEventTooltip);
-                        } else {
-                            eventService.loadEvent(
-                                treeInstance.uri,
-                                function (eventData) {
-                                    calendar.exec('renderEvent', eventData);
-                                    var fcEvent = calendar.exec('clientEvents', treeInstance.uri);
-                                    if (fcEvent.length) {
-                                        that.goToEvent(fcEvent[0], that.showEditEventTooltip);
-                                    }
-                                }
-                            );
-                        }
-                    });
                 });
-                
                 binder.register('class-select', function (treeInstance) {
                     that.hideTooltips();
                 });
@@ -311,33 +260,57 @@ define(
                     }
                 );
             };
-
+            
+            /**
+             * Load event by id and render it on the calendar. 
+             * If event already loaded and represented on the calendar then the Deferred object will be resolved immediately.
+             * @param {string} eventId
+             * @returns {Deferred} 
+             */
+            this.getFcEvent = function (eventId) {
+                var deferred = $.Deferred(),
+                    fcEvent = calendar.exec('clientEvents', eventId);
+                
+                if (fcEvent.length === 0) {
+                    fcEvent = eventService.loadEvent(eventId, function (eventData) {
+                        calendar.exec('renderEvent', eventData);
+                        var fcEvent = calendar.exec('clientEvents', eventId);
+                        deferred.resolve(fcEvent[0]);
+                    });
+                } else {
+                    deferred.resolve(fcEvent[0]);
+                }
+                return deferred.promise();
+            };
+            
             /**
              * Moves the calendar to an event. 
              * If calendar has a scrollbar then it will be scrolled to start of event.
-             * Callback function will be invoked after all event will be loaded.
+             * Deferred object will be resolved after all event will be loaded.
              * @param {object} fcEvent Calendar event
-             * @param {funcrion} callback
-             * @returns {undefined}
+             * @returns {Deferred} 
              */
-            this.goToEvent = function (fcEvent, callback) {
-                //if the event is not presented on the calendar then move the calendar to appropriate date. 
-                if (!eventService.getEventElement(fcEvent.id).length) {
-                    calendar.exec('gotoDate', fcEvent.start);
-                }
-                that.calendarLoading.done(function () {
-                    var $eventElement = eventService.getEventElement(fcEvent.id),
-                        $scroller = $calendarContainer.find('.fc-scroller'),
-                        pos;
+            this.goToEvent = function (eventId) {
+                var deferred = $.Deferred();
+                that.getFcEvent(eventId).done(function(fcEvent) {
+                    if (!eventService.getEventElement(fcEvent.id).length) {
+                        calendar.exec('gotoDate', fcEvent.start);
+                    }
+                    that.calendarLoading.done(function () {
+                        var $eventElement = eventService.getEventElement(fcEvent.id),
+                            $scroller = $calendarContainer.find('.fc-scroller'),
+                            pos;
+
+                        if ($scroller.length) {
+                            pos = $eventElement.offset().top - $scroller.offset().top + $scroller.scrollTop();
+                            $scroller.scrollTop(pos);
+                        }
                         
-                    if ($scroller.length) {
-                        pos = $eventElement.offset().top - $scroller.offset().top + $scroller.scrollTop();
-                        $scroller.scrollTop(pos);
-                    }
-                    if (_.isFunction(callback)) {
-                        callback(fcEvent);
-                    }
+                        deferred.resolve(fcEvent);
+                    });
                 });
+                
+                return deferred.promise();
             };
 
             /**
@@ -410,68 +383,53 @@ define(
              * @see {@link /tao/views/js/layout/actions.js} for further information.
              * @returns {undefined}
              */
-            this.showEditForm = function (context) {
+            this.showEditEventModal = function (context) {
+                var fcEvent = eventService.getEventById(context.uri);
                 this.hideTooltips();
-                editEventModal.show(context);
+                editEventModal.show(fcEvent);
             };
             
             /**
              * Select event and show edit tooltip.
              * @param {string} eventId
-             * @param {string} classId
              * @param {object} e If triggered by clicking on the event 
              * then the tooltip coordinates will be the same as click coordinates.
              * @returns {undefined}
              */
-            this.selectEvent = function (eventId, classId, e) {
-                //select event on the tree
-                that.selectTreeNode(eventId, classId);
-                
-                //select event on the calendar
-                that.calendarLoading.done(function () {
-                    var fcEvent = calendar.exec('clientEvents', eventId);
-                    if (fcEvent.length) {
-                        that.goToEvent(fcEvent[0], that.showEditEventTooltip(fcEvent[0], e));
-                    } else {
-                        eventService.loadEvent(
-                            eventId,
-                            function (eventData) {
-                                calendar.exec('renderEvent', eventData);
-                                var fcEvent = calendar.exec('clientEvents', eventId);
-                                if (fcEvent.length) {
-                                    that.goToEvent(fcEvent[0], that.showEditEventTooltip(fcEvent[0], e));
-                                }
-                            }
-                        );
-                    }
+            this.selectEvent = function (eventId, e) {
+                that.goToEvent(eventId).done(function (fcEvent) {
+                    that.showEditEventTooltip(fcEvent, e);
+                    that.selectTreeNode(fcEvent.id);
                 });
             };
             
             /**
              * Select node on the tree
              * @param {string} eventId
-             * @param {string} classId
              * @returns {undefined}
              */
-            this.selectTreeNode = function (eventId, classId) {
-                //if node under the 'more' button
-                if ($('#tree-manage_delivery_schedule #' + eventId).length == 0) {
-                    tree.select_branch($('#' + classId + ' .more'));
-                    //after the `more` element has been deleted.
-                    $treeElt.one('delete.taotree', function (e, elt) {
-                        if ($(elt).hasClass('more')) {
-                            tree.select_branch($('#' + eventId));
-                        }
-                    });
-                }
-                
-                if (classId) {
-                    tree.open_branch('#' + classId, false, function () {
-                        tree.select_branch($('#' + eventId));
-                    });
-                } else {
-                    tree.select_branch($('#' + eventId));
-                }
+            this.selectTreeNode = function (eventId) {
+                tree.deselect_branch(tree.selected);
+                that.getFcEvent(eventId).done(function(fcEvent) {
+                    //if node under the 'more' button
+                    if ($('#tree-manage_delivery_schedule #' + fcEvent.id).length == 0) {
+                        tree.select_branch($('#' + fcEvent.classId + ' .more'));
+                        //after the `more` element has been deleted.
+                        $treeElt.one('delete.taotree', function (e, elt) {
+                            if ($(elt).hasClass('more')) {
+                                tree.select_branch($('#' + eventId));
+                            }
+                        });
+                    }
+
+                    if (fcEvent.classId) {
+                        tree.open_branch('#' + fcEvent.classId, false, function () {
+                            tree.select_branch($('#' + fcEvent.id));
+                        });
+                    } else {
+                        tree.select_branch($('#' + fcEvent.id));
+                    }
+                });
             };
         }
 

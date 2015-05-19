@@ -45,7 +45,8 @@ define(
                         adjust: {
                             scroll: false,
                             method: 'shift'
-                        }
+                        },
+                        viewport : $(document)
                     },
                     show : false,
                     hide : false,
@@ -57,7 +58,11 @@ define(
             
             
             this.init = function () {
-                options = _.merge(defaultOptions, options);
+                if (typeof options === 'object') {
+                    options = _.merge(defaultOptions, options);
+                } else  {
+                    options = defaultOptions;
+                }
                 this.tooltip = $('<div/>').qtip(options).qtip('api');
                 this.tooltip.elements.content.on('click', '.js-close', function () {
                     that.hide();
