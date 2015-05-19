@@ -116,7 +116,11 @@ class CalendarApi extends \tao_actions_SaSModule
             $start = (string) current($deliveryProps[TAO_DELIVERY_START_PROP]);
             $end = (string) current($deliveryProps[TAO_DELIVERY_END_PROP]);
             if (!$start || !$end) {
-                continue;
+                if (isset($requestParams['uri'])) {
+                    $this->sendData(array('message' => __('Delivery has no start and end date.')), 400, array(), true);    
+                } else {
+                    continue;
+                }
             }
             //getDeliverySettings
             $classUri = key($delivery->getTypes());
@@ -337,8 +341,9 @@ class CalendarApi extends \tao_actions_SaSModule
      * @param array $data 
      * @param int $status HTTP status code.
      * @param array $headers http headers array.
+     * @param boolean $terminate whether application should be terminated after data was sended.
      */
-    private function sendData(array $data, $status = 200, array $headers = array())
+    private function sendData(array $data, $status = 200, array $headers = array(), $terminate = false)
     {
         $status_header = 'HTTP/1.1 ' . $status . ' ' . $this->getStatusCodeMessage($status);
         header($status_header);
@@ -348,6 +353,10 @@ class CalendarApi extends \tao_actions_SaSModule
             header($header);
         }
         echo json_encode($data);
+        
+        if ($terminate) {
+            exit();
+        }
     }
     
     /**
