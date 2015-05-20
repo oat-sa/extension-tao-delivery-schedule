@@ -132,7 +132,8 @@ define(
                     uri        : fcEvent.uri,
                     start      : fcEvent.start.clone().add(fcEvent.start._tzm, 'm').format('YYYY-MM-DD HH:mm'),
                     end        : fcEvent.end.clone().add(fcEvent.end._tzm, 'm').format('YYYY-MM-DD HH:mm'),
-                    recurrence : ''
+                    recurrence : '',
+                    ttexcluded : fcEvent.ttexcluded.length ? fcEvent.ttexcluded : '' //jquery does not send empty arrays via ajax.
                 };
                 
                 if (fcEvent.resultserver) {

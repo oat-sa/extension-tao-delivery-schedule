@@ -178,6 +178,11 @@ class DeliveryScheduleService extends \tao_models_classes_Service
             $groups = array_map(array('\tao_helpers_Uri' , 'decode'), $params['groups']);
             $this->saveGroups($delivery, $groups);
         }
+        
+        if (isset($params['ttexcluded'])) {
+            $ttexcluded = is_array($params['ttexcluded']) ? $params['ttexcluded'] : array();
+            $this->saveExcludedTestTakers($delivery, $ttexcluded);
+        }
         return $delivery;
     }
     
@@ -245,18 +250,18 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     /**
      * Save delivery groups.
      * 
-     * @param \core_kernel_classes_Class $resource Delivery instance
+     * @param \core_kernel_classes_Class $delivery Delivery instance
      * @param array $values List of grups (uri)
      * @return boolean 
      */
-    private function saveGroups($resource, $values)
+    private function saveGroups(\core_kernel_classes_Class $delivery, $values)
     {
         $property = new \core_kernel_classes_Property(PROPERTY_GROUP_DELVIERY);
 
         $currentValues = array();
         foreach ($property->getDomain() as $domain) {
             $instances = $domain->searchInstances(array(
-                $property->getUri() => $resource
+                $property->getUri() => $delivery
             ), array('recursive' => true, 'like' => false));
             $currentValues = array_merge($currentValues, array_keys($instances));
         }
@@ -267,16 +272,32 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         $success = true;
         foreach ($toAdd as $uri) {
             $subject = new \core_kernel_classes_Resource($uri);
-            $success = $success && $subject->setPropertyValue($property, $resource);
+            $success = $success && $subject->setPropertyValue($property, $delivery);
         }
 
         foreach ($toRemove as $uri) {
             $subject = new \core_kernel_classes_Resource($uri);
-            $success = $success && $subject->removePropertyValue($property, $resource);
+            $success = $success && $subject->removePropertyValue($property, $delivery);
         }
 
         return $success;
     }
+    
+    /**
+     * Save excluded testakers
+     * @param \core_kernel_classes_Class $delivery Delivery instance
+     * @param array $excluded List of excluded testakers (uri)
+     * @return boolean 
+     */
+    public function saveExcludedTestTakers(\core_kernel_classes_Class $delivery, $excluded) {
+        $success = $delivery->editPropertyValues(
+            new \core_kernel_classes_Property(TAO_DELIVERY_EXCLUDEDSUBJECTS_PROP), 
+            $excluded
+        );
+        
+        return $success;
+    }
+    
     
     /**
      * Get all deliveries in time range.
@@ -379,5 +400,27 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         }
         
         return $settings;
+    }
+    
+    /**
+     * Get test uri assigned to delivery. 
+     * If no test assigned to the delivery then delivery uri parameter will be returned.
+     * @param \core_kernel_classes_Resource $delivery Delivery instance
+     * @return string assigned to the delivery test uri.
+     */
+    public function getTestUri(\core_kernel_classes_Resource $delivery) {
+        $runtimeResource = $delivery->getUniquePropertyValue(new \core_kernel_classes_Property(PROPERTY_COMPILEDDELIVERY_RUNTIME));
+        $actualParams = $runtimeResource->getPropertyValuesCollection(new \core_kernel_classes_Property(PROPERTY_CALLOFSERVICES_ACTUALPARAMETERIN));
+        foreach ($actualParams as $actualParam) {
+            $test = $actualParam->getUniquePropertyValue(new \core_kernel_classes_Property(PROPERTY_ACTUALPARAMETER_CONSTANTVALUE));
+            if (get_class($test) === "core_kernel_classes_Resource") {
+                $result = $test->getUri();
+                break;
+            }
+        }
+        if ($result === null) {
+            $result = $delivery->getUri();
+        }
+        return $result;
     }
 }

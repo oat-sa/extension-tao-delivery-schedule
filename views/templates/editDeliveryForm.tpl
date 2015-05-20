@@ -19,7 +19,7 @@ $days = array(
     </div>
 </div>
 <div>
-    <form method="post" class="edit-delivery-form" >
+    <form method="post" class="edit-delivery-form">
         <input name="id" type="hidden" value="{{id}}">
         <input name="uri" type="hidden" value="{{uri}}">
         <table border="0" cellpadding="0" cellspacing="0" class="edit-delivery-form__table">
@@ -175,24 +175,59 @@ $days = array(
                 </td>
                 <td>
                     <h3>{{__ 'Test-takers'}}</h3>
-                    {{#if ttassignedMessage}}
-                        {{ttassignedMessage}}.
-                    {{/if}}
-                    
-                    {{#if ttexcludedMessage}}
-                    <div class="feedback-info small">
-                        <span class="icon-info"></span>
-                        {{ttexcludedMessage}}.
-                    </div>
-                    {{/if}}
-                    {{#unless ttexcludedMessage}}
-                        {{#unless ttassignedMessage}}
-                        <div class="feedback-info small">
-                            <span class="icon-info"></span>
-                            {{__ 'Delivery is not assigned to any test-taker'}}.
-                        </div>
-                        {{/unless}}
-                    {{/unless}}
+                    <table class="tt-list js-tt-list" border="0">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <label class="form_desc">{{__ 'Assigned test-takers'}}</label>
+                                </th>
+                                <th>
+                                    <label class="form_desc">{{__ 'Excluded test-takers'}}</label>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="js-assigned-summary-wrap">
+                                        \{{#if total}}
+                                            <span class="filters-summary">
+                                                \{{#if filtered}}
+                                                \{{__ 'Filtered'}} \{{filtered}} {{__ 'of'}} \{{total}}
+                                                <a href="#" class="reset-filter js-reset-filter">{{__ 'Show all'}}</a>
+                                                \{{else}}
+                                                    \{{message}}
+                                                \{{/if}}
+                                            </span>
+                                        \{{else}}
+                                            <div class="summary-warning">
+                                                <span class="icon-info"></span> \{{{message}}}
+                                            </div>
+                                        \{{/if}}
+                                    </div>
+                                    
+                                    <input placeholder="{{__ 'Filter'}}" type="text"class="tt-list__filter full-width js-excluded-tt-filter">
+                                    <select multiple="multiple" class="tt-select js-assigned-tt-list" name="assigned-tt-list" size="9">
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="js-excluded-summary-wrap">
+                                        \{{#if filtered}}
+                                            <span class="filters-summary">
+                                                {{__ 'Filtered'}} \{{filtered}} {{__ 'of'}} \{{total}}
+                                                <a href="#" class="reset-filter js-reset-filter">{{__ 'Show all'}}</a>
+                                            </span>
+                                        \{{else}}
+                                            \{{{message}}}
+                                        \{{/if}}
+                                    </div>
+                                    <input placeholder="{{__ 'Filter'}}" type="text" class="tt-list__filter full-width js-assigned-tt-filter">
+                                    <select multiple="multiple" class="tt-select js-excluded-tt-list" name="ttexcluded" size="9">
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </td>
             </tr>
         </table>

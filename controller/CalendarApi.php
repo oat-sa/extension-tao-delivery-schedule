@@ -22,17 +22,18 @@ namespace oat\taoDeliverySchedule\controller;
 
 use oat\taoDeliverySchedule\helper\ColorGenerator;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
+use oat\taoDeliverySchedule\model\DeliveryTestTakersService;
 use oat\taoDeliverySchedule\model\DeliveryFactory;
+use oat\taoDeliverySchedule\controller\ApiBaseController;
 /**
  * Controller provides Rest API for managing deliveries.
  *
  * @author Aleh Hutnikau <hutnikau@1pt.com>
  * @package taoDeliverySchedule
  */
-class CalendarApi extends \tao_actions_SaSModule
+class CalendarApi extends ApiBaseController
 {
     private $tz;
-    private $action;
     
     public function __construct()
     {
@@ -61,21 +62,6 @@ class CalendarApi extends \tao_actions_SaSModule
             default :
                 $this->sendData(array('message' => 'Not found'), 404);
                 exit();
-        }
-    }
-    
-    public function __call($name, $arguments) 
-    {
-        $this->sendData(array('message' => 'Not found'), 404);
-        exit();
-    }
-    
-    public function index() {
-        $action = $this->action;
-        if(is_callable(array($this, $action))){
-            $this->$action();
-        } else {
-            $this->sendData(array('message' => 'Not found'), 404);
         }
     }
     
@@ -134,7 +120,7 @@ class CalendarApi extends \tao_actions_SaSModule
                 'classUri' => $classUri,
                 'start' => $this->formatDate($start),
                 'end' => $this->formatDate($end),
-                'color' => $colorGenerator->getColor($this->getTestUri($delivery)),
+                'color' => $colorGenerator->getColor($this->scheduleService->getTestUri($delivery)),
                 'recurrence' => (string) current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])
             );
             
@@ -269,17 +255,10 @@ class CalendarApi extends \tao_actions_SaSModule
             );
             $result['groups'] = \tao_helpers_Uri::encodeArray($groups);
         }
-
-        // excluded test takers
-        $excludedSubjProperty = new \core_kernel_classes_Property(TAO_DELIVERY_EXCLUDEDSUBJECTS_PROP);
-        $excluded = $delivery->getPropertyValues($excludedSubjProperty);
-        $result['ttexcluded'] = $excluded;
-
-        // assigned test takers
-        $users = \taoDelivery_models_classes_AssignmentService::singleton()->getAssignedUsers($delivery);
-        $assigned = array_values(array_diff(array_unique($users), $excluded));
-        $result['ttassigned'] = $assigned;
-
+         
+        //Test takers
+        $result = $result + DeliveryTestTakersService::singleton()->getDeliveryTestTakers($delivery);
+        
         //Max. number of executions
         $deliveryMaxexecProperty = new \core_kernel_classes_Property(TAO_DELIVERY_MAXEXEC_PROP);
         $result['maxexec'] = (string) $delivery->getOnePropertyValue($deliveryMaxexecProperty);
@@ -302,80 +281,5 @@ class CalendarApi extends \tao_actions_SaSModule
             $datetime->setTimezone($this->tz);
             return $datetime->format(\DateTime::ISO8601);
         }
-    }
-    
-    /**
-     * Get test uri assigned to delivery. 
-     * If no test assigned to the delivery then delivery uri parameter will be returned.
-     * @param \core_kernel_classes_Resource $delivery Delivery instance
-     * @return string assigned to the delivery test uri.
-     */
-    private function getTestUri(\core_kernel_classes_Resource $delivery) {
-        $runtimeResource = $delivery->getUniquePropertyValue(new \core_kernel_classes_Property(PROPERTY_COMPILEDDELIVERY_RUNTIME));
-        $actualParams = $runtimeResource->getPropertyValuesCollection(new \core_kernel_classes_Property(PROPERTY_CALLOFSERVICES_ACTUALPARAMETERIN));
-        foreach ($actualParams as $actualParam) {
-            $test = $actualParam->getUniquePropertyValue(new \core_kernel_classes_Property(PROPERTY_ACTUALPARAMETER_CONSTANTVALUE));
-            if (get_class($test) === "core_kernel_classes_Resource") {
-                $result = $test->getUri();
-                break;
-            }
-        }
-        if ($result === null) {
-            $result = $delivery->getUri();
-        }
-        return $result;
-    }
-    
-    /**
-     * Function converts $data array to json format and sends it to the client.
-     * Usage example:
-     * <pre>
-     *   $this->sendData(
-     *       array(...),
-     *       200,
-     *       array(
-     *           "Content-Range: items 1/10",
-     *       )
-     *   );
-     * </pre>
-     * @param array $data 
-     * @param int $status HTTP status code.
-     * @param array $headers http headers array.
-     * @param boolean $terminate whether application should be terminated after data was sended.
-     */
-    private function sendData(array $data, $status = 200, array $headers = array(), $terminate = false)
-    {
-        $status_header = 'HTTP/1.1 ' . $status . ' ' . $this->getStatusCodeMessage($status);
-        header($status_header);
-        header('Content-Type: application/json');
-        
-        foreach($headers as $header){
-            header($header);
-        }
-        echo json_encode($data);
-        
-        if ($terminate) {
-            exit();
-        }
-    }
-    
-    /**
-     * Funcion return HTTP status code message.
-     * @param int $status status code.
-     * @return string code message.
-     */
-    private function getStatusCodeMessage($status)
-    {
-        $codes = Array(
-            200 => 'OK',
-            400 => 'Bad Request',
-            401 => 'Unauthorized',
-            402 => 'Payment Required',
-            403 => 'Forbidden',
-            404 => 'Not Found',
-            500 => 'Internal Server Error',
-            501 => 'Not Implemented',
-        );
-        return (isset($codes[$status])) ? $codes[$status] : '';
     }
 }

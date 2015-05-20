@@ -28,16 +28,18 @@ define(
         'generis.tree.select',
         'moment',
         'taoDeliverySchedule/calendar/eventService',
+        'taoDeliverySchedule/calendar/widgets/testTakersList',
         'taoDeliverySchedule/lib/rrule/rrule.amd',
         'taoDeliverySchedule/lib/jquery.serialize-object.min',
         'taoDeliverySchedule/lib/qtip/jquery.qtip',
         'jqueryui'
     ],
-    function (_, $, modal, formTpl, __, GenerisTreeSelectClass, moment, eventService) {
+    function (_, $, modal, formTpl, __, GenerisTreeSelectClass, moment, eventService, TestTakersList) {
         'use strict';
         
         return function () {
-            var that = this;
+            var that = this,
+                testTakersList;
 
             modal.apply(this, arguments);
 
@@ -88,8 +90,6 @@ define(
 
                         response.publishedFromatted = moment(response.published * 1000).format("YYYY-MM-DD HH:mm");
                         response.executionsMessage = that.getExecutionsMessage(response.executions);
-                        response.ttexcludedMessage = response.ttexcluded.length ? __('%d test-taker(s) are excluded', String(response.ttexcluded.length)) : '';
-                        response.ttassignedMessage = response.ttassigned.length ? __('Delivery is assigned to %d test-takers', String(response.ttassigned.length)) : '';
 
                         that.modal.set({
                             'content.text'   : formTpl(response),
@@ -99,6 +99,12 @@ define(
                         that.modal.elements.titlebar.css({'border-bottom' : '2px solid ' + color});
                         that.modal.show();
 
+                        testTakersList = new TestTakersList({
+                            container : $('.js-tt-list'),
+                            data : {ttexcluded : response.ttexcluded, ttassigned : response.ttassigned},
+                            deliveryId : response.id
+                        });
+                        
                         that.initDatepickers();
                         that.initGroupTree(response);
                         that.initForm(response);
@@ -172,7 +178,10 @@ define(
                         openNodes: ["http:\/\/www.tao.lu\/Ontologies\/TAOGroup.rdf#Group"],
                         rootNode: "http:\/\/www.tao.lu\/Ontologies\/TAOGroup.rdf#Group"
                     },
-                    paginate: 10
+                    paginate: 10,
+                    onChangeCallback : function () {
+                        testTakersList.updateGroups(that.groupTree.getChecked());
+                    }
                 });
             };
 
@@ -432,6 +441,12 @@ define(
                 that.updateDatetime();
                 that.updateRruleValue();
                 data = that.$form.serializeObject();
+                data.ttexcluded = [];
+                $('.js-excluded-tt-list option').each(
+                    function () {
+                        data.ttexcluded.push(this.value);
+                    }
+                );
                 data.groups = that.groupTree.getChecked();
                 return data;
             };
