@@ -90,6 +90,9 @@ define(
                             );
                         },
                         eventRender : function (fcEvent, $element) {
+                            /*if (fcEvent.end.diff(fcEvent.start, 'hours') >= 24) {
+                                fcEvent.allDay = true;
+                            }*/
                             $element.addClass(eventService.classAttrPrefix + fcEvent.id);
                             if (fcEvent.recurringEventIds) {
                                 $element.append('<span class="recurring-count">1</span>');
@@ -182,7 +185,8 @@ define(
                 });
 
                 createEventTooltip = new CreateEventTooltip();
-
+                createEventTooltip.set({'events.hide': function () {calendar.exec('unselect');}});
+                
                 editEventModal = new EditEventModal();
 
                 binder.register('schedule_month_mode', function () {
@@ -247,6 +251,7 @@ define(
                     'removenode.taotree',
                     function (e, data) {
                         var fcEvent = eventService.getEventById(data.id);
+                        that.hideTooltips();
                         if (fcEvent) {
                             var eventsToBeRemoved = [fcEvent.id];
                             if (fcEvent.recurringEventIds && fcEvent.recurringEventIds.length) {

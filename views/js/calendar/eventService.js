@@ -133,8 +133,11 @@ define(
                     start      : fcEvent.start.clone().add(fcEvent.start._tzm, 'm').format('YYYY-MM-DD HH:mm'),
                     end        : fcEvent.end.clone().add(fcEvent.end._tzm, 'm').format('YYYY-MM-DD HH:mm'),
                     recurrence : '',
-                    ttexcluded : fcEvent.ttexcluded.length ? fcEvent.ttexcluded : '' //jquery does not send empty arrays via ajax.
                 };
+                
+                if (fcEvent.ttexcluded) {
+                    data.ttexcluded = fcEvent.ttexcluded.length ? fcEvent.ttexcluded : ''; //jquery does not send empty arrays via ajax.
+                }
                 
                 if (fcEvent.resultserver) {
                     data.resultserver = fcEvent.resultserver;
@@ -185,7 +188,7 @@ define(
                                 callback(eventData);
                             }
                             
-                            feedback().info(response.message);
+                            feedback().success(response.message);
                             loadingBar.stop();
                         });
                     },
@@ -212,6 +215,7 @@ define(
                         {action : actionManager.getBy('delivery-delete')}
                     )
                 );
+                tree.deselect_branch(tree.selected);
             };
             
             /**
@@ -320,6 +324,7 @@ define(
                         rEvent.subEventNum = rEventKey;
                         rEvent.parentEventId = event.id;
                         rEvent.className = ['sub-event'];
+                        rEvent.durationEditable = false;
                         //rEvent.editable = false;
                         recurringEventIds.push(rEvent.id);
                         events.push(rEvent);

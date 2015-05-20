@@ -179,8 +179,9 @@ body #ui-datepicker-div.edit-delivery-form__datepicker {
     }
 }
 
-.sub-event {
+.fc-event.sub-event {
     padding-right: 14px;
+    cursor: no-drop;
     &:after {
         content: "\ea2e";
         font-family: tao;

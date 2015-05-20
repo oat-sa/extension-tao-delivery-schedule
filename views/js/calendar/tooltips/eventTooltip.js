@@ -43,8 +43,8 @@ define(
                         my : 'bottom center',
                         at : 'top center',
                         adjust: {
-                            scroll: false,
-                            method: 'shift'
+                            scroll : false,
+                            method : 'shift'
                         },
                         viewport : $(document)
                     },
