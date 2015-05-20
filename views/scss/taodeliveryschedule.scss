@@ -7,6 +7,12 @@
 }
 .event-tooltip {
     position: relative;
+    label {
+        vertical-align: middle;
+    }
+    input {
+        margin-bottom: 5px;
+    }
 }
 .event-tooltip__content {
     
