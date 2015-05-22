@@ -39,6 +39,7 @@ define(
         
         return function () {
             var that = this,
+                initialData,
                 testTakersList;
 
             modal.apply(this, arguments);
@@ -111,7 +112,61 @@ define(
                     }
                 });
             };
+            
+            this.hide = function () {
+                if (!that.isShown()) {
+                    return;
+                }
+                if (!that.modified()) {
+                    that.modal.hide();
+                } else {
+                    var message = '<div><p>' + __('Do you want to save your changes?') + '</p>' +
+                        '<button class="btn-success small js-confirm-save">' + __('Save') + '</button> ' +
+                        '<button class="btn-info small js-confirm-cancel">' + __('Cancel') + '</button> ' +
+                        '<button class="btn-warning small js-confirm-discard">' + __('Discard') + '</button></div>';
 
+                    $('<div />').qtip({
+                        content: {
+                            text: $(message),
+                            title: __("The delivery has been modified.")
+                        },
+                        position: {
+                            my: 'center', at: 'center',
+                            target: $(window)
+                        },
+                        show: {
+                            ready: true,
+                            modal: {
+                                on: false,
+                                blur: false
+                            }
+                        },
+                        hide: false,
+                        style: 'dialogue qtip-light qtip-shadow',
+                        events: {
+                            render: function(event, api) {
+                                $('.js-confirm-cancel', api.elements.content).click(function(e) {
+                                    api.hide(e);
+                                });
+                                $('.js-confirm-discard', api.elements.content).click(function(e) {
+                                    api.hide(e);
+                                    that.modal.hide();
+                                });
+                                $('.js-confirm-save', api.elements.content).click(function(e) {
+                                    api.hide(e);
+                                    that.$form.submit();
+                                });
+                            },
+                            hide: function(event, api) { api.destroy(); }
+                        }
+                    });
+                }
+            };
+            
+            this.modified = function () {
+                return !_.isEqual(initialData, that.getFormData());
+            };
+            
             /**
              * Initialize form (bind validation on submit event etc.)
              * @returns {undefined}
@@ -135,6 +190,7 @@ define(
                         fcEvent.end = $.fullCalendar.moment.parseZone(formData.end);
 
                         eventService.saveEvent(fcEvent, function () {
+                            initialData = that.getFormData();
                             that.hide();
                         });
                     }
@@ -163,6 +219,8 @@ define(
                 $('[name^="rrule["]').on('change', function () {
                     that.updateRruleValue();
                 });
+                
+                initialData = that.getFormData();
             };
 
             /**

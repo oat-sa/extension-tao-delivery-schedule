@@ -23,7 +23,6 @@ namespace oat\taoDeliverySchedule\controller;
 use oat\taoDeliverySchedule\helper\ColorGenerator;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\taoDeliverySchedule\model\DeliveryTestTakersService;
-use oat\taoDeliverySchedule\model\DeliveryFactory;
 use oat\taoDeliverySchedule\controller\ApiBaseController;
 /**
  * Controller provides Rest API for managing deliveries.

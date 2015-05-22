@@ -71,7 +71,6 @@ define(
         
             /**
              * Hide tooltip
-             * @fires eventTooltip#hide:eventTooltip.hide
              * @returns {undefined}
              */
             this.hide = function () {
@@ -89,6 +88,12 @@ define(
                 return this.tooltip.elements.tooltip.is(':visible');
             };
             
+            /**
+             * Set dialogue (qtip2) options.
+             * @see http://qtip2.com/api#api-methods.set
+             * @param {type} options
+             * @returns {undefined}
+             */
             this.set = function (options) {
                 this.tooltip.set(options);
             };

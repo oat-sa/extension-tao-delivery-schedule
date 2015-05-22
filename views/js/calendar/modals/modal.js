@@ -49,8 +49,8 @@ define(
                         ready : false,
                         modal : {
                             on : true,
-                            blur : true,
-                            escape : true
+                            blur : false,
+                            //escape : true
                         }
                     },
                     hide : false,
@@ -65,14 +65,32 @@ define(
                 options = _.merge(defaultOptions, options);
                 this.modal = $('<div />').qtip(options).qtip('api');
             };
-        
+            
+            /**
+             * Hide dialogue
+             * @returns {undefined}
+             */
             this.hide = function () {
-                if (!this.modal.elements.tooltip.is(':visible')) {
+                if (!that.isShown()) {
                     return;
                 }
                 this.modal.hide();
             };
             
+            /**
+             * Whether dialogue is shown.
+             * @returns {boolean}
+             */
+            this.isShown = function () {
+                return this.modal.elements.tooltip.is(':visible');
+            };
+            
+            /**
+             * Set dialogue (qtip2) options.
+             * @see http://qtip2.com/api#api-methods.set
+             * @param {type} options
+             * @returns {undefined}
+             */
             this.set = function (options) {
                 this.modal.set(options);
             };
