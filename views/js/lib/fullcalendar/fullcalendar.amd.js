@@ -1,9 +1,9 @@
 define(
     [
-        'taoDeliverySchedule/lib/fullcalendar/fullcalendar'
+        'taoDeliverySchedule/lib/fullcalendar/fullcalendar',
+        'context'
     ], 
     function () {
         'use strict';
-        
     }
 );

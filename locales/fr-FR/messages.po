@@ -1,12 +1,12 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: TAO 3.0.1\n"
-"PO-Revision-Date: 2015-05-25T16:09:37\n"
+"PO-Revision-Date: 2015-05-25T16:22:52\n"
 "Last-Translator: TAO Translation Team <translation@tao.lu>\n"
 "MIME-Version: 1.0\n"
-"Language: en-US\n"
+"Language: fr-FR\n"
 "sourceLanguage: en-US\n"
-"targetLanguage: en-US\n"
+"targetLanguage: fr-FR\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Basepath: ../../\n"
@@ -14,32 +14,32 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 msgid "Assigned test-takers"
-msgstr ""
+msgstr "Participants assignés"
 
 msgid "Assigned to"
-msgstr ""
+msgstr "Assigné à"
 
 msgid "Attempts"
-msgstr ""
+msgstr "Tentatives"
 
 msgid "Cancel"
-msgstr ""
+msgstr "Annuler"
 
 msgid "Count"
 msgstr ""
 
 msgid "Create"
-msgstr ""
+msgstr "Créer"
 
 msgid "Create a new delivery"
-msgstr ""
+msgstr "Créer une nouvelle passation"
 
 msgid "Daily"
 msgstr ""
 
 #, tao-public
 msgid "Day"
-msgstr ""
+msgstr "Jour"
 
 #, tao-public
 msgid "Delete"
@@ -53,7 +53,7 @@ msgid "Delivery has no start and end date."
 msgstr ""
 
 msgid "Delivery saved"
-msgstr ""
+msgstr "Passation enregistrée"
 
 #, tao-public
 msgid "Delivery schedule"
@@ -73,16 +73,16 @@ msgid "Edit delivery"
 msgstr ""
 
 msgid "End"
-msgstr ""
+msgstr "Fin"
 
 msgid "Excluded test-takers"
-msgstr ""
+msgstr "Participants exclus"
 
 msgid "Filter"
-msgstr ""
+msgstr "filtre"
 
 msgid "Filtered"
-msgstr ""
+msgstr "filtré"
 
 msgid "Go to parent event"
 msgstr ""
@@ -99,7 +99,7 @@ msgstr ""
 
 #, tao-public
 msgid "Month"
-msgstr ""
+msgstr "Mois"
 
 msgid "Monthly"
 msgstr ""
@@ -161,7 +161,7 @@ msgid "Show all"
 msgstr ""
 
 msgid "Start"
-msgstr ""
+msgstr "Démarrer"
 
 msgid "start date must be before end date"
 msgstr ""
@@ -201,7 +201,7 @@ msgstr ""
 
 #, tao-public
 msgid "Week"
-msgstr ""
+msgstr "Semaine"
 
 msgid "Weekly"
 msgstr ""

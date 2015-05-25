@@ -232,7 +232,7 @@ $days = array(
             </tr>
         </table>
         <button class="form-submitter btn-success small" type="button">
-            <span class="icon-save"></span>Save
+            <span class="icon-save"></span>{{__ 'Save'}}
         </button>
     </form>
 </div>

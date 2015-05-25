@@ -20,13 +20,15 @@ define(
     [
         'lodash',
         'jquery',
+        'i18n',
         'taoDeliverySchedule/calendar/eventService',
         'ui/feedback',
+        'context',
         'taoDeliverySchedule/lib/fullcalendar/fullcalendar.amd'
     ],
-    function (_, $, eventService, feedback) {
+    function (_, $, __, eventService, feedback, context) {
         'use stirct';
-        
+
         /**
          * Function retuns height of calendar container
          * 
@@ -58,6 +60,7 @@ define(
             
             this.init = function () {
                 defaultOptions = {
+                    lang: context.base_lang,
                     defaultDate : new Date(),
                     editable : true,
                     selectable : true,
@@ -202,7 +205,15 @@ define(
                 return deferred.promise();
             };
             
-            this.init();
+            if (context.base_lang !== 'en') {
+                require(['taoDeliverySchedule/lib/fullcalendar/lang/' + context.base_lang], function () {
+                    that.init();
+                }, function (err) {
+                    that.init();
+                });
+            } else {
+                that.init();
+            }
         };
     }
 );

@@ -48,7 +48,8 @@ define(
         actionManager,
         uri,
         feedback,
-        timeZoneListTpl
+        timeZoneListTpl,
+        context
     ) {
         'use strict';
 
