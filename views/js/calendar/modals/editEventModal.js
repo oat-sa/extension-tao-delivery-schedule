@@ -113,6 +113,10 @@ define(
                 });
             };
             
+            /**
+             * Hide edit form. If any data on the form was changed then confirmation window will be shown.
+             * @returns {undefined}
+             */
             this.hide = function () {
                 if (!that.isShown()) {
                     return;
@@ -132,7 +136,10 @@ define(
                         },
                         position: {
                             my: 'center', at: 'center',
-                            target: $(window)
+                            target: $(window),
+                            adjust: {
+                                y: -200
+                            }
                         },
                         show: {
                             ready: true,

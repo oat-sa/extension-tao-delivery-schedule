@@ -20,9 +20,11 @@ define(
     [
         'lodash',
         'jquery',
+        'taoDeliverySchedule/calendar/eventService',
+        'ui/feedback',
         'taoDeliverySchedule/lib/fullcalendar/fullcalendar.amd'
     ],
-    function (_, $) {
+    function (_, $, eventService, feedback) {
         'use stirct';
         
         /**
@@ -52,7 +54,8 @@ define(
             }
             var defaultOptions,
             that = this;
-    
+            this.calendarLoading = $.Deferred();
+            
             this.init = function () {
                 defaultOptions = {
                     defaultDate : new Date(),
@@ -65,8 +68,68 @@ define(
                     select : _.noop,
                     //timezone : options.$container.data('time-zone-name'),
                     timeFormat: 'H:mm',
-                    axisFormat: 'HH:mm'
+                    axisFormat: 'HH:mm',
+                    loading : function (loading) {
+                        if (loading) {
+                            that.calendarLoading = $.Deferred();
+                        } else {
+                            that.calendarLoading.resolve();
+                        }
+                    },
+                    eventRender : function (fcEvent, $element) {
+                        /*if (fcEvent.end.diff(fcEvent.start, 'hours') >= 24) {
+                            fcEvent.allDay = true;
+                        }*/
+                        $element.addClass(eventService.classAttrPrefix + fcEvent.id);
+                        if (fcEvent.recurringEventIds) {
+                            $element.append('<span class="recurring-count">1</span>');
+                        }
+                        if (fcEvent.subEvent && fcEvent.subEventNum) {
+                            $element.append('<span class="recurring-count">' + (fcEvent.subEventNum + 1) + '</span>');
+                        }
+                    },
+                    eventDrop : function (fcEvent, e, revertFunc) {
+                        if (fcEvent.subEvent) {
+                            revertFunc();
+                            feedback().warning(__("Sub delivery cannot be changed."));
+                        } else {
+                            eventService.saveEvent(fcEvent, _.noop, function () {revertFunc();});
+                        }
+                    },
+                    eventResize : function (fcEvent, e, revertFunc) {
+                        if (fcEvent.subEvent) {
+                            revertFunc();
+                            feedback().warning(__("Sub delivery cannot be changed."));
+                        } else {
+                            eventService.saveEvent(fcEvent, _.noop, function () {revertFunc();});
+                        }
+                    },
+                    events : function(start, end, timezone, callback) {
+                        $.ajax({
+                            url: '/taoDeliverySchedule/CalendarApi?timeZone=' + eventService.getCurrentTZName(),
+                            dataType: 'json',
+                            data: {
+                                start: start.unix(),
+                                end: end.unix()
+                            },
+                            success: function(response) {
+                                var events = [];
+
+                                that.exec('removeEvents');
+                                $.each(response, function (key, event) {
+                                    var recurringEvents = eventService.getRecurringEvents(event);
+                                    events.push(event);
+                                    $.each(recurringEvents, function (rEventKey, rEventVal) {
+                                        events.push(rEventVal);
+                                    });
+                                });
+
+                                callback(events);
+                            }
+                        });
+                    }
                 };
+                
                 options = _.assign(defaultOptions, options);
                 options.$container.fullCalendar(options);
             };
@@ -85,6 +148,58 @@ define(
              */
             this.addEvent = function (eventData) {
                 that.exec('renderEvent', eventData, true); // stick? = true
+            };
+            
+            /**
+             * Load event by id and render it on the calendar. 
+             * If event already loaded and represented on the calendar then the Deferred object will be resolved immediately.
+             * @param {string} eventId
+             * @returns {Deferred} 
+             */
+            this.getEvent = function (eventId) {
+                var deferred = $.Deferred(),
+                    fcEvent = that.exec('clientEvents', eventId);
+                
+                if (fcEvent.length === 0) {
+                    fcEvent = eventService.loadEvent(eventId, function (eventData) {
+                        that.exec('renderEvent', eventData);
+                        var fcEvent = that.exec('clientEvents', eventId);
+                        deferred.resolve(fcEvent[0]);
+                    });
+                } else {
+                    deferred.resolve(fcEvent[0]);
+                }
+                return deferred.promise();
+            };
+            
+            /**
+             * Moves the calendar to an event. 
+             * If calendar has a scrollbar then it will be scrolled to start of event.
+             * Deferred object will be resolved after all event will be loaded.
+             * @param {object} fcEvent Calendar event
+             * @returns {Deferred} 
+             */
+            this.goToEvent = function (eventId) {
+                var deferred = $.Deferred();
+                that.getEvent(eventId).done(function(fcEvent) {
+                    if (!eventService.getEventElement(fcEvent.id).length) {
+                        that.exec('gotoDate', fcEvent.start);
+                    }
+                    that.calendarLoading.done(function () {
+                        var $eventElement = eventService.getEventElement(fcEvent.id),
+                            $scroller = options.$container.find('.fc-scroller'),
+                            pos;
+
+                        if ($scroller.length) {
+                            pos = $eventElement.offset().top - $scroller.offset().top + $scroller.scrollTop();
+                            $scroller.scrollTop(pos);
+                        }
+                        
+                        deferred.resolve(fcEvent);
+                    });
+                });
+                
+                return deferred.promise();
             };
             
             this.init();

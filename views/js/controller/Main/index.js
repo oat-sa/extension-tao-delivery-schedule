@@ -64,8 +64,6 @@ define(
                 timeZone = $('.js-delivery-calendar').data('time-zone-name') || 'UTC',
                 $tzSelect = $(timeZoneListTpl());
             
-            this.calendarLoading = $.Deferred();
-
             this.start = function () {
                 that.initTree();
                 
@@ -89,40 +87,12 @@ define(
                                 )
                             );
                         },
-                        eventRender : function (fcEvent, $element) {
-                            /*if (fcEvent.end.diff(fcEvent.start, 'hours') >= 24) {
-                                fcEvent.allDay = true;
-                            }*/
-                            $element.addClass(eventService.classAttrPrefix + fcEvent.id);
-                            if (fcEvent.recurringEventIds) {
-                                $element.append('<span class="recurring-count">1</span>');
-                            }
-                            if (fcEvent.subEvent && fcEvent.subEventNum) {
-                                $element.append('<span class="recurring-count">' + (fcEvent.subEventNum + 1) + '</span>');
-                            }
-                        },
                         eventClick : function (fcEvent, e) {
                             createEventTooltip.hide();
                             that.selectEvent(fcEvent.id, e);
                         },
                         eventResizeStart : function (fcEvent, e) {
                             that.hideTooltips();
-                        },
-                        eventDrop : function (fcEvent, e, revertFunc) {
-                            if (fcEvent.subEvent) {
-                                revertFunc();
-                                feedback().warning(__("Sub delivery cannot be changed."));
-                            } else {
-                                eventService.saveEvent(fcEvent, _.noop, function () {revertFunc();});
-                            }
-                        },
-                        eventResize : function (fcEvent, e, revertFunc) {
-                            if (fcEvent.subEvent) {
-                                revertFunc();
-                                feedback().warning(__("Sub delivery cannot be changed."));
-                            } else {
-                                eventService.saveEvent(fcEvent, _.noop, function () {revertFunc();});
-                            }
                         },
                         viewRender : function () {
                             $('.fc-scroller').on('scroll', function (e) {
@@ -137,58 +107,16 @@ define(
                         viewDisplay : function () {
                             that.hideTooltips();
                         },
-                        loading : function (loading) {
-                            if (loading) {
-                                that.calendarLoading = $.Deferred();
-                                that.calendarLoading.promise();
-                            } else {
-                                that.calendarLoading.resolve();
-                            }
-                        },
                         viewDestroy : function () {
                             that.hideTooltips();
-                        },
-                        events : function(start, end, timezone, callback) {
-                            $.ajax({
-                                url: '/taoDeliverySchedule/CalendarApi?timeZone=' + timeZone,
-                                dataType: 'json',
-                                data: {
-                                    start: start.unix(),
-                                    end: end.unix()
-                                },
-                                success: function(response) {
-                                    var events = [];
-                                        
-                                    calendar.exec('removeEvents');
-                                    $.each(response, function (key, event) {
-                                        var recurringEvents = eventService.getRecurringEvents(event);
-                                        events.push(event);
-                                        $.each(recurringEvents, function (rEventKey, rEventVal) {
-                                            events.push(rEventVal);
-                                        });
-                                    });
-                                    
-                                    callback(events);
-                                }
-                            });
                         }
                     }
                 );
                 
                 that.initTzSelect();
+                that.initTooltips();
                 
-                $.fn.qtip.zindex = 9000;
-                
-                editEventTooltip = new EditEventTooltip();
-                editEventTooltip.tooltip.elements.tooltip.on('go-to-parent-event', function (e, data) {
-                    that.selectEvent(data.fcEvent.parentEventId);
-                });
-
-                createEventTooltip = new CreateEventTooltip();
-                createEventTooltip.set({'events.hide': function () {calendar.exec('unselect');}});
-                
-                editEventModal = new EditEventModal();
-
+                //bind events
                 binder.register('schedule_month_mode', function () {
                     that.hideTooltips();
                     calendar.exec('changeView', 'month');
@@ -215,6 +143,24 @@ define(
                 binder.register('class-select', function (treeInstance) {
                     that.hideTooltips();
                 });
+            };
+            
+            /**
+             * Initialize tooltips.
+             * @returns {undefined}
+             */
+            this.initTooltips = function () {
+                $.fn.qtip.zindex = 9000;
+                
+                editEventTooltip = new EditEventTooltip();
+                editEventTooltip.tooltip.elements.tooltip.on('go-to-parent-event', function (e, data) {
+                    that.selectEvent(data.fcEvent.parentEventId);
+                });
+
+                createEventTooltip = new CreateEventTooltip();
+                createEventTooltip.set({'events.hide': function () {calendar.exec('unselect');}});
+                
+                editEventModal = new EditEventModal();
             };
             
             /**
@@ -266,58 +212,6 @@ define(
                 );
             };
             
-            /**
-             * Load event by id and render it on the calendar. 
-             * If event already loaded and represented on the calendar then the Deferred object will be resolved immediately.
-             * @param {string} eventId
-             * @returns {Deferred} 
-             */
-            this.getFcEvent = function (eventId) {
-                var deferred = $.Deferred(),
-                    fcEvent = calendar.exec('clientEvents', eventId);
-                
-                if (fcEvent.length === 0) {
-                    fcEvent = eventService.loadEvent(eventId, function (eventData) {
-                        calendar.exec('renderEvent', eventData);
-                        var fcEvent = calendar.exec('clientEvents', eventId);
-                        deferred.resolve(fcEvent[0]);
-                    });
-                } else {
-                    deferred.resolve(fcEvent[0]);
-                }
-                return deferred.promise();
-            };
-            
-            /**
-             * Moves the calendar to an event. 
-             * If calendar has a scrollbar then it will be scrolled to start of event.
-             * Deferred object will be resolved after all event will be loaded.
-             * @param {object} fcEvent Calendar event
-             * @returns {Deferred} 
-             */
-            this.goToEvent = function (eventId) {
-                var deferred = $.Deferred();
-                that.getFcEvent(eventId).done(function(fcEvent) {
-                    if (!eventService.getEventElement(fcEvent.id).length) {
-                        calendar.exec('gotoDate', fcEvent.start);
-                    }
-                    that.calendarLoading.done(function () {
-                        var $eventElement = eventService.getEventElement(fcEvent.id),
-                            $scroller = $calendarContainer.find('.fc-scroller'),
-                            pos;
-
-                        if ($scroller.length) {
-                            pos = $eventElement.offset().top - $scroller.offset().top + $scroller.scrollTop();
-                            $scroller.scrollTop(pos);
-                        }
-                        
-                        deferred.resolve(fcEvent);
-                    });
-                });
-                
-                return deferred.promise();
-            };
-
             /**
              * Hide all tooltips on calendar
              * @returns {undefined}
@@ -402,7 +296,7 @@ define(
              * @returns {undefined}
              */
             this.selectEvent = function (eventId, e) {
-                that.goToEvent(eventId).done(function (fcEvent) {
+                calendar.goToEvent(eventId).done(function (fcEvent) {
                     that.showEditEventTooltip(fcEvent, e);
                     that.selectTreeNode(fcEvent.id);
                 });
@@ -415,7 +309,7 @@ define(
              */
             this.selectTreeNode = function (eventId) {
                 tree.deselect_branch(tree.selected);
-                that.getFcEvent(eventId).done(function(fcEvent) {
+                calendar.getEvent(eventId).done(function(fcEvent) {
                     //if node under the 'more' button
                     if ($('#tree-manage_delivery_schedule #' + fcEvent.id).length == 0) {
                         tree.select_branch($('#' + fcEvent.classId + ' .more'));
