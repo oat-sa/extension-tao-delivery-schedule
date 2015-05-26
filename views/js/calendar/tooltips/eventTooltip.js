@@ -23,7 +23,7 @@ define(
         'taoDeliverySchedule/lib/qtip/jquery.qtip'
     ],
     function (_, $) {
-        'use stirct';
+        'use strict';
         /**
          * Calendar tooltop constructor.
          * 
@@ -55,12 +55,11 @@ define(
                         classes : 'qtip-light qtip-shadow'
                     }
                 };
-            
-            
+
             this.init = function () {
                 if (typeof options === 'object') {
                     options = _.merge(defaultOptions, options);
-                } else  {
+                } else {
                     options = defaultOptions;
                 }
                 this.tooltip = $('<div/>').qtip(options).qtip('api');
@@ -68,7 +67,7 @@ define(
                     that.hide();
                 });
             };
-        
+
             /**
              * Hide tooltip
              * @returns {undefined}
@@ -79,7 +78,7 @@ define(
                 }
                 this.tooltip.hide();
             };
-            
+
             /**
              * Whether tooltip is shown.
              * @returns {boolean}
@@ -87,7 +86,7 @@ define(
             this.isShown = function () {
                 return this.tooltip.elements.tooltip.is(':visible');
             };
-            
+
             /**
              * Set dialogue (qtip2) options.
              * @see http://qtip2.com/api#api-methods.set
@@ -97,7 +96,7 @@ define(
             this.set = function (options) {
                 this.tooltip.set(options);
             };
-            
+
             this.init();
         };
     }

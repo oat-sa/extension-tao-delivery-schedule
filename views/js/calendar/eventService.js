@@ -27,7 +27,7 @@ define(
         'taoDeliverySchedule/lib/rrule/rrule.amd'
     ],
     function (_, $, feedback, actionManager, moment, loadingBar) {
-        'use stirct';
+        'use strict';
         var instance = null;
         
         function EventService(calendar) {
@@ -81,7 +81,7 @@ define(
                                         'cssClass'  : 'node-instance'
                                     }]);
                                 
-                                    feedback().info(response.message);
+                                    feedback().success(response.message);
                                     
                                     if(typeof options.success === 'function') {
                                         options.success();

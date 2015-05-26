@@ -29,9 +29,9 @@ define(
         'taoDeliverySchedule/calendar/tooltips/createEventTooltip',
         'taoDeliverySchedule/calendar/modals/editEventModal',
         'layout/actions',
-        'uri',
         'ui/feedback',
         'tpl!/taoDeliverySchedule/main/timeZoneList?noext',
+        'taoDeliverySchedule/calendar/mediator',
         'taoDeliverySchedule/lib/rrule/rrule.amd',
         'css!/taoDeliverySchedule/views/css/taodeliveryschedule'
     ],
@@ -46,10 +46,9 @@ define(
         CreateEventTooltip,
         EditEventModal,
         actionManager,
-        uri,
         feedback,
         timeZoneListTpl,
-        context
+        mediator
     ) {
         'use strict';
 
@@ -64,10 +63,9 @@ define(
                 $calendarContainer = $('.js-delivery-calendar'),
                 timeZone = $('.js-delivery-calendar').data('time-zone-name') || 'UTC',
                 $tzSelect = $(timeZoneListTpl());
-            
+
             this.start = function () {
                 that.initTree();
-                
                 calendar = new Calendar(
                     {
                         $container : $calendarContainer,
@@ -113,10 +111,10 @@ define(
                         }
                     }
                 );
-                
+
                 that.initTzSelect();
                 that.initTooltips();
-                
+
                 //bind events
                 binder.register('schedule_month_mode', function () {
                     that.hideTooltips();
@@ -145,34 +143,62 @@ define(
                     that.hideTooltips();
                 });
             };
-            
+
             /**
              * Initialize tooltips.
              * @returns {undefined}
              */
             this.initTooltips = function () {
                 $.fn.qtip.zindex = 9000;
-                
+
+                //set up edit delivery tooltip
                 editEventTooltip = new EditEventTooltip();
-                editEventTooltip.tooltip.elements.tooltip.on('go-to-parent-event', function (e, data) {
-                    that.selectEvent(data.fcEvent.parentEventId);
+                mediator.on('edit.editEventTooltip', function () {
+                    actionManager.exec(
+                        'delivery-edit',
+                        _.extend(
+                            actionManager._resourceContext,
+                            {action : actionManager.getBy('delivery-edit')}
+                        )
+                    );
+                });
+                mediator.on('hide.editEventTooltip', function () {
+                    eventService.highlightEvent(false);
+                });
+                mediator.on('delete.editEventTooltip', function (eventId) {
+                    eventService.deleteEvent(eventId);
+                });
+                mediator.on('to-parent.editEventTooltip', function (eventId) {
+                    var fcEvent = eventService.getEventById(eventId);
+                    if (fcEvent.parentEventId) {
+                        that.selectEvent(fcEvent.parentEventId);
+                    }
                 });
 
+                //set up create delivery tooltip
                 createEventTooltip = new CreateEventTooltip();
-                createEventTooltip.set({'events.hide': function () {calendar.exec('unselect');}});
-                
+                mediator.on('submit.createEventTooltip', function (data) {
+                    eventService.createEvent({
+                        data : data,
+                        success : that.hideTooltips
+                    });
+                });
+                mediator.on('hide.createEventTooltip', function (data) {
+                    calendar.exec('unselect');
+                });
+
                 editEventModal = new EditEventModal();
             };
-            
+
             /**
              * Initialize time zone selectbox.
              * @returns {undefined}
              */
             this.initTzSelect = function () {
                 $tzSelect.find('option:contains(' + timeZone + ')').attr('selected', 'selected');
-                
+
                 $('.fc-toolbar .fc-right').prepend($tzSelect);
-                
+
                 $tzSelect.on('change', function () {
                     that.hideTooltips();
                     timeZone = eventService.getCurrentTZName();
@@ -197,14 +223,14 @@ define(
                 $($treeElt).on(
                     'removenode.taotree',
                     function (e, data) {
-                        var fcEvent = eventService.getEventById(data.id);
+                        var fcEvent = eventService.getEventById(data.id),
+                            eventsToBeRemoved;
                         that.hideTooltips();
                         if (fcEvent) {
-                            var eventsToBeRemoved = [fcEvent.id];
+                            eventsToBeRemoved = [fcEvent.id];
                             if (fcEvent.recurringEventIds && fcEvent.recurringEventIds.length) {
                                 eventsToBeRemoved = eventsToBeRemoved.concat(fcEvent.recurringEventIds);
                             }
-                            
                             calendar.exec('removeEvents', function (eventToRemove) {
                                 return eventsToBeRemoved.indexOf(eventToRemove.id) !== -1;
                             });
@@ -212,7 +238,7 @@ define(
                     }
                 );
             };
-            
+
             /**
              * Hide all tooltips on calendar
              * @returns {undefined}
@@ -231,15 +257,15 @@ define(
             this.showEditEventTooltip = function (fcEvent, e) {
                 var $eventElement = eventService.getEventElement(fcEvent.id),
                     $moreLinks;
-            
+
                 calendar.exec('unselect');
 
                 if (!$eventElement.length) {
                     return;
                 }
-                
+
                 eventService.highlightEvent(fcEvent);
-                
+
                 if (typeof e === 'undefined' || e.isTrigger) {
                     if (!$eventElement.is(':visible')) {
                         $moreLinks = $eventElement.closest('.fc-content-skeleton').find('a.fc-more');
@@ -266,7 +292,7 @@ define(
 
                 editEventTooltip.show(fcEvent);
             };
-            
+
             /**
              * Show create delivery tooltip.
              * @param {object} context Action context (uri, classUri, id, start, end etc.).
@@ -276,7 +302,7 @@ define(
             this.showCreateEventTooltip = function (context) {
                 createEventTooltip.show(context);
             };
-            
+
             /**
              * Show delivery edit form in modal window.
              * @param {object} context Action context (uri, classUri, id, start, end etc.).
@@ -288,7 +314,7 @@ define(
                 this.hideTooltips();
                 editEventModal.show(fcEvent);
             };
-            
+
             /**
              * Select event and show edit tooltip.
              * @param {string} eventId
@@ -302,7 +328,7 @@ define(
                     that.selectTreeNode(fcEvent.id);
                 });
             };
-            
+
             /**
              * Select node on the tree
              * @param {string} eventId
@@ -310,9 +336,9 @@ define(
              */
             this.selectTreeNode = function (eventId) {
                 tree.deselect_branch(tree.selected);
-                calendar.getEvent(eventId).done(function(fcEvent) {
+                calendar.getEvent(eventId).done(function (fcEvent) {
                     //if node under the 'more' button
-                    if ($('#tree-manage_delivery_schedule #' + fcEvent.id).length == 0) {
+                    if ($('#tree-manage_delivery_schedule #' + fcEvent.id).length === 0) {
                         tree.select_branch($('#' + fcEvent.classId + ' .more'));
                         //after the `more` element has been deleted.
                         $treeElt.one('delete.taotree', function (e, elt) {

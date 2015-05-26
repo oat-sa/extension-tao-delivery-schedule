@@ -24,7 +24,7 @@ define(
         'layout/loading-bar'
     ],
     function (_, $, feedback, loadingBar) {
-        'use stirct';
+        'use strict';
         var instance = null;
         
         function TestTakersService() {

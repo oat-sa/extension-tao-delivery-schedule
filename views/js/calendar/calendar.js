@@ -27,7 +27,7 @@ define(
         'taoDeliverySchedule/lib/fullcalendar/fullcalendar.amd'
     ],
     function (_, $, __, eventService, feedback, context) {
-        'use stirct';
+        'use strict';
 
         /**
          * Function retuns height of calendar container

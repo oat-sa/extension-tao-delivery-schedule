@@ -23,12 +23,12 @@ define(
         'taoDeliverySchedule/lib/qtip/jquery.qtip'
     ],
     function (_, $) {
-        'use stirct';
+        'use strict';
         /**
          * Calendar modal constructor.
          * 
          * @constructor
-         * @property {object}         options Modal options.
+         * @param {object} options Modal options.
          */
         return function (options) {
             var that = this,

@@ -29,12 +29,13 @@ define(
         'moment',
         'taoDeliverySchedule/calendar/eventService',
         'taoDeliverySchedule/calendar/widgets/testTakersList',
+        'taoDeliverySchedule/calendar/mediator',
         'taoDeliverySchedule/lib/rrule/rrule.amd',
         'taoDeliverySchedule/lib/jquery.serialize-object.min',
         'taoDeliverySchedule/lib/qtip/jquery.qtip',
         'jqueryui'
     ],
-    function (_, $, modal, formTpl, __, GenerisTreeSelectClass, moment, eventService, TestTakersList) {
+    function (_, $, modal, formTpl, __, GenerisTreeSelectClass, moment, eventService, TestTakersList, mediator) {
         'use strict';
         
         return function () {

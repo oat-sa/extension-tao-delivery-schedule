@@ -22,58 +22,46 @@ define(
         'jquery',
         'taoDeliverySchedule/calendar/tooltips/eventTooltip',
         'tpl!/taoDeliverySchedule/views/templates/tooltips/eventTooltip',
-        'layout/actions',
-        'layout/actions/binder',
-        'taoDeliverySchedule/calendar/eventService',
+        'taoDeliverySchedule/calendar/mediator',
         'taoDeliverySchedule/lib/qtip/jquery.qtip'
     ],
-    function (_, $, eventTooltip, tooltipTpl, actionManager, binder, eventService) {
-        'use stirct';
-        return function (options) {
+    function (_, $, eventTooltip, tooltipTpl, mediator) {
+        'use strict';
+
+        return function () {
             var that = this;
-            
+
             eventTooltip.apply(this, arguments);
-            
+
             /**
-             * Init event tooltip
+             * Init event tooltip.
              * @returns {undefined}
              */
             this.init = function () {
+                that.set({
+                    'events.hide': function () {mediator.fire('hide.editEventTooltip'); },
+                    'position.adjust.resize' : true
+                });
+
                 that.tooltip.elements.content.on('click', '.js-edit-event', function (e) {
                     e.preventDefault();
-                    actionManager.exec(
-                        'delivery-edit', 
-                        _.extend(
-                            actionManager._resourceContext, 
-                            {action : actionManager.getBy('delivery-edit')}
-                        )
-                    );
+                    mediator.fire('edit.editEventTooltip');
                 });
-                
-                that.tooltip.set({
-                    events : {
-                        hide : function () {
-                            eventService.highlightEvent(false);
-                        }
-                    }
-                });
-                
+
                 that.tooltip.elements.content.on('click', '.js-delete-event', function (e) {
                     e.preventDefault();
-                    eventService.deleteEvent(that.getId());
+                    mediator.fire('delete.editEventTooltip', that.getId());
                 });
-                
+
                 that.tooltip.elements.content.on('click', '.js-go-to-parent-event', function (e) {
                     e.preventDefault();
-                    var fcEvent = eventService.getEventById(that.getId());
-                    if (fcEvent.parentEventId) {
-                        that.tooltip.elements.tooltip.trigger('go-to-parent-event', {fcEvent : fcEvent});
-                    }
+                    mediator.fire('to-parent.editEventTooltip', that.getId());
                 });
             };
-            
+
             /**
              * Show tooltip
+             * @param {object} fullcalendar event
              * @returns {undefined}
              */
             this.show = function (fcEvent) {
@@ -83,18 +71,15 @@ define(
                     color : fcEvent.color || 'transparent',
                     fcEvent : fcEvent
                 };
-                
+
                 that.tooltip.set({
                     'content.text' : tooltipTpl(tplOptions),
-                    'position.adjust.resize' : true,
                     'content.title' : '<b>' + fcEvent.title + '</b>'
                 });
-                
                 that.tooltip.elements.titlebar.css({'border-bottom' : '2px solid ' + tplOptions.color});
-                
                 that.tooltip.show();
             };
-            
+
             /**
              * Get event id
              * @returns {string}
@@ -102,7 +87,7 @@ define(
             this.getId = function () {
                 return that.tooltip.elements.tooltip.find('input[name="id"]').val();
             };
-            
+
             /**
              * Get event class uri
              * @returns {string}
@@ -110,7 +95,7 @@ define(
             this.getClassUri = function () {
                 return that.tooltip.elements.tooltip.find('input[name="classUri"]').val();
             };
-            
+
             this.init();
         };
     }
