@@ -30,7 +30,7 @@ define(
         'taoDeliverySchedule/calendar/modals/editEventModal',
         'layout/actions',
         'ui/feedback',
-        'tpl!/taoDeliverySchedule/main/timeZoneList?noext',
+        'tpl!/taoDeliverySchedule/Main/timeZoneList?noext',
         'taoDeliverySchedule/calendar/mediator',
         'taoDeliverySchedule/lib/rrule/rrule.amd',
         'css!/taoDeliverySchedule/views/css/taodeliveryschedule'

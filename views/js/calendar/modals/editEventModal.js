@@ -23,7 +23,7 @@ define(
         'lodash',
         'jquery',
         'taoDeliverySchedule/calendar/modals/modal',
-        'tpl!/taoDeliverySchedule/main/editDeliveryForm?noext', //load template from controller action. (noext extension may be useful here)
+        'tpl!/taoDeliverySchedule/Main/editDeliveryForm?noext', //load template from controller action. (noext extension may be useful here)
         'i18n',
         'generis.tree.select',
         'moment',

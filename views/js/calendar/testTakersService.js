@@ -38,7 +38,7 @@ define(
                 var deferred = $.Deferred();
                 
                 $.ajax({
-                    url : '/taoDeliverySchedule/TesttakersApi',
+                    url : '/taoDeliverySchedule/TestTakersApi',
                     type : 'GET',
                     data : options,
                     success : function (response) {
