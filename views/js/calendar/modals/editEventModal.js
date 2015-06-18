@@ -421,6 +421,12 @@ define(
                         },
                         message : __('Value must be a number')
                     },   
+                    '[name="resultserver"]' : {
+                        validate : function () {
+                            return $.trim($(this).val()).length !== 0;
+                        },
+                        message : __('This field is required')
+                    },   
                     '[name="rrule[count]"]' : {
                         validate : function () {
                             return /^\d*$/.test($(this).val()) || !$('.js-repeat-toggle').is(':checked');
@@ -437,6 +443,7 @@ define(
                     that.$form.find(selector).removeClass('error');
                     if ($(selector).data('qtip')) {
                         $(selector).qtip('disable', true);
+                        $(selector).data('qtip').tooltip.hide();
                     }
                 }
                 
@@ -459,6 +466,7 @@ define(
                                 } else {
                                     $(this).qtip('content.text', rules[selector].message);
                                     $(this).qtip('disable', false);
+                                    $(selector).data('qtip').tooltip.show();
                                 }
 
                                 $(this).addClass('error');

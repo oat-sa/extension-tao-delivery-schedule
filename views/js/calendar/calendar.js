@@ -90,6 +90,7 @@ define(
                         if (fcEvent.subEvent && fcEvent.subEventNum) {
                             $element.append('<span class="recurring-count">' + (fcEvent.subEventNum + 1) + '</span>');
                         }
+                        $element.find('.fc-title').html(fcEvent.title);
                     },
                     eventDrop : function (fcEvent, e, revertFunc) {
                         if (fcEvent.subEvent) {
