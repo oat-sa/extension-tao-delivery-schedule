@@ -37,7 +37,7 @@ define(
     ],
     function (_, $, modal, formTpl, __, GenerisTreeSelectClass, moment, eventService, TestTakersList, mediator) {
         'use strict';
-        
+
         return function () {
             var that = this,
                 initialData,
@@ -78,7 +78,6 @@ define(
             /**
              * Show edit delivery modal
              * @param {object} fcEvent fullcalendar event object
-             * @param {string} options.uri Delivery uri
              */
             this.show = function (fcEvent) {
                 $.ajax({
@@ -95,7 +94,7 @@ define(
 
                         that.modal.set({
                             'content.text'   : formTpl(response),
-                            'content.title'  : response.title
+                            'content.title'  : _.escape(response.title)
                         });
 
                         that.modal.elements.titlebar.css({'border-bottom' : '2px solid ' + color});
@@ -106,14 +105,14 @@ define(
                             data : {ttexcluded : response.ttexcluded, ttassigned : response.ttassigned},
                             deliveryId : response.id
                         });
-                        
+
                         that.initDatepickers();
                         that.initGroupTree(response);
                         that.initForm(response);
                     }
                 });
             };
-            
+
             /**
              * Hide edit form. If any data on the form was changed then confirmation window will be shown.
              * @returns {undefined}
@@ -136,7 +135,8 @@ define(
                             title: __("The delivery has been modified.")
                         },
                         position: {
-                            my: 'center', at: 'center',
+                            my: 'center',
+                            at: 'center',
                             target: $(window),
                             adjust: {
                                 y: -200
@@ -152,31 +152,32 @@ define(
                         hide: false,
                         style: 'dialogue qtip-light qtip-shadow',
                         events: {
-                            render: function(event, api) {
-                                $('.js-confirm-cancel', api.elements.content).click(function(e) {
+                            render: function (event, api) {
+                                $('.js-confirm-cancel', api.elements.content).click(function (e) {
                                     api.hide(e);
                                 });
-                                $('.js-confirm-discard', api.elements.content).click(function(e) {
+                                $('.js-confirm-discard', api.elements.content).click(function (e) {
                                     api.hide(e);
                                     that.modal.hide();
                                 });
-                                $('.js-confirm-save', api.elements.content).click(function(e) {
+                                $('.js-confirm-save', api.elements.content).click(function (e) {
                                     api.hide(e);
                                     that.$form.submit();
                                 });
                             },
-                            hide: function(event, api) { api.destroy(); }
+                            hide: function (event, api) { api.destroy(); }
                         }
                     });
                 }
             };
-            
+
             this.modified = function () {
                 return !_.isEqual(initialData, that.getFormData());
             };
-            
+
             /**
              * Initialize form (bind validation on submit event etc.)
+             * @param {object} data - delivery data
              * @returns {undefined}
              */
             this.initForm = function (data) {
@@ -185,10 +186,10 @@ define(
                 if (data.resultserver) {
                     that.$form.find('select[name="resultserver"] option[value="' + data.resultserver + '"]').attr('selected', 'selected');
                 }
-                
+
                 that.$form.on('submit', function (e) {
                     e.preventDefault();
-                    
+
                     if (that.validate()) {
                         var formData = that.getFormData(),
                             fcEvent = eventService.getEventById(formData.id);
@@ -203,11 +204,7 @@ define(
                         });
                     }
                 });
-                
-                that.$form.on('change', 'input, select', function() {
-                    that.validate();
-                });
-                
+
                 that.parseRrule(data);
 
                 $('.js-repeat-toggle')
@@ -223,9 +220,13 @@ define(
                         $('.js-byday-row').toggle($(this).val() == RRule.WEEKLY);
                     })
                     .trigger('change');
-            
+
                 $('[name^="rrule["]').on('change', function () {
                     that.updateRruleValue();
+                });
+
+                that.$form.on('change', 'input, select', function () {
+                    that.validate();
                 });
                 
                 initialData = that.getFormData();
@@ -234,7 +235,7 @@ define(
             /**
              * Initialize test taker groups tress
              * @param {object} options
-             * @param {array} options.groups List of group ids assigned to the delivery
+             * @param {array} options.groups - List of group ids assigned to the delivery
              * @returns {undefined}
              */
             this.initGroupTree = function (options) {
@@ -435,45 +436,33 @@ define(
                     }           
                 },
                 formIsValid = true,
+                qtipApi,
                 $elements;
                 
                 that.updateDatetime();
                 
                 for (var selector in rules) {
-                    that.$form.find(selector).removeClass('error');
-                    if ($(selector).data('qtip')) {
-                        $(selector).qtip('disable', true);
-                        $(selector).data('qtip').tooltip.hide();
-                    }
-                }
-                
-                for (var selector in rules) {
                     $elements = that.$form.find(selector);
-                    if ($elements.length) {
-                        $elements.each(function () {
-                            var valid = rules[selector].validate.apply(this);
-                            if (!valid) {
-                                if (!$(this).data('qtip')) {
-                                    $(this).qtip({
-                                        content: {
-                                            text: rules[selector].message
-                                        },
-                                        position: {
-                                            target: 'mouse', // Track the mouse as the positioning target
-                                            adjust: { x: 5, y: 5 } // Offset it slightly from under the mouse
-                                        }
-                                    });
-                                } else {
-                                    $(this).qtip('content.text', rules[selector].message);
-                                    $(this).qtip('disable', false);
-                                    $(selector).data('qtip').tooltip.show();
+                    $elements.each(function () {
+                        var valid = rules[selector].validate.apply(this);
+                        qtipApi = $(this).qtip('api');
+                        if (!qtipApi) {
+                            qtipApi = $(this).qtip({
+                                content: {
+                                    text: rules[selector].message
+                                },
+                                position: {
+                                    target: 'mouse', // Track the mouse as the positioning target
+                                    adjust: { x: 5, y: 5 } // Offset it slightly from under the mouse
                                 }
-
-                                $(this).addClass('error');
-                            }
-                            formIsValid = formIsValid && valid;
-                        });
-                    }
+                            }).qtip('api');
+                        }
+                        
+                        $elements.toggleClass('error', !valid);
+                        qtipApi.toggle(!valid).disable(valid);
+                        
+                        formIsValid = formIsValid && valid;
+                    });
                 }
                 
                 return formIsValid;
@@ -529,5 +518,3 @@ define(
         };
     }
 );
-
-

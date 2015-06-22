@@ -74,7 +74,7 @@ define(
 
                 that.tooltip.set({
                     'content.text' : tooltipTpl(tplOptions),
-                    'content.title' : '<b>' + fcEvent.title + '</b>'
+                    'content.title' : '<b>' + _.escape(fcEvent.title) + '</b>'
                 });
                 that.tooltip.elements.titlebar.css({'border-bottom' : '2px solid ' + tplOptions.color});
                 that.tooltip.show();
