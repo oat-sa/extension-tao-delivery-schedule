@@ -30,9 +30,18 @@ define(
         'use strict';
         return function () {
             var that = this;
-
+            
             eventTooltip.apply(this, arguments);
-
+            
+            this.validateRules = {
+                '[name="label"]' : {
+                    validate : function () {
+                        return $(this).val().length !== 0;
+                    },
+                    message : __('This field is required')
+                }
+            };
+            
             /**
              * Init create event tooltip
              * @returns {undefined}
@@ -76,6 +85,7 @@ define(
                         var tpl = Handlebars.compile(response),
                             $form;
 
+                        
                         that.tooltip.set({
                             'content.text' : tpl(tplOptions),
                             'position.target' : options.target || options.e.target
@@ -86,6 +96,12 @@ define(
                         $form.find('#label').focus();
                         $form.find('[name="start"]').val(startUTCStr);
                         $form.find('[name="end"]').val(endUTCStr);
+                        
+                        that.$form = $form;
+                        
+                        that.$form.on('keyup', 'input, select', function() {
+                            that.validate(that.validateRules);
+                        });
 
                         that.tooltip.elements.content.find('.js-create-event').on('click', function () {
                             $form.submit();
@@ -106,7 +122,9 @@ define(
              * @returns {undefined}
              */
             this.submit = function (e) {
-                mediator.fire('submit.createEventTooltip', that.getFormData());
+                if (this.validate(this.validateRules)) {
+                    mediator.fire('submit.createEventTooltip', that.getFormData());
+                }
             };
 
             /**
@@ -116,7 +134,7 @@ define(
             this.getForm = function () {
                 return that.tooltip.elements.content.find('form');
             };
-
+            
             /**
              * Convert form data to JS object
              * @returns {object} form data

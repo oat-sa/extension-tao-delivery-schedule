@@ -147,7 +147,7 @@ class CalendarApi extends ApiBaseController
      */
     protected function create()
     {
-        $params = $this->scheduleService->mapDeliveryProperties($this->getRequestParameters());
+        $params = $this->getParams();
         if (empty($params['classUri'])) {
             $params['classUri'] = CLASS_COMPILEDDELIVERY;
         }
@@ -194,8 +194,7 @@ class CalendarApi extends ApiBaseController
      */
     protected function update()
     {
-        parse_str(file_get_contents("php://input"), $data);
-        $params = $this->scheduleService->mapDeliveryProperties($data);
+        $params = $this->getParams();
 
         if(empty($params['classUri'])){
             throw new \tao_models_classes_MissingRequestParameterException("classUri");
@@ -280,5 +279,17 @@ class CalendarApi extends ApiBaseController
             $datetime->setTimezone($this->tz);
             return $datetime->format(\DateTime::ISO8601);
         }
+    }
+    
+    /**
+     * Function returns parameters from the request body 
+     * and changes array keys in accordance with RDF properties.
+     * @see {@link DeliveryScheduleService::mapDeliveryProperties()}
+     * @return array
+     */
+    private function getParams() {
+        parse_str(file_get_contents("php://input"), $data);
+        $params = $this->scheduleService->mapDeliveryProperties($data);
+        return $params;
     }
 }

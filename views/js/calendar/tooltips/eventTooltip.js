@@ -97,9 +97,62 @@ define(
                 this.tooltip.set(options);
             };
 
+            /**
+             * Validate tooltip form by given rules. Error fields will me marked by <i>error</i> class and tooltip with error message.
+             * @param {object} rules - Rules for calidate form.
+             * Example:
+             * <pre>
+             * {
+             *   '.js-delivery-end-date, .js-delivery-start-date' : { //field selector
+             *     validate : function () { //valudate function. Must return boolean value (whether field is valid). <i>this<i> valiable inside function refers to field element.
+             *       return /^\d\d\d\d-\d\d-\d\d$/.test($(this).val());
+             *     },
+             *     message : __('The format of date is invalid') //error message
+             *   },
+             *   '.js-label' : {
+             *     validate : function () {
+             *       return $(this).val().length !== 0;
+             *     },
+             *     message : __('This field is required')
+             *   }
+             * }
+             * </pre>
+             * @returns {Boolean} whether form is valid
+             */
+            this.validate = function (rules) {
+                var formIsValid = true,
+                    qtipApi,
+                    selector,
+                    $elements;
+
+                for (selector in rules) {
+                    $elements = that.$form.find(selector);
+                    $elements.each(function () {
+                        var valid = rules[selector].validate.apply(this);
+                        qtipApi = $(this).qtip('api');
+                        if (!qtipApi) {
+                            qtipApi = $(this).qtip({
+                                content: {
+                                    text: rules[selector].message
+                                },
+                                position: {
+                                    target: 'mouse', // Track the mouse as the positioning target
+                                    adjust: { x: 5, y: 5 } // Offset it slightly from under the mouse
+                                }
+                            }).qtip('api');
+                        }
+
+                        $elements.toggleClass('error', !valid);
+                        qtipApi.toggle(!valid).disable(valid);
+
+                        formIsValid = formIsValid && valid;
+                    });
+                }
+
+                return formIsValid;
+            };
+
             this.init();
         };
     }
 );
-
-

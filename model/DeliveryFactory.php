@@ -40,7 +40,7 @@ class DeliveryFactory extends \taoDelivery_models_classes_SimpleDeliveryFactory
      */
     public static function create(\core_kernel_classes_Class $deliveryClass, \core_kernel_classes_Resource $test, $properties = array()) 
     {
-        \common_Logger::i('Creating delivery with '.$test->getLabel().' under '.$deliveryClass->getLabel());
+        \common_Logger::i('Creating delivery with ' . $test->getLabel() . ' under ' . $deliveryClass->getLabel());
         
         $storage = new \taoDelivery_models_classes_TrackedStorage();
         
