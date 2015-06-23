@@ -97,8 +97,8 @@ define(
                             'content.title'  : _.escape(response.title)
                         });
 
-                        that.modal.elements.titlebar.css({'border-bottom' : '2px solid ' + color});
                         that.modal.show();
+                        that.modal.elements.titlebar.css({'border-bottom' : '2px solid ' + color});
 
                         testTakersList = new TestTakersList({
                             container : $('.js-tt-list'),
