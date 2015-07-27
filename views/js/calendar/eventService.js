@@ -40,6 +40,7 @@ define(
                 throw new Error("Cannot instantiate more than one EventService, use EventService.getInstance()");
             }
             
+            this.tz = 'UTC';
             this.classAttrPrefix = 'fc_event_id_';
             
             /**
@@ -361,9 +362,21 @@ define(
             this.getCurrentTZName = function () {
                 var timeZone = $.trim($('.js-time-zone-list').find('option:selected').text());
                 if (timeZone === '') {
-                    timeZone = 'UTC';
+                    timeZone = this.tz || 'UTC';
                 }
                 return timeZone;
+            };
+            
+            /**
+             * Set current time zone
+             * 
+             * @param {string} value - Time zone name (e.g. 'Europe/Luxembourg')
+             */
+            this.setTZ = function (value) {
+                this.tz = value;
+                $('.js-time-zone-list').find('option:contains(' + value + ')')
+                    .attr('selected', 'selected')
+                    .trigger('change');
             };
             
             /**
