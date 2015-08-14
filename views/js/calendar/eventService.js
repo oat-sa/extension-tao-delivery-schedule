@@ -95,7 +95,7 @@ define(
                     },
                     error : function (xhr, err) {
                         var message = that.getRequestErrorMessage(xhr);
-                        feedback().warning(message, {encodeHtml : false});
+                        feedback().error(message, {encodeHtml : false});
                         if(typeof options.error === 'function') {
                             options.error();
                         }
@@ -228,12 +228,12 @@ define(
                 var message = '';
                 try {
                     var responseJSON = $.parseJSON(xhr.responseText);
-                    if (responseJSON.errors && !_.isEmpty(responseJSON.errors)) {
+                    if (responseJSON.message) {
+                        message = responseJSON.message;
+                    } else if (responseJSON.errors && !_.isEmpty(responseJSON.errors)) {
                         $.each(responseJSON.errors, function (key, val) {
                             message += key + ': ' + val + "<br>";
                         });
-                    } else if (responseJSON.message) {
-                        message = responseJSON.message;
                     } else {
                         message = xhr.responseText;
                     }
