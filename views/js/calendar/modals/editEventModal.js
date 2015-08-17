@@ -186,7 +186,7 @@ define(
                 if (data.resultserver) {
                     that.$form.find('select[name="resultserver"] option[value="' + data.resultserver + '"]').attr('selected', 'selected');
                 }
-
+                
                 that.$form.on('submit', function (e) {
                     e.preventDefault();
 
@@ -227,6 +227,10 @@ define(
 
                 that.$form.on('change', 'input, select', function () {
                     that.validate();
+                });
+                
+                that.$form.on('click', '[type="submit"]', function () {
+                    that.$form.submit();
                 });
                 
                 initialData = that.getFormData();
