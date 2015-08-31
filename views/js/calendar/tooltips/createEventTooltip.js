@@ -102,7 +102,13 @@ define(
                         that.$form.on('keyup', 'input, select', function() {
                             that.validate(that.validateRules);
                         });
-
+                        
+                        that.$form.find('[name="test"]').on('change', function () {
+                            var text = $(this).find('option[value="' + $(this).val() + '"]').text(),
+                                $label = $form.find('#label');
+                            $label.val(text).focus();
+                        }).trigger('change');
+                        
                         that.tooltip.elements.content.find('.js-create-event').on('click', function () {
                             $form.submit();
                         });

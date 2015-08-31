@@ -13,6 +13,9 @@
     input {
         margin-bottom: 5px;
     }
+    select {
+        padding: 2px 4px 2px 0px;
+    }
 }
 .event-tooltip__content {
     
@@ -76,10 +79,18 @@ body #ui-datepicker-div.edit-delivery-form__datepicker {
         left: 3px;
     }
     input, select {
-        padding: 2px 4px;
         margin: 0;
         font-size: 12px;
         font-family: 'Franklin Gothic', 'Franklin Gothic Medium', 'Source Sans Pro', sans-serif;
+    }
+    input {
+        padding: 2px 4px;
+    }
+    select {
+        padding: 2px 4px 2px 0px;
+    }
+    select[multiple] {
+        padding: 2px 4px 2px 4px;
     }
     label {
         margin-bottom: 0;
@@ -278,6 +289,8 @@ body #ui-datepicker-div.edit-delivery-form__datepicker {
         background-color: #fbf6ee;
         height: 18px;
         line-height: 16px;
+        position: relative;
+        top: -2px;
         .icon-info {
             vertical-align: text-bottom;
         }
