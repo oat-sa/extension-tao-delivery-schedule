@@ -21,6 +21,7 @@ define([
     'lodash',
     'jquery',
     'i18n',
+    'handlebars',
     'layout/actions/binder',
     'taoDeliverySchedule/calendar/calendar',
     'taoDeliverySchedule/calendar/eventService',
@@ -29,7 +30,7 @@ define([
     'taoDeliverySchedule/calendar/modals/editEventModal',
     'layout/actions',
     'ui/feedback',
-    'tpl!/taoDeliverySchedule/Main/timeZoneList?noext',
+    'text!timeZoneList',
     'taoDeliverySchedule/calendar/mediator',
     'taoDeliverySchedule/lib/rrule/rrule.amd',
     'css!/taoDeliverySchedule/views/css/taodeliveryschedule'
@@ -38,6 +39,7 @@ function (
     _,
     $,
     __,
+    Handlebars,
     binder,
     Calendar,
     eventService,
@@ -52,6 +54,7 @@ function (
     'use strict';
 
     function DeliverySchedule() {
+        timeZoneListTpl = Handlebars.compile(timeZoneListTpl);
         var calendar,
             that = this,
             editEventTooltip,

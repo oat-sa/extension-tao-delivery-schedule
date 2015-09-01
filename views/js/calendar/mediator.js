@@ -16,24 +16,21 @@
  * Copyright (c) 2015 (original work) Open Assessment Technologies SA;
  *               
  */
-define(
-    [
-        'taoDeliverySchedule/lib/bean.min'
-    ],
-    function (bean) {
-        'use strict';
-        var eventContainer = {};
-        return {
-            on : function (eventName, eventHandler) {
-                return bean.on(eventContainer, eventName, eventHandler);
-            },
-            off : function (eventName) {
-                return bean.off(eventContainer, eventName);
-            },
-            fire : function (eventName) {
-                var args = Array.prototype.slice.call(arguments, 1);
-                return bean.fire(eventContainer, eventName, args);
-            } 
-        };
-    }
-);
+define([
+    'taoDeliverySchedule/lib/bean.min'
+], function (bean) {
+    'use strict';
+    var eventContainer = {};
+    return {
+        on : function (eventName, eventHandler) {
+            return bean.on(eventContainer, eventName, eventHandler);
+        },
+        off : function (eventName) {
+            return bean.off(eventContainer, eventName);
+        },
+        fire : function (eventName) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            return bean.fire(eventContainer, eventName, args);
+        } 
+    };
+});

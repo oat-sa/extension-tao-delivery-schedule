@@ -16,51 +16,48 @@
  * Copyright (c) 2015 (original work) Open Assessment Technologies SA;
  *               
  */
-define(
-    [
-        'lodash',
-        'jquery',
-        'ui/feedback',
-        'layout/loading-bar'
-    ],
-    function (_, $, feedback, loadingBar) {
-        'use strict';
-        var instance = null;
-        
-        function TestTakersService() {
-            var that = this;
-            
-            if (instance !== null) {
-                throw new Error("Cannot instantiate more than one TestTakersService, use TestTakersService.getInstance()");
-            }
-            
-            this.loadTestTakers = function (options) {
-                var deferred = $.Deferred();
-                
-                $.ajax({
-                    url : '/taoDeliverySchedule/TestTakersApi',
-                    type : 'GET',
-                    data : options,
-                    success : function (response) {
-                        deferred.resolve(response);
-                    },
-                    error : function (xhr, err) {
-                        deferred.rejext(xhr);
-                    }
-                });
-                
-                return deferred.promise();
-            };
+define([
+    'lodash',
+    'jquery',
+    'ui/feedback',
+    'layout/loading-bar'
+], function (_, $, feedback, loadingBar) {
+    'use strict';
+    var instance = null;
+
+    function TestTakersService() {
+        var that = this;
+
+        if (instance !== null) {
+            throw new Error("Cannot instantiate more than one TestTakersService, use TestTakersService.getInstance()");
+        }
+
+        this.loadTestTakers = function (options) {
+            var deferred = $.Deferred();
+
+            $.ajax({
+                url : '/taoDeliverySchedule/TestTakersApi',
+                type : 'GET',
+                data : options,
+                success : function (response) {
+                    deferred.resolve(response);
+                },
+                error : function (xhr, err) {
+                    deferred.rejext(xhr);
+                }
+            });
+
+            return deferred.promise();
         };
-        
-        TestTakersService.getInstance = function () {
-            // Gets an instance of the singleton.
-            if (instance === null) {
-                instance = new TestTakersService();
-            }
-            return instance;
-        };
-        
-        return TestTakersService.getInstance();
-    }
-);
+    };
+
+    TestTakersService.getInstance = function () {
+        // Gets an instance of the singleton.
+        if (instance === null) {
+            instance = new TestTakersService();
+        }
+        return instance;
+    };
+
+    return TestTakersService.getInstance();
+});

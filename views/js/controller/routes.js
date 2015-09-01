@@ -23,7 +23,14 @@
  */
 define(function () {
     'use strict';
-
+    
+    require.config({
+        paths: {
+            editDeliveryForm : '/taoDeliverySchedule/Main/editDeliveryForm?noext', //load template from controller action. (noext extension may be useful here)
+            timeZoneList : '/taoDeliverySchedule/Main/timeZoneList?noext' //load template from controller action. (noext extension may be useful here)
+        }
+    });
+    
     return {
         'Main': {
             'actions': {
