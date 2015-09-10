@@ -34,9 +34,12 @@ define([
      * @returns {integer} calendar height
      */
     function getCalendarHeight($contentBlock) {
-        var height;
+        var height,
+            $footer = $('body > footer'),
+            bottomOffset = $footer.length ?  $('body > footer').offset().top : window.innerHeight;
+
         $contentBlock = $contentBlock ? $contentBlock : $('.content-block');
-        height = $('body > footer').offset().top - $contentBlock.offset().top;
+        height = bottomOffset - $contentBlock.offset().top;
         return height - parseInt($contentBlock.css('padding-top')) - parseInt($contentBlock.css('padding-bottom'));
     }
 
