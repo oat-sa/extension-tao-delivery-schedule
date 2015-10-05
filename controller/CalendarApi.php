@@ -186,9 +186,10 @@ class CalendarApi extends ApiBaseController
     
     /**
      * Save a delivery instance.
-     * Note: <b>start</b> and <b>start</b> parameters must be in UTC timezone.
+     * Note: <b>start</b> and <b>end</b> parameters must be in UTC timezone.
      * 
      * @access public
+     * @throws \tao_models_classes_MissingRequestParameterException
      * @author Aleh Hutnikau <hutnikau@1pt.com>
      * @return void
      */
@@ -229,6 +230,7 @@ class CalendarApi extends ApiBaseController
     /**
      * Function returns extended delivery data (e.g. groups, number of executions etc.)
      * @param \core_kernel_classes_Resource $delivery
+     * @return void
      */
     private function getFullDeliveryData(\core_kernel_classes_Resource $delivery)
     {
@@ -237,7 +239,7 @@ class CalendarApi extends ApiBaseController
             $execs = \taoDelivery_models_classes_execution_ServiceProxy::singleton()->getExecutionsByDelivery($delivery);
             $result['executions'] = count($execs);
         }
-        //pubished
+
         $result['published'] = \taoDelivery_models_classes_DeliveryAssemblyService::singleton()->getCompilationDate($delivery);
 
         //groups
@@ -272,9 +274,11 @@ class CalendarApi extends ApiBaseController
 
     /**
      * format date from Unix to ISO 8601 format
+     * @param string $date
+     * @return string
      */
     private function formatDate($date) {
-        $datetime = \DateTime::createFromFormat('U', $date, $this->tz);
+        $datetime = \DateTime::createFromFormat('U', $date);
         if ($datetime) {
             $datetime->setTimezone($this->tz);
             return $datetime->format(\DateTime::ISO8601);

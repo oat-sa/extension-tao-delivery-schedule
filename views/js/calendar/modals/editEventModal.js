@@ -30,6 +30,7 @@ define([
 'taoDeliverySchedule/calendar/eventService',
 'taoDeliverySchedule/calendar/widgets/testTakersList',
 'taoDeliverySchedule/calendar/mediator',
+'taoDeliverySchedule/lib/moment-timezone-with-data.min',
 'taoDeliverySchedule/lib/rrule/rrule.amd',
 'taoDeliverySchedule/lib/jquery.serialize-object.min',
 'taoDeliverySchedule/lib/qtip/jquery.qtip',
@@ -192,10 +193,10 @@ define([
                 if (that.validate()) {
                     var formData = that.getFormData(),
                         fcEvent = eventService.getEventById(formData.id);
-
                     _.assign(fcEvent, formData);
-                    fcEvent.start = $.fullCalendar.moment.parseZone(formData.start);
-                    fcEvent.end = $.fullCalendar.moment.parseZone(formData.end);
+
+                    fcEvent.start = moment(formData.start);
+                    fcEvent.end = moment(formData.end);
 
                     eventService.saveEvent(fcEvent, function () {
                         initialData = that.getFormData();
@@ -309,9 +310,6 @@ define([
         this.updateDatetime = function () {
             var startMoment = that.getStartMoment(),
                 endMoment = that.getEndMoment();
-
-            startMoment.parseZone();
-            endMoment.parseZone();
 
             $('.js-delivery-start').val(startMoment.format('YYYY-MM-DDTHH:mm:ssZZ'));
             $('.js-delivery-end').val(endMoment.format('YYYY-MM-DDTHH:mm:ssZZ'));
@@ -476,11 +474,8 @@ define([
          * @returns {object} Moment instance
          */
         this.getStartMoment = function () {
-            var timezone = $('.js-delivery-time-zone').val(),
-                startVal = $('.js-delivery-start-date').val() 
-                           + ' ' + $('.js-delivery-start-time').val() 
-                           + ' ' + createOffset(timezone),
-                startMoment = moment(startVal, 'YYYY-MM-DD HH:mm Z');
+            var startVal = $('.js-delivery-start-date').val() + ' ' + $('.js-delivery-start-time').val(),
+                startMoment = moment.tz(startVal, this.getCurrentTZName());
             return startMoment;
         };
 
@@ -489,13 +484,21 @@ define([
          * @returns {object} Moment instance
          */
         this.getEndMoment = function () {
-            var timezone = $('.js-delivery-time-zone').val(),
-                endVal =   $('.js-delivery-end-date').val() 
-                           + ' ' + $('.js-delivery-end-time').val()
-                           + ' ' + createOffset(timezone),
-                endMoment = moment(endVal, 'YYYY-MM-DD HH:mm Z');
-
+            var endVal =   $('.js-delivery-end-date').val() + ' ' + $('.js-delivery-end-time').val(),
+                endMoment = moment.tz(endVal, this.getCurrentTZName());
             return endMoment;
+        };
+
+        /**
+         * Get time zone name from the select box on the form.
+         * @returns {String} Example 'Europe/Luxembourg'
+         */
+        this.getCurrentTZName = function () {
+            var timeZone = $.trim($('.js-delivery-time-zone').find('option:selected').text());
+            if (timeZone === '') {
+                timeZone = this.tz || 'UTC';
+            }
+            return timeZone;
         };
 
         /**

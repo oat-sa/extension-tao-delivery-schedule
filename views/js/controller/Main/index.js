@@ -83,7 +83,8 @@ function (
                                 end : end,
                                 e : e,
                                 target : e.target,
-                                timeZone : $tzSelect.val()
+                                timeZone : $tzSelect.val(),
+                                timeZoneName : eventService.getCurrentTZName()
                             },
                             {action : actionManager.getBy('delivery-new')}
                         )

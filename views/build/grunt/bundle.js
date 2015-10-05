@@ -15,6 +15,7 @@ module.exports = function (grunt) {
      */
     clean.taodeliveryschedulebundle = [out];
 
+
     /**
      * Compile tao files into a bundle 
      */
@@ -26,12 +27,13 @@ module.exports = function (grunt) {
             paths: {
                 'taoDeliverySchedule': root + '/taoDeliverySchedule/views/js',
                 'editDeliveryForm': 'empty:',
+                'moment': root + '/taoDeliverySchedule/views/js/lib/moment-with-locales.min',
                 'timeZoneList': 'empty:'
             },
             modules: [{
                 name: 'taoDeliverySchedule/controller/routes',
                 include: ext.getExtensionsControllers(['taoDeliverySchedule']),
-                exclude: ['mathJax', 'mediaElement'].concat(libs)
+                exclude: ['mathJax', 'mediaElement', 'moment'].concat(libs)
             }]
         }
     };

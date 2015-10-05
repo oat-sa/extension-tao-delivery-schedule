@@ -23,8 +23,9 @@ define([
     'handlebars',
     'i18n',
     'taoDeliverySchedule/calendar/mediator',
+    'moment',
     'taoDeliverySchedule/lib/qtip/jquery.qtip'
-], function (_, $, eventTooltip, Handlebars, __, mediator) {
+], function (_, $, eventTooltip, Handlebars, __, mediator, moment) {
     'use strict';
     return function () {
         var that = this;
@@ -64,9 +65,10 @@ define([
          * @returns {undefined}
          */
         this.show = function (options) {
-            var timeZone = parseInt(options.timeZone, 10),
-                startUTCStr = options.start.clone().zone(timeZone).format('YYYY-MM-DD HH:mm'),
-                endUTCStr = options.end.clone().zone(timeZone).format('YYYY-MM-DD HH:mm'),
+            var start = moment.tz(options.start.clone().format('YYYY-MM-DD HH:mm'), options.timeZoneName),
+                end = moment.tz(options.end.clone().format('YYYY-MM-DD HH:mm'), options.timeZoneName),
+                startUTCStr = start.utc().format('YYYY-MM-DD HH:mm'),
+                endUTCStr = end.utc().format('YYYY-MM-DD HH:mm'),
                 tplOptions = {
                     start : options.start.format('ddd, MMMM D, H:mm'),
                     end : options.end ? options.end.format('ddd, MMMM D, H:mm') : false
@@ -82,7 +84,6 @@ define([
                 success : function (response) {
                     var tpl = Handlebars.compile(response),
                         $form;
-
 
                     that.tooltip.set({
                         'content.text' : tpl(tplOptions),
@@ -132,8 +133,8 @@ define([
         };
 
         /**
-         * Get form jQeeryElement.
-         * @returns {jQeeryElement} form element
+         * Get form jQueryElement.
+         * @returns {jQuery} form element
          */
         this.getForm = function () {
             return that.tooltip.elements.content.find('form');

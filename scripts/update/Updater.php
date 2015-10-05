@@ -21,9 +21,9 @@
 
 namespace oat\taoDeliverySchedule\scripts\update;
 
-use common_ext_ExtensionsManager;
 use tao_helpers_data_GenerisAdapterRdf;
 use common_Logger;
+use oat\tao\model\ClientLibRegistry;
 
 /**
  * 
@@ -43,16 +43,22 @@ class Updater extends \common_ext_ExtensionUpdater {
         
         if ($currentVersion == '0.1') {
             $file = dirname(__FILE__).DIRECTORY_SEPARATOR.'model_0_1_1.rdf';
-            
+
             $adapter = new tao_helpers_data_GenerisAdapterRdf();
-            
+
             if ($adapter->import($file)) {
                 $currentVersion = '0.1.1';
             } else{
                 common_Logger::w('Import failed for '.$file);
             }
         }
-        
+
+        if ($currentVersion == '0.1.1') {
+            $clientLibRegistry = ClientLibRegistry::getRegistry();
+            $clientLibRegistry->register('moment', '../../../taoDeliverySchedule/views/js/lib/moment-with-locales.min');
+            $currentVersion = '0.1.2';
+        }
+
         return $currentVersion;
     }
 }

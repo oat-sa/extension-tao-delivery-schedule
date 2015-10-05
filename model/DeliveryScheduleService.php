@@ -134,6 +134,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      * Function returns list of errors in the delivery data.
      * @param array $data delivery data (uri=>value) 
      * (evaluate {@link self::getEvaluatedParams()} raw data before)
+     * @return array
      */
     public function getErrors($data)
     {
@@ -251,7 +252,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      * Save delivery groups.
      * 
      * @param \core_kernel_classes_Class $delivery Delivery instance
-     * @param array $values List of grups (uri)
+     * @param array $values List of groups (uri)
      * @return boolean 
      */
     private function saveGroups(\core_kernel_classes_Class $delivery, $values)
@@ -284,7 +285,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     }
     
     /**
-     * Save excluded testakers
+     * Save excluded test takers
      * @param \core_kernel_classes_Class $delivery Delivery instance
      * @param array $excluded List of excluded testakers (uri)
      * @return boolean 
@@ -301,13 +302,14 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     
     /**
      * Get all deliveries in time range.
-     * @param integer $form Timestamp
+     * @param integer $from Timestamp
      * @param integer $to Timestamp
+     * @return core_kernel_classes_Resource[] - delivery resource instances
      */
     public function getAssemblies($from, $to)
     {
         $assemblies = \taoDelivery_models_classes_DeliveryAssemblyService::singleton()->getAllAssemblies();
-        
+
         $startProp = new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP);
         $endProp = new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP);
         
