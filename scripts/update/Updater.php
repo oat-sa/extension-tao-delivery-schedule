@@ -39,8 +39,7 @@ class Updater extends \common_ext_ExtensionUpdater {
     public function update($initialVersion) {
         
         $currentVersion = $initialVersion;
-        //$extensionManager = common_ext_ExtensionsManager::singleton();
-        
+
         if ($currentVersion == '0.1') {
             $file = dirname(__FILE__).DIRECTORY_SEPARATOR.'model_0_1_1.rdf';
 
@@ -51,12 +50,6 @@ class Updater extends \common_ext_ExtensionUpdater {
             } else{
                 common_Logger::w('Import failed for '.$file);
             }
-        }
-
-        if ($currentVersion == '0.1.1') {
-            $clientLibRegistry = ClientLibRegistry::getRegistry();
-            $clientLibRegistry->register('moment', '../../../taoDeliverySchedule/views/js/lib/moment-with-locales.min');
-            $currentVersion = '0.1.2';
         }
 
         return $currentVersion;

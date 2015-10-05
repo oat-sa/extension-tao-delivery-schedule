@@ -23,7 +23,7 @@ return array(
     'label' => 'Delivery schedule',
     'description' => 'An extension is used to visualize the delivery schedule in the form of a calendar.',
     'license' => 'GPL-2.0',
-    'version' => '0.1.2',
+    'version' => '0.1.1',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'tao' => '>=2.7.3',
@@ -40,9 +40,6 @@ return array(
         'rdf' => array(
             dirname(__FILE__). '/scripts/install/deliverySchedule.rdf'
         ),
-        'php' => array(
-            __DIR__ . '/scripts/install/Install.php',
-        )
     ),
     'uninstall' => array(
         
