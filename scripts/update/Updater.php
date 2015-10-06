@@ -21,9 +21,9 @@
 
 namespace oat\taoDeliverySchedule\scripts\update;
 
-use common_ext_ExtensionsManager;
 use tao_helpers_data_GenerisAdapterRdf;
 use common_Logger;
+use oat\tao\model\ClientLibRegistry;
 
 /**
  * 
@@ -39,20 +39,19 @@ class Updater extends \common_ext_ExtensionUpdater {
     public function update($initialVersion) {
         
         $currentVersion = $initialVersion;
-        //$extensionManager = common_ext_ExtensionsManager::singleton();
-        
+
         if ($currentVersion == '0.1') {
             $file = dirname(__FILE__).DIRECTORY_SEPARATOR.'model_0_1_1.rdf';
-            
+
             $adapter = new tao_helpers_data_GenerisAdapterRdf();
-            
+
             if ($adapter->import($file)) {
                 $currentVersion = '0.1.1';
             } else{
                 common_Logger::w('Import failed for '.$file);
             }
         }
-        
+
         return $currentVersion;
     }
 }

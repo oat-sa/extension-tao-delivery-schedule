@@ -23,15 +23,16 @@ define([
     'taoDeliverySchedule/calendar/eventService',
     'ui/feedback',
     'context',
+    'moment',
     'taoDeliverySchedule/lib/fullcalendar/fullcalendar.amd'
-],function (_, $, __, eventService, feedback, context) {
+],function (_, $, __, eventService, feedback, context, moment) {
     'use strict';
 
     /**
-     * Function retuns height of calendar container
+     * Function returns height of calendar container
      * 
      * @param {jQueryElement} $contentBlock
-     * @returns {integer} calendar height
+     * @returns {number} calendar height
      */
     function getCalendarHeight($contentBlock) {
         var height,
@@ -40,7 +41,22 @@ define([
 
         $contentBlock = $contentBlock ? $contentBlock : $('.content-block');
         height = bottomOffset - $contentBlock.offset().top;
-        return height - parseInt($contentBlock.css('padding-top')) - parseInt($contentBlock.css('padding-bottom'));
+        return height - parseInt($contentBlock.css('padding-top')) - parseInt($contentBlock.css('padding-bottom'), 10);
+    }
+
+    /**
+     * Save event after move or resize.
+     * @param {object} fcEvent
+     * @param {function} revertFunc - is a function that, if called, reverts the event's start/end date to the values before the drag.
+     * This is useful if an ajax call should fail.
+     */
+    function saveEvent(fcEvent, revertFunc) {
+        var start = moment.tz(fcEvent.start.clone().format('YYYY-MM-DD HH:mm'), eventService.getCurrentTZName()),
+            end = moment.tz(fcEvent.end.clone().format('YYYY-MM-DD HH:mm'), eventService.getCurrentTZName());
+        fcEvent = _.cloneDeep(fcEvent);
+        fcEvent.start = start;
+        fcEvent.end = end;
+        eventService.saveEvent(fcEvent, _.noop, function () {revertFunc();});
     }
 
     /**
@@ -48,7 +64,7 @@ define([
      * 
      * @constructor
      * @property {object}        options Calendar options.
-     * @property {jQueryElement} options.$container Calendar container.
+     * @property {jQuery} options.$container Calendar container.
      * @property {Date}          options.defaultDate Calendar The initial date displayed when the calendar first loads.
      */
     return function (options) {
@@ -97,7 +113,7 @@ define([
                         revertFunc();
                         feedback().warning(__("Sub delivery cannot be changed."));
                     } else {
-                        eventService.saveEvent(fcEvent, _.noop, function () {revertFunc();});
+                        saveEvent(fcEvent, revertFunc);
                     }
                 },
                 eventResize : function (fcEvent, e, revertFunc) {
@@ -105,7 +121,7 @@ define([
                         revertFunc();
                         feedback().warning(__("Sub delivery cannot be changed."));
                     } else {
-                        eventService.saveEvent(fcEvent, _.noop, function () {revertFunc();});
+                        saveEvent(fcEvent, revertFunc);
                     }
                 },
                 events : function(start, end, timezone, callback) {
@@ -165,7 +181,7 @@ define([
                 fcEvent = that.exec('clientEvents', eventId);
 
             if (fcEvent.length === 0) {
-                fcEvent = eventService.loadEvent(eventId, function (eventData) {
+                 eventService.loadEvent(eventId, function (eventData) {
                     that.exec('renderEvent', eventData);
                     var fcEvent = that.exec('clientEvents', eventId);
                     deferred.resolve(fcEvent[0]);

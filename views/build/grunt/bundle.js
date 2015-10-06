@@ -15,6 +15,7 @@ module.exports = function (grunt) {
      */
     clean.taodeliveryschedulebundle = [out];
 
+
     /**
      * Compile tao files into a bundle 
      */

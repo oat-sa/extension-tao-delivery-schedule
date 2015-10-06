@@ -44,7 +44,7 @@ define([
         /**
          * Create new event
          * @param {object} options
-         * @property {string} options.url Url address to creaet new event
+         * @property {string} options.url Url address to create new event
          * @property {string} options.data Event data. Example:
          *      <pre>
          *      {
@@ -105,7 +105,7 @@ define([
         /**
          * Save event
          * @param {object} options
-         * @property {string} options.url Url address to creaet new event
+         * @property {string} options.url Url address to create new event
          * @property {string} options.data Event data. Example:
          *      <pre>
          *      {
@@ -129,9 +129,9 @@ define([
                 classUri   : fcEvent.classUri,
                 id         : fcEvent.id,
                 uri        : fcEvent.uri,
-                start      : fcEvent.start.clone().add(fcEvent.start._tzm, 'm').format('YYYY-MM-DD HH:mm'),
-                end        : fcEvent.end.clone().add(fcEvent.end._tzm, 'm').format('YYYY-MM-DD HH:mm'),
-                recurrence : '',
+                start      : fcEvent.start.clone().utc().format('YYYY-MM-DD HH:mm'),
+                end        : fcEvent.end.clone().utc().format('YYYY-MM-DD HH:mm'),
+                recurrence : ''
             };
 
             if (fcEvent.ttexcluded) {
@@ -176,7 +176,6 @@ define([
 
                         eventsToBeRemoved.push(fcEvent.id);
                         eventsToBeAdded.push(eventData);
-
                         $calendar.fullCalendar('removeEvents', function (eventToRemove) {
                             return eventsToBeRemoved.indexOf(eventToRemove.id) !== -1;
                         });
@@ -379,10 +378,10 @@ define([
 
         /**
          * Get time zone offset in minutes from the select box on the calendar toolbar.
-         * @returns {integer} Example 120
+         * @returns {Number} Example 120
          */
         this.getCurrentTZOffset = function () {
-            var offset = parseInt($('.js-time-zone-list').val());
+            var offset = parseInt($('.js-time-zone-list').val(), 10);
             if (isNaN(offset)) {
                 offset = 0;
             }
