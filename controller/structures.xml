@@ -19,7 +19,7 @@
                     />
                 </trees>
                 <actions>
-                    <action id="init-tree" name="init" url="/taoDeliverySchedule/Main/index">
+                    <action id="init-tree" name="init" url="/taoDeliverySchedule/Main/index" group="none" context="*">
                         <icon id="icon-edit"/>
                     </action>
                     <action id="delivery-class-properties" name="Properties" binding="class-select" group="none" context="class">
