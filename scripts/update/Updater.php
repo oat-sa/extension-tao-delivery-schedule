@@ -52,6 +52,18 @@ class Updater extends \common_ext_ExtensionUpdater {
             }
         }
 
+        if ($currentVersion == '0.1.1') {
+            $file = dirname(__FILE__).DIRECTORY_SEPARATOR.'model_0_1_2.rdf';
+
+            $adapter = new tao_helpers_data_GenerisAdapterRdf();
+
+            if ($adapter->import($file)) {
+                $currentVersion = '0.1.2';
+            } else{
+                common_Logger::w('Import failed for '.$file);
+            }
+        }
+
         return $currentVersion;
     }
 }
