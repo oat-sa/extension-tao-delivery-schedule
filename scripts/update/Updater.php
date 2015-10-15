@@ -23,6 +23,7 @@ namespace oat\taoDeliverySchedule\scripts\update;
 
 use tao_helpers_data_GenerisAdapterRdf;
 use common_Logger;
+use oat\tao\scripts\update\OntologyUpdater;
 use oat\tao\model\ClientLibRegistry;
 
 /**
