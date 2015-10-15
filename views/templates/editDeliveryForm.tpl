@@ -23,7 +23,7 @@ $days = array(
         <input name="id" type="hidden" value="{{id}}">
         <input name="uri" type="hidden" value="{{uri}}">
         {{#if subEvent}}
-            <input name="repetition" type="hidden" value="{{repetition}}">
+            <input name="numberOfRepetition" type="hidden" value="{{numberOfRepetition}}">
         {{/if}}
         <table border="0" cellpadding="0" cellspacing="0" class="edit-delivery-form__table">
             <tr>

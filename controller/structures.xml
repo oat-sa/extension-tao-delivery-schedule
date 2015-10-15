@@ -36,7 +36,10 @@
                     </action>
                     <action id="delivery-edit" name="Edit delivery" binding="delivery-edit" context="class" group="none">
                     </action>
-                    <action id="delivery-delete" name="Delete" binding="removeNode" url="/taoDelivery/Delivery/delete" context="resource" group="tree">
+                    <action id="class-delete" name="Delete" binding="removeNode" url="/taoDelivery/Delivery/delete" context="class" group="tree">
+                        <icon id="icon-bin"/>
+                    </action>
+                    <action id="delivery-delete" name="Delete" binding="delivery-delete" context="instance" group="tree">
                         <icon id="icon-bin"/>
                     </action>
                     <action id="delivery-move" name="Move" url="/taoDelivery/Delivery/moveInstance" context="instance" group="none" binding="moveNode">

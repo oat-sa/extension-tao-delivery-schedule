@@ -20,8 +20,10 @@
 
 namespace oat\taoDeliverySchedule\model;
 
+use oat\oatbox\service\ServiceManager;
+
 /**
- * Delivery schedule service
+ * Delivery test takers service
  *
  * @author Aleh Hutnikau <hutnikau@1pt.com>
  * @package taoDeliverySchedule
@@ -70,9 +72,9 @@ class DeliveryTestTakersService extends \tao_models_classes_Service
         foreach ($excluded as $testTaker) {
             $result['ttexcluded'][] = $this->getTestTakerData(new \core_kernel_classes_Resource($testTaker));
         }
-        
+
         // assigned test takers
-        $users = \taoDelivery_models_classes_AssignmentService::singleton()->getAssignedUsers($delivery);
+        $users = ServiceManager::getServiceManager()->get('taoDelivery/assignment')->getAssignedUsers($delivery);
         $assigned = array_values(array_diff(array_unique($users), $excluded));
         
         foreach ($assigned as $testTaker) {
@@ -126,6 +128,7 @@ class DeliveryTestTakersService extends \tao_models_classes_Service
      * </pre>
      * @param array $data 
      * @param boolean $reverse
+     * @return array
      */
     public function mapDeliveryProperties($data, $reverse = false)
     {
@@ -148,5 +151,20 @@ class DeliveryTestTakersService extends \tao_models_classes_Service
         }
         
         return $data;
+    }
+
+    /**
+     * Save excluded test takers
+     * @param \core_kernel_classes_Resource $delivery Delivery instance
+     * @param array $excluded List of excluded testakers (uri)
+     * @return boolean
+     */
+    public function saveExcludedTestTakers(\core_kernel_classes_Resource $delivery, $excluded) {
+        $success = $delivery->editPropertyValues(
+            new \core_kernel_classes_Property(TAO_DELIVERY_EXCLUDEDSUBJECTS_PROP),
+            $excluded
+        );
+
+        return $success;
     }
 }

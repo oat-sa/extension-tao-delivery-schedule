@@ -137,6 +137,13 @@ function (
             binder.register('delivery-edit', function (context) {
                 that.showEditEventModal(context);
             });
+            binder.register('delivery-delete', function (context) {
+                eventService.deleteEvent(context.uri, function (data) {
+                    var fcEvent = eventService.getEventById(data.id);
+                    calendar.removeEvent(fcEvent);
+                    that.hideTooltips();
+                });
+            });
             //Instance selected on the tree
             binder.register('delivery-select', function (treeInstance) {
                 var fcEvent = eventService.getEventById(treeInstance.uri),
@@ -183,7 +190,11 @@ function (
                 eventService.highlightEvent(false);
             });
             mediator.on('delete.editEventTooltip', function (eventId) {
-                eventService.deleteEvent(eventId);
+                eventService.deleteEvent(eventId, function (data) {
+                    var fcEvent = eventService.getEventById(data.id);
+                    calendar.removeEvent(fcEvent);
+                    that.hideTooltips();
+                });
             });
             mediator.on('to-parent.editEventTooltip', function (eventId) {
                 var fcEvent = eventService.getEventById(eventId);
@@ -233,24 +244,6 @@ function (
                 'refresh.taotree',
                 function () {
                     calendar.exec('refetchEvents');
-                }
-            );
-
-            $($treeElt).on(
-                'removenode.taotree',
-                function (e, data) {
-                    var fcEvent = eventService.getEventById(data.id),
-                        eventsToBeRemoved;
-                    that.hideTooltips();
-                    if (fcEvent) {
-                        eventsToBeRemoved = [fcEvent.id];
-                        if (fcEvent.recurringEventIds && fcEvent.recurringEventIds.length) {
-                            eventsToBeRemoved = eventsToBeRemoved.concat(fcEvent.recurringEventIds);
-                        }
-                        calendar.exec('removeEvents', function (eventToRemove) {
-                            return eventsToBeRemoved.indexOf(eventToRemove.id) !== -1;
-                        });
-                    }
                 }
             );
 

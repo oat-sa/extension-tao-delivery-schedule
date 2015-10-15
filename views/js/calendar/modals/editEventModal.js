@@ -144,7 +144,7 @@ define([
 
             if (fcEvent.subEvent) {
                 data.subEvent = true;
-                data.repetition = fcEvent.subEventNum;
+                data.numberOfRepetition = fcEvent.subEventNum;
             }
 
             formContent = formTpl(data);
@@ -234,8 +234,10 @@ define([
                         fcEvent = eventService.getEventById(formData.id);
                     _.assign(fcEvent, formData);
 
-                    fcEvent.start = moment(formData.start);
-                    fcEvent.end = moment(formData.end);
+                    if (!fcEvent.subEvent) {
+                        fcEvent.start = moment(formData.start);
+                        fcEvent.end = moment(formData.end);
+                    }
 
                     eventService.saveEvent(fcEvent, function () {
                         initialData = that.getFormData();

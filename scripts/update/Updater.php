@@ -24,7 +24,9 @@ namespace oat\taoDeliverySchedule\scripts\update;
 use tao_helpers_data_GenerisAdapterRdf;
 use common_Logger;
 use oat\tao\scripts\update\OntologyUpdater;
-use oat\tao\model\ClientLibRegistry;
+use oat\taoDeliverySchedule\model\RepeatedDeliveryService;
+use oat\taoDeliverySchedule\model\DeliveryGroupsService;
+use oat\oatbox\service\ServiceNotFoundException;
 
 /**
  * 
@@ -56,6 +58,30 @@ class Updater extends \common_ext_ExtensionUpdater {
         if ($currentVersion == '0.1.1') {
             OntologyUpdater::syncModels();
             $current = '0.1.2';
+        }
+
+        if ($currentVersion === '0.1.2') {
+            try {
+                $this->getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService');
+            } catch (ServiceNotFoundException $e) {
+                $factory = new RepeatedDeliveryService();
+                $factory->setServiceManager($this->getServiceManager());
+
+                $this->getServiceManager()->register('taoDeliverySchedule/RepeatedDeliveryService', $factory);
+            }
+            $currentVersion = '0.1.3';
+        }
+
+        if ($currentVersion === '0.1.3') {
+            try {
+                $this->getServiceManager()->get('taoDeliverySchedule/DeliveryGroupsService');
+            } catch (ServiceNotFoundException $e) {
+                $service = new DeliveryGroupsService();
+                $service->setServiceManager($this->getServiceManager());
+
+                $this->getServiceManager()->register('taoDeliverySchedule/DeliveryGroupsService', $service);
+            }
+            $currentVersion = '0.1.4';
         }
 
         return $currentVersion;

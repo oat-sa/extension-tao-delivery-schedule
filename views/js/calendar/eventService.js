@@ -19,12 +19,13 @@
 define([
     'lodash',
     'jquery',
+    'i18n',
     'ui/feedback',
     'layout/actions',
     'moment',
     'layout/loading-bar',
     'taoDeliverySchedule/lib/rrule/rrule.amd'
-], function (_, $, feedback, actionManager, moment, loadingBar) {
+], function (_, $, __, feedback, actionManager, moment, loadingBar) {
     'use strict';
     var instance = null;
 
@@ -104,19 +105,7 @@ define([
 
         /**
          * Save event
-         * @param {object} options
-         * @property {string} options.url Url address to create new event
-         * @property {string} options.data Event data. Example:
-         *      <pre>
-         *      {
-         *         classUri: "http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery",
-         *         start: "2015-04-17 00:00"
-         *         end: "2015-04-18 00:00",
-         *         label: "Delivery label",
-         *         uri: "http_2_sample_1_first_0_rdf_3_i14301245512201554",
-         *         id: "http://sample/first.rdf#i14301245512201554"
-         *      }
-         *      </pre>
+         * @param {object} fcEvent
          * @param {function} callback success callback
          * @param {function} errorCallback error callback
          * @returns {undefined}
@@ -125,14 +114,15 @@ define([
             loadingBar.start();
 
             var data = {
-                label      : fcEvent.label === undefined ? fcEvent.title : fcEvent.label,
-                classUri   : fcEvent.classUri,
-                id         : fcEvent.id,
-                uri        : fcEvent.uri,
-                start      : fcEvent.start.clone().utc().format('YYYY-MM-DD HH:mm'),
-                end        : fcEvent.end.clone().utc().format('YYYY-MM-DD HH:mm'),
-                recurrence : ''
-            };
+                    label      : fcEvent.label === undefined ? fcEvent.title : fcEvent.label,
+                    classUri   : fcEvent.classUri,
+                    id         : fcEvent.subEvent ? fcEvent.parentEventId : fcEvent.id,
+                    uri        : fcEvent.uri,
+                    start      : fcEvent.start.clone().utc().format('YYYY-MM-DD HH:mm'),
+                    end        : fcEvent.end.clone().utc().format('YYYY-MM-DD HH:mm'),
+                    recurrence : ''
+                },
+                self = this;
 
             if (fcEvent.ttexcluded) {
                 data.ttexcluded = fcEvent.ttexcluded.length ? fcEvent.ttexcluded : ''; //jquery does not send empty arrays via ajax.
@@ -142,7 +132,7 @@ define([
                 data.resultserver = fcEvent.resultserver;
             }
 
-            if (fcEvent.recurrence) {
+            if (fcEvent.recurrence && !fcEvent.subEvent) {
                 var rruleOptions = RRule.parseString(fcEvent.recurrence),
                     rrule;
 
@@ -156,8 +146,13 @@ define([
                 data.recurrence = rrule.toString();
             }
 
+            if (fcEvent.subEvent) {
+                data.repeatedDelivery = true;
+                data.numberOfRepetition = fcEvent.numberOfRepetition;
+            }
+
             if (fcEvent.groups && _.isArray(fcEvent.groups)) {
-                data.groups = fcEvent.groups;
+                data.groups = fcEvent.groups.length ? fcEvent.groups : ['']; //jquery does not send empty arrays via ajax.
             }
             if (fcEvent.maxexec !== undefined) {
                 data.maxexec = fcEvent.maxexec;
@@ -170,6 +165,7 @@ define([
                 global : false,
                 dataType : 'json',
                 success : function (response) {
+                    fcEvent = fcEvent.subEvent ? self.getEventById(fcEvent.parentEventId) : fcEvent;
                     that.loadEvent(fcEvent.id, function (eventData) {
                         var eventsToBeAdded = that.getRecurringEvents(eventData),
                             eventsToBeRemoved = fcEvent.recurringEventIds || [];
@@ -205,15 +201,42 @@ define([
          * Delete delivery selected on the tree
          * @returns {undefined}
          */
-        this.deleteEvent = function (eventId) {
-            actionManager.exec(
-                'delivery-delete', 
-                _.extend(
-                    actionManager._resourceContext, 
-                    {action : actionManager.getBy('delivery-delete')}
-                )
-            );
-            tree.deselect_branch(tree.selected);
+        this.deleteEvent = function (eventId, callback, errorCallback) {
+            var self = this,
+                fcEvent = self.getEventById(eventId),
+                data;
+
+            if (confirm(__("Please confirm deletion"))) {
+                loadingBar.start();
+                fcEvent = fcEvent.subEvent ? self.getEventById(fcEvent.parentEventId) : fcEvent;
+
+                data = {
+                    classUri   : fcEvent.classUri,
+                    id         : fcEvent.uri,
+                    uri        : fcEvent.uri
+                };
+                $.ajax({
+                    url : '/taoDeliverySchedule/CalendarApi?' + $.param(data),
+                    type : 'DELETE',
+                    global : false,
+                    dataType : 'json',
+                    success : function (response) {
+                        tree.remove($('#' + fcEvent.id));
+                        loadingBar.stop();
+                        if (typeof callback === 'function') {
+                            response.id = fcEvent.id;
+                            callback(response);
+                        }
+                    },
+                    error : function (xhr, err) {
+                        loadingBar.stop();
+                        if (typeof errorCallback === 'function') {
+                            errorCallback();
+                        }
+                    }
+                });
+                tree.deselect_branch(tree.selected);
+            }
         };
 
         /**
@@ -387,7 +410,7 @@ define([
             }
             return offset;
         };
-    };
+    }
 
     EventService.getInstance = function () {
         // Gets an instance of the singleton.
