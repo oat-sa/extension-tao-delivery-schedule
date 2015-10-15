@@ -23,6 +23,7 @@ namespace oat\taoDeliverySchedule\scripts\update;
 
 use tao_helpers_data_GenerisAdapterRdf;
 use common_Logger;
+use oat\tao\scripts\update\OntologyUpdater;
 use oat\tao\model\ClientLibRegistry;
 
 /**
@@ -50,6 +51,11 @@ class Updater extends \common_ext_ExtensionUpdater {
             } else{
                 common_Logger::w('Import failed for '.$file);
             }
+        }
+
+        if ($currentVersion == '0.1.1') {
+            OntologyUpdater::syncModels();
+            $current = '0.1.2';
         }
 
         return $currentVersion;
