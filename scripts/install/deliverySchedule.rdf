@@ -22,7 +22,7 @@
         <generis:is_language_dependent rdf:resource="http://www.tao.lu/Ontologies/generis.rdf#False"/>
     </rdf:Description>
 
-    <rdf:Description rdf:about="http://www.tao.lu/Ontologies/TAODelivery.rdf#DeliveryRepetition">
+    <rdf:Description rdf:about="http://www.tao.lu/Ontologies/TAODelivery.rdf#RepetitionOf">
         <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
         <rdfs:label xml:lang="en-US"><![CDATA[Delivery repetition]]></rdfs:label>
         <rdfs:comment xml:lang="en-US"><![CDATA[Delivery repetition]]></rdfs:comment>
