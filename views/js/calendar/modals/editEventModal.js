@@ -80,38 +80,77 @@ define([
          * @param {object} fcEvent fullcalendar event object
          */
         this.show = function (fcEvent) {
+            var eventId = fcEvent.subEvent ? fcEvent.parentEventId : fcEvent.id;
             $.ajax({
                 url : '/taoDeliverySchedule/CalendarApi?full=1',
                 type : 'GET',
                 data : {
-                    uri : fcEvent.id
+                    uri : eventId
                 },
                 success : function (response) {
-                    var color = response.color || 'transparent';
-
-                    response.publishedFromatted = moment(response.published * 1000).format("YYYY-MM-DD HH:mm");
-                    response.executionsMessage = that.getExecutionsMessage(response.executions);
+                    var color = response.color || 'transparent',
+                        formContent = that.getFormContent(fcEvent, response),
+                        testTakersListData = {},
+                        groupTreeOptions = {},
+                        repeatedDeliveries = response.repeatedDeliveries || [];
 
                     that.modal.set({
-                        'content.text'   : formTpl(response),
-                        'content.title'  : _.escape(response.title)
+                        'content.text'  : formContent,
+                        'content.title' : _.escape(response.title)
                     });
 
                     that.modal.show();
                     that.modal.elements.titlebar.css({'border-bottom' : '2px solid ' + color});
 
+                    if (fcEvent.subEvent && repeatedDeliveries[fcEvent.subEventNum]) {
+                        testTakersListData = {
+                            ttexcluded : repeatedDeliveries[fcEvent.subEventNum].ttexcluded,
+                            ttassigned : repeatedDeliveries[fcEvent.subEventNum].ttassigned
+                        };
+                        groupTreeOptions.groups = repeatedDeliveries[fcEvent.subEventNum].groups;
+                    } else {
+                        testTakersListData = {ttexcluded : response.ttexcluded, ttassigned : response.ttassigned};
+                        groupTreeOptions.groups = response.groups;
+                    }
+
                     testTakersList = new TestTakersList({
                         container : $('.js-tt-list'),
-                        data : {ttexcluded : response.ttexcluded, ttassigned : response.ttassigned},
+                        data : testTakersListData,
                         deliveryId : response.id
                     });
 
                     that.initDatepickers();
-                    that.initGroupTree(response);
+                    that.initGroupTree(groupTreeOptions);
                     that.initForm(response);
                 }
             });
         };
+
+        /**
+         * Get edit form HTML markup.
+         * @param {object} fcEvent - fullcalendar event instance
+         * @param {object} data - delivery data loaded from server
+         * parent event data should be given).
+         * @returns {string} Form HTML markup
+         */
+        this.getFormContent = function(fcEvent, data) {
+            var formContent;
+
+            data = _.cloneDeep(data);
+            data.publishedFromatted = moment(data.published * 1000).format("YYYY-MM-DD HH:mm");
+            data.executionsMessage = that.getExecutionsMessage(data.executions);
+            data.id = fcEvent.id;
+            data.uri = fcEvent.uri;
+
+            if (fcEvent.subEvent) {
+                data.subEvent = true;
+                data.repetition = fcEvent.subEventNum;
+            }
+
+            formContent = formTpl(data);
+
+            return formContent;
+        }
 
         /**
          * Hide edit form. If any data on the form was changed then confirmation window will be shown.
@@ -328,6 +367,10 @@ define([
                 rrule,
                 rruleData = _.clone(data.rrule);
 
+            if (!rruleData) {
+                return;
+            }
+
             rruleData.dtstart = that.getStartMoment().clone().utc().toDate();
 
             if ($('.js-repeat-toggle').is(':checked')) {
@@ -347,12 +390,17 @@ define([
          * @returns {undefined}
          */
         this.parseRrule = function () {
-            var rule = $('[name="recurrence"]').val().toUpperCase(),
+            var $rruleInput = $('[name="recurrence"]'),
+                rule,
                 rrule,
-                startMoment = that.getStartMoment();
-            if (!rule) {
+                startMoment;
+
+            if ($rruleInput.length === 0 || !$('[name="recurrence"]').val()) {
                 return;
             }
+
+            rule = $('[name="recurrence"]').val().toUpperCase();
+            startMoment = that.getStartMoment();
 
             rule += ';DTSTART=' + startMoment.clone().utc().format('YYYYMMDDTHHmmss') + 'Z';
             rrule = RRule.fromString(rule);
