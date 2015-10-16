@@ -309,11 +309,11 @@ class CalendarApi extends ApiBaseController
         if (empty($params['classUri'])) {
             throw new \tao_models_classes_MissingRequestParameterException("classUri");
         }
-        if (empty($params['uri']) && empty($params['parentDeliveryUri'])) {
+        if (empty($params['uri'])) {
             throw new \tao_models_classes_MissingRequestParameterException("uri or parentDeliveryUri");
         }
 
-        $delivery = new \core_kernel_classes_Class(\tao_helpers_Uri::decode($uri));
+        $delivery = new \core_kernel_classes_Class(\tao_helpers_Uri::decode($params['uri']));
         return $delivery;
     }
 }
