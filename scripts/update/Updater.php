@@ -64,15 +64,12 @@ class Updater extends \common_ext_ExtensionUpdater {
             try {
                 $this->getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService');
             } catch (ServiceNotFoundException $e) {
-                $factory = new RepeatedDeliveryService();
-                $factory->setServiceManager($this->getServiceManager());
+                $service = new RepeatedDeliveryService();
+                $service->setServiceManager($this->getServiceManager());
 
-                $this->getServiceManager()->register('taoDeliverySchedule/RepeatedDeliveryService', $factory);
+                $this->getServiceManager()->register('taoDeliverySchedule/RepeatedDeliveryService', $service);
             }
-            $currentVersion = '0.1.3';
-        }
 
-        if ($currentVersion === '0.1.3') {
             try {
                 $this->getServiceManager()->get('taoDeliverySchedule/DeliveryGroupsService');
             } catch (ServiceNotFoundException $e) {
@@ -81,7 +78,7 @@ class Updater extends \common_ext_ExtensionUpdater {
 
                 $this->getServiceManager()->register('taoDeliverySchedule/DeliveryGroupsService', $service);
             }
-            $currentVersion = '0.1.4';
+            $currentVersion = '0.1.3';
         }
 
         return $currentVersion;
