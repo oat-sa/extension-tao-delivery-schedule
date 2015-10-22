@@ -92,7 +92,7 @@ function (
                 },
                 eventClick : function (fcEvent, e) {
                     createEventTooltip.hide();
-                    that.selectEvent(fcEvent.id, e);
+                    that.selectEvent(fcEvent.id, true, e);
                 },
                 eventResizeStart : function (fcEvent, e) {
                     that.hideTooltips();
@@ -137,8 +137,22 @@ function (
             binder.register('delivery-edit', function (context) {
                 that.showEditEventModal(context);
             });
+            //Instance selected on the tree
             binder.register('delivery-select', function (treeInstance) {
-                if (!editEventTooltip.isShown() || editEventTooltip.getId() !== treeInstance.uri) {
+                var fcEvent = eventService.getEventById(treeInstance.uri),
+                    subEventSelected;
+
+                //tooltip already shown.
+                if (editEventTooltip.isShown() && editEventTooltip.getId() === treeInstance.uri) {
+                    return;
+                }
+
+                subEventSelected = editEventTooltip.isShown() && _.contains(fcEvent.recurringEventIds, editEventTooltip.getId());
+
+                //If selection of instance on the tree was triggered by click on the subdelivery on the calendar
+                //and parent delivery already selected on the tree then do nothing.
+                if (!subEventSelected) {
+                    //select event on the calendar
                     that.selectEvent(treeInstance.uri);
                 }
             });
@@ -174,7 +188,7 @@ function (
             mediator.on('to-parent.editEventTooltip', function (eventId) {
                 var fcEvent = eventService.getEventById(eventId);
                 if (fcEvent.parentEventId) {
-                    that.selectEvent(fcEvent.parentEventId);
+                    that.selectEvent(fcEvent.parentEventId, true);
                 }
             });
 
@@ -239,6 +253,10 @@ function (
                     }
                 }
             );
+
+            $($treeElt).children('ul').on('click', function () {
+                editEventTooltip.tooltip.elements.tooltip.find('input[name="id"]').val('');
+            });
         };
 
         /**
@@ -265,7 +283,6 @@ function (
             if (!$eventElement.length) {
                 return;
             }
-
             eventService.highlightEvent(fcEvent);
 
             if (typeof e === 'undefined' || e.isTrigger) {
@@ -312,7 +329,8 @@ function (
          * @returns {undefined}
          */
         this.showEditEventModal = function (context) {
-            var fcEvent = eventService.getEventById(context.uri);
+            var fcEventId = editEventTooltip.isShown() ? editEventTooltip.getId() : context.uri,
+                fcEvent = eventService.getEventById(fcEventId);
             this.hideTooltips();
             editEventModal.show(fcEvent);
         };
@@ -320,14 +338,17 @@ function (
         /**
          * Select event and show edit tooltip.
          * @param {string} eventId
-         * @param {object} e If triggered by clicking on the event 
+         * @param {boolean} selectTreeNode - whether tree node should be selected too.
+         * @param {object} e - if triggered by clicking on the event
          * then the tooltip coordinates will be the same as click coordinates.
          * @returns {undefined}
          */
-        this.selectEvent = function (eventId, e) {
+        this.selectEvent = function (eventId, selectTreeNode, e) {
             calendar.goToEvent(eventId).done(function (fcEvent) {
                 that.showEditEventTooltip(fcEvent, e);
-                that.selectTreeNode(fcEvent.id);
+                if (selectTreeNode) {
+                    that.selectTreeNode(fcEvent.id);
+                }
             });
         };
 
@@ -339,6 +360,10 @@ function (
         this.selectTreeNode = function (eventId) {
             tree.deselect_branch(tree.selected);
             calendar.getEvent(eventId).done(function (fcEvent) {
+                if (fcEvent.subEvent) {
+                    that.selectTreeNode(fcEvent.parentEventId);
+                    return;
+                }
                 //if node under the 'more' button
                 if ($('#tree-manage_delivery_schedule #' + fcEvent.id).length === 0) {
                     tree.select_branch($('#' + fcEvent.classId + ' .more'));
