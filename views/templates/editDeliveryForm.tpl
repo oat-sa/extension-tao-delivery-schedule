@@ -22,11 +22,15 @@ $days = array(
     <form method="post" class="edit-delivery-form">
         <input name="id" type="hidden" value="{{id}}">
         <input name="uri" type="hidden" value="{{uri}}">
+        {{#if subEvent}}
+            <input name="repetition" type="hidden" value="{{repetition}}">
+        {{/if}}
         <table border="0" cellpadding="0" cellspacing="0" class="edit-delivery-form__table">
             <tr>
                 <td><label class="form_desc">{{__ 'Published on'}}</label></td>
                 <td>{{publishedFromatted}}</td>
             </tr>
+            {{#unless subEvent}}
             <tr>
                 <td><label class="form_desc">{{__ 'Attempts'}}</label></td>
                 <td>
@@ -59,7 +63,7 @@ $days = array(
                         </option>
                         <?php endforeach ?>
                     </select>
-                    
+
                     <input name="start" class="js-delivery-start" type="hidden" value="{{start}}">
                     <input name="end" class="js-delivery-end" type="hidden" value="{{end}}">
                 </td>
@@ -74,7 +78,7 @@ $days = array(
             </tr>
             <tr>
                 <td>
-                    
+
                 </td>
                 <td>
                     <div class="repeat-event-table">
@@ -111,9 +115,9 @@ $days = array(
                                 </td>
                                 <td>
                                     <div>
-                                        <?php 
+                                        <?php
                                         $i = 0;
-                                        foreach ($days as $abbr => $name): 
+                                        foreach ($days as $abbr => $name):
                                         ?>
                                         <span>
                                             <label title="<?= __($name) ?>">
@@ -123,7 +127,7 @@ $days = array(
                                         </span>
                                         <?php
                                             $i++;
-                                            endforeach; 
+                                            endforeach;
                                         ?>
                                     </div>
                                 </td>
@@ -164,8 +168,9 @@ $days = array(
                     <?= get_data('form')->getElement('resultserver')->render() ?>
                 </td>
             </tr>
+            {{/unless}}
         </table>
-                
+
         <table border="0" cellpadding="0" cellspacing="0" class="edit-delivery-form__table edit-delivery-form__test-takers-table">
             <tr>
                 <td>
