@@ -62,21 +62,21 @@ class Updater extends \common_ext_ExtensionUpdater {
 
         if ($currentVersion === '0.1.2') {
             try {
-                $this->getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService');
+                $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
             } catch (ServiceNotFoundException $e) {
                 $service = new RepeatedDeliveryService();
                 $service->setServiceManager($this->getServiceManager());
 
-                $this->getServiceManager()->register('taoDeliverySchedule/RepeatedDeliveryService', $service);
+                $this->getServiceManager()->register(RepeatedDeliveryService::CONFIG_ID, $service);
             }
 
             try {
-                $this->getServiceManager()->get('taoDeliverySchedule/DeliveryGroupsService');
+                $this->getServiceManager()->get(DeliveryGroupsService::CONFIG_ID);
             } catch (ServiceNotFoundException $e) {
                 $service = new DeliveryGroupsService();
                 $service->setServiceManager($this->getServiceManager());
 
-                $this->getServiceManager()->register('taoDeliverySchedule/DeliveryGroupsService', $service);
+                $this->getServiceManager()->register(DeliveryGroupsService::CONFIG_ID, $service);
             }
             $currentVersion = '0.1.3';
         }

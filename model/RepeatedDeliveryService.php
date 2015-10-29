@@ -33,6 +33,7 @@ class RepeatedDeliveryService extends ConfigurableService
     const CLASS_URI = 'http://www.tao.lu/Ontologies/TAODelivery.rdf#RepeatedDelivery';
     const PROPERTY_REPETITION_OF = 'http://www.tao.lu/Ontologies/TAODelivery.rdf#RepetitionOf';
     const PROPERTY_NUMBER_OF_REPETITION = 'http://www.tao.lu/Ontologies/TAODelivery.rdf#NumberOfRepetition';
+    const CONFIG_ID = 'taoDeliverySchedule/RepeatedDeliveryService';
 
     /**
      * Get repeated delivery by parent delivery instance and number of repetition.

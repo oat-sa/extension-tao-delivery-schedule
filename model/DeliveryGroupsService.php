@@ -30,6 +30,8 @@ use oat\oatbox\service\ConfigurableService;
  */
 class DeliveryGroupsService extends ConfigurableService
 {
+    const CONFIG_ID = 'taoDeliverySchedule/DeliveryGroupsService';
+
     /**
      * Assign deliveries to groups
      *

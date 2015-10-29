@@ -40,6 +40,9 @@ return array(
         'rdf' => array(
             dirname(__FILE__). '/scripts/install/deliverySchedule.rdf'
         ),
+        'php' => array(
+            dirname(__FILE__) . '/scripts/install/registerServices.php',
+        )
     ),
     'uninstall' => array(
         
