@@ -33,7 +33,8 @@ use oat\taoDeliverySchedule\model\DeliveryTestTakersService;
 class CalendarApi extends ApiBaseController
 {
     private $tz;
-    
+    private $requestParams;
+
     public function __construct()
     {
         parent::__construct();
@@ -149,7 +150,7 @@ class CalendarApi extends ApiBaseController
      */
     protected function create()
     {
-        $params = $this->getParams();
+        $params = $this->getRequestParams();
         if (empty($params['classUri'])) {
             $params['classUri'] = CLASS_COMPILEDDELIVERY;
         }
@@ -196,7 +197,7 @@ class CalendarApi extends ApiBaseController
      */
     protected function update()
     {
-        $params = $this->getParams();
+        $params = $this->getRequestParams();
         $delivery = $this->getDelivery();
 
         $evaluatedParams = $this->scheduleService->getEvaluatedParams($params);
@@ -290,11 +291,13 @@ class CalendarApi extends ApiBaseController
      * @see {@link DeliveryScheduleService::mapDeliveryProperties()}
      * @return array
      */
-    private function getParams() {
-        parse_str(file_get_contents("php://input"), $data);
-        $data = array_merge($data, $this->getRequestParameters());
-        $params = $this->scheduleService->mapDeliveryProperties($data);
-        return $params;
+    private function getRequestParams() {
+        if ($this->requestParams === null) {
+            parse_str(file_get_contents("php://input"), $data);
+            $data = array_merge($data, $this->getRequestParameters());
+            $this->requestParams = $this->scheduleService->mapDeliveryProperties($data);
+        }
+        return $this->requestParams;
     }
 
     /**
@@ -304,7 +307,7 @@ class CalendarApi extends ApiBaseController
      * @returns \core_kernel_classes_Class Delivery instance.
      */
     private function getDelivery() {
-        $params = $this->getParams();
+        $params = $this->getRequestParams();
 
         if (empty($params['classUri'])) {
             throw new \tao_models_classes_MissingRequestParameterException("classUri");
