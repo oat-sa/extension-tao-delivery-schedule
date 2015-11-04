@@ -309,9 +309,6 @@ class CalendarApi extends ApiBaseController
     private function getDelivery() {
         $params = $this->getRequestParams();
 
-        if (empty($params['classUri'])) {
-            throw new \tao_models_classes_MissingRequestParameterException("classUri");
-        }
         if (empty($params['uri'])) {
             throw new \tao_models_classes_MissingRequestParameterException("uri or parentDeliveryUri");
         }

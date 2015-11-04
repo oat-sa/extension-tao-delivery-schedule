@@ -61,7 +61,6 @@ class Updater extends \common_ext_ExtensionUpdater {
         }
 
         if ($currentVersion === '0.1.2') {
-            OntologyUpdater::syncModels();
 
             try {
                 $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
