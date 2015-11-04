@@ -67,10 +67,10 @@ class CalendarApi extends ApiBaseController
     
     /**
      * Function returns list of deliveries in JSON format. 
-     * If <b>$_GET['uri']</b> parameter is given then will be returned data of cetrain delivery.
+     * If <b>$_GET['uri']</b> parameter is given then will be returned data of certain delivery.
      * If <b>$_GET['full']</b> parameter is given (not empty) then for each delivery will be fetched extended data (e.g. groups, number of executions etc.).
-     * <b>$_GET['start']</b> filter deliveryies which begin after given timestamp
-     * <b>$_GET['end']</b> filter deliveryies which finish before given timestamp
+     * <b>$_GET['start']</b> filter deliveries which begin after given timestamp
+     * <b>$_GET['end']</b> filter deliveries which finish before given timestamp
      */
     protected function get()
     {
