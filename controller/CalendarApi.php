@@ -23,7 +23,7 @@ namespace oat\taoDeliverySchedule\controller;
 use oat\taoDeliverySchedule\helper\ColorGenerator;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\taoDeliverySchedule\model\DeliveryTestTakersService;
-use oat\taoDeliverySchedule\controller\ApiBaseController;
+
 /**
  * Controller provides Rest API for managing deliveries.
  *
@@ -33,7 +33,8 @@ use oat\taoDeliverySchedule\controller\ApiBaseController;
 class CalendarApi extends ApiBaseController
 {
     private $tz;
-    
+    private $requestParams;
+
     public function __construct()
     {
         parent::__construct();
@@ -42,9 +43,9 @@ class CalendarApi extends ApiBaseController
                 : $this->getRequestParameter('timeZone');
         
         $this->tz = new \DateTimeZone($tzName);
-        $this->assemblyService = \taoDelivery_models_classes_DeliveryAssemblyService::singleton();
         $this->scheduleService = DeliveryScheduleService::singleton();
-        
+        $this->service = \taoDelivery_models_classes_DeliveryAssemblyService::singleton();
+
         switch ($this->getRequestMethod()) {
             case "GET":
                 $this->action = 'get';
@@ -56,8 +57,8 @@ class CalendarApi extends ApiBaseController
                 $this->action = 'create';
                 break;
             case "DELETE":
-                $this->sendData(array('message' => 'Method is not implemented'), 501);
-                exit();
+                $this->action = 'deleteDelivery';
+                break;
             default :
                 $this->sendData(array('message' => 'Not found'), 404);
                 exit();
@@ -66,8 +67,10 @@ class CalendarApi extends ApiBaseController
     
     /**
      * Function returns list of deliveries in JSON format. 
-     * If <b>$_GET['uri']</b> parameter is given then will be returned appropriate record.
+     * If <b>$_GET['uri']</b> parameter is given then will be returned data of certain delivery.
      * If <b>$_GET['full']</b> parameter is given (not empty) then for each delivery will be fetched extended data (e.g. groups, number of executions etc.).
+     * <b>$_GET['start']</b> filter deliveries which begin after given timestamp
+     * <b>$_GET['end']</b> filter deliveries which finish before given timestamp
      */
     protected function get()
     {
@@ -147,7 +150,7 @@ class CalendarApi extends ApiBaseController
      */
     protected function create()
     {
-        $params = $this->getParams();
+        $params = $this->getRequestParams();
         if (empty($params['classUri'])) {
             $params['classUri'] = CLASS_COMPILEDDELIVERY;
         }
@@ -189,26 +192,16 @@ class CalendarApi extends ApiBaseController
      * Note: <b>start</b> and <b>end</b> parameters must be in UTC timezone.
      * 
      * @access public
-     * @throws \tao_models_classes_MissingRequestParameterException
      * @author Aleh Hutnikau <hutnikau@1pt.com>
      * @return void
      */
     protected function update()
     {
-        $params = $this->getParams();
+        $params = $this->getRequestParams();
+        $delivery = $this->getDelivery();
 
-        if(empty($params['classUri'])){
-            throw new \tao_models_classes_MissingRequestParameterException("classUri");
-        }
-        if(empty($params['uri'])){
-            throw new \tao_models_classes_MissingRequestParameterException("uri");
-        }
-        
-        //$clazz =  new \core_kernel_classes_Class(\tao_helpers_Uri::decode($params['classUri']));
-        $delivery =  new \core_kernel_classes_Class(\tao_helpers_Uri::decode($params['uri']));
-        
         $evaluatedParams = $this->scheduleService->getEvaluatedParams($params);
-        
+
         if ($this->scheduleService->validate($evaluatedParams)) {
             $this->scheduleService->save($delivery, $evaluatedParams);
             $this->sendData(array('message'=>__('Delivery saved')));
@@ -226,7 +219,22 @@ class CalendarApi extends ApiBaseController
             );
         }
     }
-    
+
+    /**
+     * Delete delivery instance.
+     *
+     * @access public
+     * @author Aleh Hutnikau <hutnikau@1pt.com>
+     * @return void
+     */
+    protected function deleteDelivery()
+    {
+        $delivery = $this->getDelivery();
+        $this->getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService')->deleteDeliveries($delivery);
+        $result = $this->delete();
+        $this->sendData($result);
+    }
+
     /**
      * Function returns extended delivery data (e.g. groups, number of executions etc.)
      * @param \core_kernel_classes_Resource $delivery
@@ -240,22 +248,12 @@ class CalendarApi extends ApiBaseController
             $result['executions'] = count($execs);
         }
 
-        $result['published'] = \taoDelivery_models_classes_DeliveryAssemblyService::singleton()->getCompilationDate($delivery);
+        $result['published'] = $this->service->getCompilationDate($delivery);
 
         //groups
-        $groupsProperty = new \core_kernel_classes_Property(PROPERTY_GROUP_DELVIERY);
-        $domainCollection = $groupsProperty->getDomain();
-        if (!$domainCollection->isEmpty()) {
-            $domain = $domainCollection->get(0);
-            $groups = array_keys(
-                $domain->searchInstances(array(
-                    $groupsProperty->getUri() => $delivery
-                ), 
-                array('recursive' => true, 'like' => false))
-            );
-            $result['groups'] = \tao_helpers_Uri::encodeArray($groups);
-        }
-         
+        $groups = array_keys($this->getServiceManager()->get('taoDeliverySchedule/DeliveryGroupsService')->getGroups($delivery));
+        $result['groups'] = \tao_helpers_Uri::encodeArray($groups);
+
         //Test takers
         $result = $result + DeliveryTestTakersService::singleton()->getDeliveryTestTakers($delivery);
         
@@ -267,7 +265,9 @@ class CalendarApi extends ApiBaseController
         $resultServerProp = new \core_kernel_classes_Property(TAO_DELIVERY_RESULTSERVER_PROP);
         $result['resultserver'] = $delivery->getOnePropertyValue($resultServerProp)->getUri();
         $result['resultserver'] = \tao_helpers_Uri::encode($result['resultserver']);
-        
+
+        $result['repeatedDeliveries'] = $this->getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService')->getRepeatedDeliveriesData($delivery);
+
         return $result;
     }
 
@@ -291,9 +291,29 @@ class CalendarApi extends ApiBaseController
      * @see {@link DeliveryScheduleService::mapDeliveryProperties()}
      * @return array
      */
-    private function getParams() {
-        parse_str(file_get_contents("php://input"), $data);
-        $params = $this->scheduleService->mapDeliveryProperties($data);
-        return $params;
+    private function getRequestParams() {
+        if ($this->requestParams === null) {
+            parse_str(file_get_contents("php://input"), $data);
+            $data = array_merge($data, $this->getRequestParameters());
+            $this->requestParams = $this->scheduleService->mapDeliveryProperties($data);
+        }
+        return $this->requestParams;
+    }
+
+    /**
+     * Get delivery by request params.
+
+     * @throws \tao_models_classes_MissingRequestParameterException
+     * @returns \core_kernel_classes_Class Delivery instance.
+     */
+    private function getDelivery() {
+        $params = $this->getRequestParams();
+
+        if (empty($params['uri'])) {
+            throw new \tao_models_classes_MissingRequestParameterException("uri or parentDeliveryUri");
+        }
+
+        $delivery = new \core_kernel_classes_Class(\tao_helpers_Uri::decode($params['uri']));
+        return $delivery;
     }
 }

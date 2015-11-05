@@ -20,6 +20,8 @@
 
 namespace oat\taoDeliverySchedule\model;
 
+use oat\oatbox\service\ServiceManager;
+
 /**
  * Delivery schedule service
  *
@@ -50,6 +52,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      * </pre>
      * @param array $data 
      * @param boolean $reverse
+     * @return array
      */
     public function mapDeliveryProperties($data, $reverse = false)
     {
@@ -59,7 +62,8 @@ class DeliveryScheduleService extends \tao_models_classes_Service
             TAO_DELIVERY_END_PROP => 'end',
             TAO_DELIVERY_MAXEXEC_PROP => 'maxexec',
             TAO_DELIVERY_RESULTSERVER_PROP => 'resultserver',
-            self::TAO_DELIVERY_RRULE_PROP => 'recurrence'
+            self::TAO_DELIVERY_RRULE_PROP => 'recurrence',
+            RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION => 'numberOfRepetition'
         );
         
         foreach ($data as $key => $val) {
@@ -114,11 +118,14 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         if (isset($params[TAO_DELIVERY_RESULTSERVER_PROP])) {
             $params[TAO_DELIVERY_RESULTSERVER_PROP] = \tao_helpers_Uri::decode($params[TAO_DELIVERY_RESULTSERVER_PROP]);
         }
+        if (isset($params['repeatedDelivery'])) {
+            $params['repeatedDelivery'] = filter_var($params['repeatedDelivery'], FILTER_VALIDATE_BOOLEAN);
+        }
         unset($params['uri']);
         unset($params['classUri']);
         return $params;
     }
-    
+
     /**
      * Validate delivery parameters.
      * 
@@ -127,7 +134,8 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      */
     public function validate($params)
     {
-        return empty($this->getErrors($params));
+        $errors = $this->getErrors($params);
+        return empty($errors);
     }
     
     /**
@@ -172,17 +180,28 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      */
     public function save(\core_kernel_classes_Class $delivery, array $params)
     {
-        $binder = new \tao_models_classes_dataBinding_GenerisFormDataBinder($delivery);
-        $delivery = $binder->bind($params);
-        
+        if (!empty($params['repeatedDelivery']) && isset($params[RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION])) {
+            $repeatedDeliveryService = ServiceManager::getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService');
+
+            $delivery = $repeatedDeliveryService->getDelivery(
+                $delivery,
+                $params[RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION]
+            );
+        } else {
+            $data = $this->sanitizeParams($params);
+            $binder = new \tao_models_classes_dataBinding_GenerisFormDataBinder($delivery);
+            $delivery = $binder->bind($data);
+        }
+
         if (isset($params['groups'])) {
-            $groups = array_map(array('\tao_helpers_Uri' , 'decode'), $params['groups']);
-            $this->saveGroups($delivery, $groups);
+            $groups = array_filter($params['groups']);
+            $groups = array_map(array('\tao_helpers_Uri' , 'decode'), $groups);
+            ServiceManager::getServiceManager()->get('taoDeliverySchedule/DeliveryGroupsService')->saveGroups($delivery, $groups);
         }
         
         if (isset($params['ttexcluded'])) {
-            $ttexcluded = is_array($params['ttexcluded']) ? $params['ttexcluded'] : array();
-            $this->saveExcludedTestTakers($delivery, $ttexcluded);
+            $ttExcluded = is_array($params['ttexcluded']) ? $params['ttexcluded'] : array();
+            DeliveryTestTakersService::singleton()->saveExcludedTestTakers($delivery, $ttExcluded);
         }
         return $delivery;
     }
@@ -197,7 +216,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      *   'test' => 'http://sample/first.rdf#i1429716287341629', //test uri (required)
      *   'start' => '2015-04-27 00:00', //start date in 'Y-m-d H:i' format (required)
      *   'end' => '2015-04-27 00:00', //start date in 'Y-m-d H:i' format (required)
-     *   'label' => 'Delivery Label', //start date in 'Y-m-d H:i' format (required)
+     *   'label' => 'Delivery Label', // Label (required)
      *   'classUri' => 'http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery',
      * )
      * </pre>
@@ -247,58 +266,6 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         }
         return array_values($results);
     }
-    
-    /**
-     * Save delivery groups.
-     * 
-     * @param \core_kernel_classes_Class $delivery Delivery instance
-     * @param array $values List of groups (uri)
-     * @return boolean 
-     */
-    private function saveGroups(\core_kernel_classes_Class $delivery, $values)
-    {
-        $property = new \core_kernel_classes_Property(PROPERTY_GROUP_DELVIERY);
-
-        $currentValues = array();
-        foreach ($property->getDomain() as $domain) {
-            $instances = $domain->searchInstances(array(
-                $property->getUri() => $delivery
-            ), array('recursive' => true, 'like' => false));
-            $currentValues = array_merge($currentValues, array_keys($instances));
-        }
-
-        $toAdd = array_diff($values, $currentValues);
-        $toRemove = array_diff($currentValues, $values);
-
-        $success = true;
-        foreach ($toAdd as $uri) {
-            $subject = new \core_kernel_classes_Resource($uri);
-            $success = $success && $subject->setPropertyValue($property, $delivery);
-        }
-
-        foreach ($toRemove as $uri) {
-            $subject = new \core_kernel_classes_Resource($uri);
-            $success = $success && $subject->removePropertyValue($property, $delivery);
-        }
-
-        return $success;
-    }
-    
-    /**
-     * Save excluded test takers
-     * @param \core_kernel_classes_Class $delivery Delivery instance
-     * @param array $excluded List of excluded testakers (uri)
-     * @return boolean 
-     */
-    public function saveExcludedTestTakers(\core_kernel_classes_Class $delivery, $excluded) {
-        $success = $delivery->editPropertyValues(
-            new \core_kernel_classes_Property(TAO_DELIVERY_EXCLUDEDSUBJECTS_PROP), 
-            $excluded
-        );
-        
-        return $success;
-    }
-    
     
     /**
      * Get all deliveries in time range.
@@ -424,5 +391,22 @@ class DeliveryScheduleService extends \tao_models_classes_Service
             $result = $delivery->getUri();
         }
         return $result;
+    }
+
+    /**
+     * Sanitize delivery parameters
+     * @param array $params
+     * @return array
+     */
+    private function sanitizeParams($params) {
+        unset(
+            $params['id'],
+            $params['groups'],
+            $params['ttexcluded'],
+            $params['repetition'],
+            $params['repeatedDelivery'],
+            $params[RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION]
+        );
+        return $params;
     }
 }

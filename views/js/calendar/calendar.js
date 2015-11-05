@@ -193,6 +193,24 @@ define([
         };
 
         /**
+         * Remove event from calendar
+         * @param {object} fcEvent Calendar event
+         */
+        this.removeEvent = function (fcEvent) {
+            var eventsToBeRemoved;
+
+            if (fcEvent) {
+                eventsToBeRemoved = [fcEvent.id];
+                if (fcEvent.recurringEventIds && fcEvent.recurringEventIds.length) {
+                    eventsToBeRemoved = eventsToBeRemoved.concat(fcEvent.recurringEventIds);
+                }
+                this.exec('removeEvents', function (eventToRemove) {
+                    return eventsToBeRemoved.indexOf(eventToRemove.id) !== -1;
+                });
+            }
+        }
+
+        /**
          * Moves the calendar to an event. 
          * If calendar has a scrollbar then it will be scrolled to start of event.
          * Deferred object will be resolved after all event will be loaded.
