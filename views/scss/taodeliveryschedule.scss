@@ -1,0 +1,297 @@
+@import "./inc/fullcalendar";
+@import "./inc/jquery.qtip";
+
+.delivery-calendar {
+    width: 100%;
+    max-width: 100%;
+}
+.event-tooltip {
+    position: relative;
+    label {
+        vertical-align: middle;
+    }
+    input {
+        margin-bottom: 5px;
+    }
+    select {
+        padding: 2px 4px 2px 0px;
+    }
+}
+.event-tooltip__content {
+    
+}
+.event-tooltip__controls {
+    overflow : hidden;
+    a:last-child {
+        float: right;
+    }
+}
+.event-tooltip__close {
+    position: absolute;
+    top: -25px;
+    right: -5px;
+    z-index: 10;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.edit-delivery-modal {
+    margin: 20px 0;
+}
+
+.qtip-modal {
+    .qtip-title {
+        font-size: 14px;
+        font-weight: normal;
+    }
+    .qtip-tip {
+        visibility: hidden;
+    }
+    .qtip-content {
+        padding: 0;
+        margin: 5px 9px;
+    }
+}
+body #ui-datepicker-div.edit-delivery-form__datepicker {
+    font-size: 0.9em !important;
+}
+.edit-delivery-form {
+    font-family: 'Franklin Gothic', 'Franklin Gothic Medium', 'Source Sans Pro', sans-serif;
+    overflow: hidden;
+    .ui-autocomplete {
+        max-height: 150px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        .ui-menu-item a {
+            line-height: 1;
+            font-size: 12px;
+        }
+    }
+    .form-submitter {
+        float: right;
+    }
+    [class^="feedback-"].small, [class*=" feedback-"].small {
+        padding: 2px 10px 2px 30px;
+    }
+    [class^="feedback-"].small [class^="icon-"], [class^="feedback-"].small [class*=" icon-"], 
+    [class*=" feedback-"].small [class^="icon-"], [class*=" feedback-"].small [class*=" icon-"] {
+        top: 5px;
+        left: 3px;
+    }
+    input, select {
+        margin: 0;
+        font-size: 12px;
+        font-family: 'Franklin Gothic', 'Franklin Gothic Medium', 'Source Sans Pro', sans-serif;
+    }
+    input {
+        padding: 2px 4px;
+    }
+    select {
+        padding: 2px 4px 2px 0px;
+    }
+    select[multiple] {
+        padding: 2px 4px 2px 4px;
+    }
+    label {
+        margin-bottom: 0;
+        white-space: nowrap;
+        font-weight: normal;
+        font-size: 12px;
+        color: #000;
+    }
+    td > label {
+        float: right;
+    }
+}
+.edit-delivery-form__table {
+    width: 100%;
+    tr {
+        line-height: 26px;
+    }
+    .full-width {
+        width: 100%;
+        max-width: none;
+    }
+    .tree{
+        background: white;
+        max-width: none;
+        border-right: none;
+        overflow: auto;
+        max-height: none;
+        height: 200px;
+    }
+    .tree>ul{
+        padding: 0px;
+        margin-top: 0;
+        margin-left: 0;
+    }
+    .tree ul ins {
+        vertical-align: middle;
+    }
+    .edit-delivery-form_time-row {
+        input, select {
+            width: 15%;
+            min-width: 0;
+        } 
+        select {
+            white-space: nowrap;
+            width: 22%;
+            font-family: 'Franklin Gothic', 'Franklin Gothic Medium', 'Source Sans Pro', sans-serif;
+        }
+        span {
+            display: inline-block;
+            margin: 0 5px;
+        }
+    }
+}
+
+.repeat-event-table {
+    border: 1px solid #ddd;
+    padding: 5px;
+    border-radius: 2px;
+    margin-top: -21px;
+    margin-bottom: 2px;
+    label input[type="radio"], label input[type="checkbox"] {
+        vertical-align: text-bottom;
+        position: static;
+    }
+}
+
+.edit-delivery-form__test-takers-table {
+    table-layout: fixed;
+    border-collapse: separate;
+    margin: 10px 0;
+    padding: 0;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    td {
+        &:first-child {
+            border-right: 1px solid #ddd;
+        }
+        &:last-child {
+            border-left: 10px solid transparent;
+        }
+        vertical-align: top;
+    }
+    h3 {
+        font-size: 14px;
+        margin: 0;
+        line-height: 16px;
+        margin-top: 5px;
+        margin-bottom: 10px;
+    }
+    .tree li a, .tree li span {
+        font-size: 1.2rem;
+        line-height: 1em;
+        height: 19px;
+    }
+    .tree-checkbox li>a.clicked {
+        border: 1px solid transparent;
+    }
+}
+
+.fc-event.sub-event {
+    padding-right: 14px;
+    &:after {
+        content: "\ea2e";
+        font-family: tao;
+        position: absolute;
+        right: 1px;
+        top: -2px;
+        font-size: 15px;
+    }
+}
+.recurring-event {
+    padding-right: 14px;
+    &:after {
+        content: "\ea2e";
+        font-family: tao;
+        position: absolute;
+        right: 1px;
+        top: -2px;
+        font-size: 15px;
+    }
+}
+.fc-event.recurring-event, .fc-event.sub-event {
+    .recurring-count {
+        position: absolute;
+        top: 3px;
+        right: 2px;
+        font-size: 7px;
+        display: inline-block;
+        width: 14px;
+        text-align: center;
+        font-family: sans-serif;
+    }
+    &.fc-time-grid-event
+    {
+        .fc-time {
+            white-space: normal;
+        }
+    } 
+}
+.fc-event {
+    opacity: .85;
+    filter: alpha(opacity=85);
+    &.fc-selected {
+        opacity: 1;
+        filter: alpha(opacity=100);
+        z-index: 50 !important;
+        outline: 1px dotted #707070;
+    }
+}
+
+.tt-list {
+    width: 100%;
+    table-layout: fixed;
+    
+    th {
+        font-weight: normal;
+    }
+    tr {
+        line-height: 18px;
+    }
+    .reset-filter {
+        float: right;
+    }
+    .tt-select {
+        width: 100%;
+        margin-top: 0;
+        padding-top: 0;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        border-top : none;
+        display: block;
+        margin-bottom: 5px;
+        option {
+            padding-left: 0;
+        }
+    }
+    .tt-list__filter {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        display: block;
+    }
+    td:first-child, th:first-child {
+        border-right: 5px solid transparent;
+    }
+    td:last-child, th:last-child {
+        border-left: 5px solid transparent;
+    }
+    input, select {
+        outline: none;
+    }
+    .summary-warning {
+        border: 1px solid #dfbe7b;
+        background-color: #fbf6ee;
+        height: 18px;
+        line-height: 16px;
+        position: relative;
+        top: -2px;
+        .icon-info {
+            vertical-align: text-bottom;
+        }
+    }
+}

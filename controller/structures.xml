@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE structures SYSTEM "../../tao/doc/structures.dtd">
+<structures>
+    <structure id="delivery_schedule" name="Delivery schedule" level="4" group="main">
+        <description>Prepare, publish deliveries sessions.</description>
+        <icon id="icon-calendar" src=""/>
+        <sections>
+            <section id="manage_delivery_schedule" name="Delivery schedule" url="/taoDeliverySchedule/Main/index">
+                <trees>
+                    <tree name="Deliveries library"
+                          className="Delivery"
+                          dataUrl="/taoDelivery/Delivery/getOntologyData"
+                          rootNode="http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery"
+                          selectClass="delivery-class-properties"
+                          selectInstance="delivery-select"
+                          moveInstance="delivery-move"
+                          init="init-tree"
+                          delete="delivery-delete" 
+                    />
+                </trees>
+                <actions>
+                    <action id="init-tree" name="init" url="/taoDeliverySchedule/Main/index" group="none" context="*">
+                        <icon id="icon-edit"/>
+                    </action>
+                    <action id="delivery-class-properties" name="Properties" binding="class-select" group="none" context="class">
+                        <icon id="icon-edit"/>
+                    </action>
+                    <action id="delivery-select" name="Properties" binding="delivery-select" group="none" context="instance">
+                        <icon id="icon-edit"/>
+                    </action>
+                    <action id="delivery-class-new" name="New class" url="/taoDelivery/Delivery/addSubClass" context="resource" group="tree" binding="subClass">
+                        <icon id="icon-folder-open"/>
+                    </action>
+                    <action id="delivery-new" name="New delivery" binding="delivery-new" url="/taoDeliverySchedule/Main/wizard" context="class" group="none">
+                        <icon id="icon-delivery"/>
+                    </action>
+                    <action id="delivery-edit" name="Edit delivery" binding="delivery-edit" context="class" group="none">
+                    </action>
+                    <action id="class-delete" name="Delete" binding="removeNode" url="/taoDelivery/Delivery/delete" context="class" group="tree">
+                        <icon id="icon-bin"/>
+                    </action>
+                    <action id="delivery-delete" name="Delete" binding="delivery-delete" context="instance" group="tree">
+                        <icon id="icon-bin"/>
+                    </action>
+                    <action id="delivery-move" name="Move" url="/taoDelivery/Delivery/moveInstance" context="instance" group="none" binding="moveNode">
+                        <icon id="icon-move-item"/>
+                    </action>
+                    <action id="day_schedule_mode" name="Day" binding="schedule_day_mode" group="content" context="*">
+                        <icon id="icon-rectangle"/>
+                    </action>
+                    <action id="week_schedule_mode" name="Week" binding="schedule_week_mode" group="content" context="*">
+                        <icon id="icon-justify"/>
+                    </action>
+                    <action id="month_schedule_mode" name="Month" binding="schedule_month_mode" group="content" context="*">
+                        <icon id="icon-table"/>
+                    </action>
+                </actions>
+            </section>
+        </sections>
+    </structure>
+</structures>

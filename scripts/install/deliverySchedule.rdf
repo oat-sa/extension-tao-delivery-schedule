@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+        xml:base="http://www.tao.lu/Ontologies/TAODelivery.rdf#"
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+        xmlns:tao="http://www.tao.lu/Ontologies/TAO.rdf#"
+        xmlns:widget="http://www.tao.lu/datatypes/WidgetDefinitions.rdf#"
+        xmlns:generis="http://www.tao.lu/Ontologies/generis.rdf#"
+>
+    <rdf:Description rdf:about="http://www.tao.lu/Ontologies/TAODelivery.rdf#RepeatedDelivery">
+        <rdfs:label xml:lang="en-US"><![CDATA[Repeated delivery]]></rdfs:label>
+        <rdfs:comment xml:lang="en-US"><![CDATA[Repeated delivery]]></rdfs:comment>
+        <rdfs:subClassOf rdf:resource="http://www.tao.lu/Ontologies/TAODelivery.rdf#Delivery"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="http://www.tao.lu/Ontologies/TAODelivery.rdf#NumberOfRepetition">
+        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+        <rdfs:label xml:lang="en-US"><![CDATA[Number of repetition]]></rdfs:label>
+        <rdfs:comment xml:lang="en-US"><![CDATA[Number of delivery repetition]]></rdfs:comment>
+        <rdfs:domain rdf:resource="http://www.tao.lu/Ontologies/TAODelivery.rdf#RepeatedDelivery"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+        <generis:is_language_dependent rdf:resource="http://www.tao.lu/Ontologies/generis.rdf#False"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="http://www.tao.lu/Ontologies/TAODelivery.rdf#RepetitionOf">
+        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+        <rdfs:label xml:lang="en-US"><![CDATA[Delivery repetition]]></rdfs:label>
+        <rdfs:comment xml:lang="en-US"><![CDATA[Delivery repetition]]></rdfs:comment>
+        <rdfs:domain rdf:resource="http://www.tao.lu/Ontologies/TAODelivery.rdf#RepeatedDelivery"/>
+        <rdfs:range rdf:resource="http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery"/>
+        <generis:is_language_dependent rdf:resource="http://www.tao.lu/Ontologies/generis.rdf#False"/>
+    </rdf:Description>
+
+    <rdf:Description rdf:about="http://www.tao.lu/Ontologies/TAODelivery.rdf#RecurrenceRule">
+        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"/>
+        <rdfs:label xml:lang="en-US"><![CDATA[Recurrence Rule]]></rdfs:label>
+        <rdfs:comment xml:lang="en-US"><![CDATA[Recurrence Rule]]></rdfs:comment>
+        <rdfs:domain rdf:resource="http://www.tao.lu/Ontologies/TAODelivery.rdf#Delivery"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2000/01/rdf-schema#Literal"/>
+        <generis:is_language_dependent rdf:resource="http://www.tao.lu/Ontologies/generis.rdf#False"/>
+    </rdf:Description>
+</rdf:RDF>
