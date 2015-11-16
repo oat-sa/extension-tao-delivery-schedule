@@ -192,6 +192,52 @@ class RepeatedDeliveryService extends ConfigurableService
     }
 
     /**
+     * Get list of events.
+     * @param \core_kernel_classes_Resource $delivery - main delivery instance
+     * @return \Recurr\RecurrenceCollection
+     */
+    public function getRecurrenceCollection(\core_kernel_classes_Resource $delivery)
+    {
+        $deliveryProps = $delivery->getPropertiesValues(array(
+            new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP),
+            new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP),
+            new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP),
+        ));
+
+        $propStartExec = current($deliveryProps[TAO_DELIVERY_START_PROP]);
+        $propEndExec = current($deliveryProps[TAO_DELIVERY_END_PROP]);
+        $rrule = isset($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]) ? current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]) : false;
+
+        $startDate = date_create('@'.$propStartExec->literal);
+        $endDate = date_create('@'.$propEndExec->literal);
+        $diff = date_diff($startDate, $endDate);
+
+        $rule = new \Recurr\Rule((string) $rrule);
+        $transformer = new \Recurr\Transformer\ArrayTransformer();
+        $rEvents = $transformer->transform($rule);
+
+        unset($rEvents[0]); //the first recurrence has the same time as the main delivery
+
+        foreach ($rEvents as $rEvent) {
+            $end = clone($rEvent->getStart());
+            $end->add($diff);
+            $rEvent->setEnd($end);
+        }
+
+        return $rEvents;
+    }
+
+    /**
+     * Whether delivery is repetition of main delivery
+     * @param \core_kernel_classes_Resource $delivery
+     * @return bool
+     */
+    public function isRepeated(\core_kernel_classes_Resource $delivery)
+    {
+        return $delivery->isInstanceOf(new \core_kernel_classes_Class(self::CLASS_URI));
+    }
+
+    /**
      * Check if the date are in range
      * @param type $startDate
      * @param type $endDate

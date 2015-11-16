@@ -41,16 +41,119 @@ class DeliveryServerService extends \taoDelivery_models_classes_DeliveryServerSe
     const CONFIG_ID = 'taoDelivery/deliveryServer';
 
     private $deliverySettings = [];
+    private $deliveryProperties = [];
 
-    public function getDeliverySettings(core_kernel_classes_Resource $delivery)
+    public function getDeliverySettings(core_kernel_classes_Resource $delivery, User $user = null)
     {
+        $user = null;
         if (isset($this->deliverySettings[$delivery->getUri()])) {
             return $this->deliverySettings[$delivery->getUri()];
         }
 
         $repeatedDeliveryService =  $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
+        $assignmentService =  $this->getServiceManager()->get(AssignmentService::CONFIG_ID);
 
-        if ($this->isRepeated($delivery)) {
+        if ($repeatedDeliveryService->isRepeated($delivery)) {
+            $repeatedDelivery = $delivery;
+            $delivery = $repeatedDeliveryService->getParentDelivery($delivery);
+        }
+
+        $settings = $this->getDeliveryProperties($delivery);
+
+        if ($settings[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]) {
+            $settings['TAO_DELIVERY_REPETITIONS'] = [];
+            $rEvents = $repeatedDeliveryService->getRecurrenceCollection($delivery);
+
+            foreach ($rEvents as $numberOfRepetition => $rEvent) {
+                $deliveryRepetitionSettings = [
+                    TAO_DELIVERY_START_PROP => $rEvent->getStart()->getTimestamp(),
+                    TAO_DELIVERY_END_PROP => $rEvent->getEnd()->getTimestamp(),
+                    RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION => $numberOfRepetition,
+                ];
+
+                $deliveryRepetition = $repeatedDeliveryService->getDelivery($delivery, $numberOfRepetition);
+
+                if ($deliveryRepetition) {
+                    //if user is not assigned to the repeated delivery or excluded
+                    if ($user !== null && !$assignmentService->isUserAssigned($deliveryRepetition, $user)) {
+                        continue;
+                    }
+                    $deliveryRepetitionSettings[RepeatedDeliveryService::CLASS_URI] = $deliveryRepetition->getUri();
+                } else {
+                    //if user is not assigned to the main delivery or excluded
+                    if ($user !== null && !$assignmentService->isUserAssigned($delivery, $user, false)) {
+                        continue;
+                    }
+                }
+
+                $settings['TAO_DELIVERY_REPETITIONS'][$numberOfRepetition] = $deliveryRepetitionSettings;
+            }
+        }
+
+        $this->deliverySettings[isset($repeatedDelivery) ? $repeatedDelivery->getUri() : $delivery->getUri()] = $settings;
+
+        return $settings;
+    }
+
+    /**
+     * @param core_kernel_classes_Resource $delivery
+     * @param User $user
+     * @return bool
+     */
+    public function isDeliveryExecutionAllowed(core_kernel_classes_Resource $delivery, User $user)
+    {
+        $userUri = $user->getIdentifier();
+        if (is_null($delivery)) {
+            common_Logger::w("Attempt to start the compiled delivery ".$delivery->getUri(). " related to no delivery");
+            return false;
+        }
+
+        //first check the user is assigned
+        $serviceManager = ServiceManager::getServiceManager();
+        if(!$serviceManager->get(AssignmentService::CONFIG_ID)->isUserAssigned($delivery, $user)){
+            common_Logger::w("User ".$userUri." attempts to start the compiled delivery ".$delivery->getUri(). " he was not assigned to.");
+            return false;
+        }
+
+        $properties = $this->getDeliveryProperties($delivery);
+
+        //check Tokens
+        $usedTokens = count(taoDelivery_models_classes_execution_ServiceProxy::singleton()->getUserExecutions($delivery, $userUri));
+
+        if (($properties[TAO_DELIVERY_MAXEXEC_PROP] !=0 ) and ($usedTokens >= $properties[TAO_DELIVERY_MAXEXEC_PROP])) {
+            common_Logger::d("Attempt to start the compiled delivery ".$delivery->getUri(). "without tokens");
+            return false;
+        }
+
+        //check time
+
+        $startDate  = date_create('@'.$properties[TAO_DELIVERY_START_PROP]);
+        $endDate = date_create('@'.$properties[TAO_DELIVERY_END_PROP]);
+
+        if (!$this->areWeInRange($startDate, $endDate)) {
+            common_Logger::d("Attempt to start the compiled delivery ".$delivery->getUri(). " at the wrong date");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get delivery property values
+     * @param core_kernel_classes_Resource $delivery
+     * @return array
+     */
+    private function getDeliveryProperties(core_kernel_classes_Resource $delivery)
+    {
+        if (isset($this->deliveryProperties[$delivery->getUri()])) {
+            return $this->deliveryProperties[$delivery->getUri()];
+        }
+
+        $properties = [];
+
+        $repeatedDeliveryService =  $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
+
+        if ($repeatedDeliveryService->isRepeated($delivery)) {
             $repeatedDelivery = $delivery;
             $numberOfRepetitionProp = new core_kernel_classes_Property(RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION);
             $numberOfRepetition = (string) $repeatedDelivery->getOnePropertyValue($numberOfRepetitionProp);
@@ -69,93 +172,27 @@ class DeliveryServerService extends \taoDelivery_models_classes_DeliveryServerSe
         $propEndExec = current($deliveryProps[TAO_DELIVERY_END_PROP]);
         $rrule = isset($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]) ? current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]) : false;
 
-        $settings[TAO_DELIVERY_MAXEXEC_PROP] = (!(is_object($propMaxExec)) or ($propMaxExec=="")) ? 0 : $propMaxExec->literal;
-        $settings[TAO_DELIVERY_START_PROP] = (!(is_object($propStartExec)) or ($propStartExec=="")) ? null : $propStartExec->literal;
-        $settings[TAO_DELIVERY_END_PROP] = (!(is_object($propEndExec)) or ($propEndExec=="")) ? null : $propEndExec->literal;
-        $settings[CLASS_COMPILEDDELIVERY] = $delivery;
-
-        if ($rrule) {
-            $startDate = date_create('@'.$settings[TAO_DELIVERY_START_PROP]);
-            $endDate = date_create('@'.$settings[TAO_DELIVERY_END_PROP]);
-            $diff = date_diff($startDate, $endDate);
-
-            $rule = new \Recurr\Rule((string) $rrule);
-            $transformer = new \Recurr\Transformer\ArrayTransformer();
-            $rEvents = $transformer->transform($rule)->startsBefore(date_create(), true);
-
-            if (isset($repeatedDelivery) && isset($rEvents[$numberOfRepetition])) {
-                $rEvent = $rEvents[$numberOfRepetition];
-                $rEventStartDate = $rEvent->getStart();
-
-                $rEventEndDate = clone $rEvent->getStart();
-                $rEventEndDate->add($diff);
-
-                $settings[TAO_DELIVERY_START_PROP] = $rEventStartDate->getTimestamp();
-                $settings[TAO_DELIVERY_END_PROP] = $rEventEndDate->getTimestamp();
-            } else {
-                foreach ($rEvents as $numberOfRepetition => $rEvent) {
-                    $rEventStartDate = $rEvent->getStart();
-                    $rEventEndDate = clone $rEvent->getStart();
-
-                    $rEventEndDate->add($diff);
-
-                    $repeatedDeliveryExists = ($repeatedDeliveryService->getDelivery($delivery, $numberOfRepetition) !== false);
-                    if ($this->areWeInRange($rEventStartDate, $rEventEndDate) && !$repeatedDeliveryExists) {
-                        $settings[TAO_DELIVERY_START_PROP] = $rEventStartDate->getTimestamp();
-                        $settings[TAO_DELIVERY_END_PROP] = $rEventEndDate->getTimestamp();
-                    }
-                }
+        if (isset($repeatedDelivery)) {
+            $rEvents = $repeatedDeliveryService->getRecurrenceCollection($delivery);
+            if (isset($rEvents[$numberOfRepetition])) {
+                $properties[TAO_DELIVERY_START_PROP] = $rEvents[$numberOfRepetition]->getStart()->getTimestamp();
+                $properties[TAO_DELIVERY_END_PROP] = $rEvents[$numberOfRepetition]->getEnd()->getTimestamp();
+                $properties[RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION] = $numberOfRepetition;
             }
-        }
-
-        $this->deliverySettings[isset($repeatedDelivery) ? $repeatedDelivery->getUri() : $delivery->getUri()] = $settings;
-
-        return $settings;
-    }
-
-    public function isDeliveryExecutionAllowed(core_kernel_classes_Resource $delivery, User $user)
-    {
-        $userUri = $user->getIdentifier();
-        if (is_null($delivery)) {
-            common_Logger::w("Attempt to start the compiled delivery ".$delivery->getUri(). " related to no delivery");
-            return false;
-        }
-
-        //first check the user is assigned
-        $serviceManager = ServiceManager::getServiceManager();
-        if(!$serviceManager->get('taoDelivery/assignment')->isUserAssigned($delivery, $user)){
-            common_Logger::w("User ".$userUri." attempts to start the compiled delivery ".$delivery->getUri(). " he was not assigned to.");
-            return false;
-        }
-
-        $settings = $this->getDeliverySettings($delivery);
-
-        //check Tokens
-        $usedTokens = count(taoDelivery_models_classes_execution_ServiceProxy::singleton()->getUserExecutions($delivery, $userUri));
-
-        if (($settings[TAO_DELIVERY_MAXEXEC_PROP] !=0 ) and ($usedTokens >= $settings[TAO_DELIVERY_MAXEXEC_PROP])) {
-            common_Logger::d("Attempt to start the compiled delivery ".$delivery->getUri(). "without tokens");
-            return false;
-        }
-
-        //check time
-        $currentRepeatedDelivery = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID)->getCurrentRepeatedDelivery($delivery);
-        if ($currentRepeatedDelivery) {
-            $repeatedDeliverySettings = $this->getDeliverySettings($currentRepeatedDelivery);
-            $startDate  = date_create('@'.$repeatedDeliverySettings[TAO_DELIVERY_START_PROP]);
-            $endDate = date_create('@'.$repeatedDeliverySettings[TAO_DELIVERY_END_PROP]);
         } else {
-            $startDate  = date_create('@'.$settings[TAO_DELIVERY_START_PROP]);
-            $endDate = date_create('@'.$settings[TAO_DELIVERY_END_PROP]);
+            $properties[TAO_DELIVERY_START_PROP] = (!(is_object($propStartExec)) or ($propStartExec=="")) ? null : $propStartExec->literal;
+            $properties[TAO_DELIVERY_END_PROP] = (!(is_object($propEndExec)) or ($propEndExec=="")) ? null : $propEndExec->literal;
+            $properties[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP] = $rrule;
         }
 
-        if (!$this->areWeInRange($startDate, $endDate)) {
-            common_Logger::d("Attempt to start the compiled delivery ".$delivery->getUri(). " at the wrong date");
-            return false;
-        }
+        $properties[TAO_DELIVERY_MAXEXEC_PROP] = (!(is_object($propMaxExec)) or ($propMaxExec=="")) ? 0 : $propMaxExec->literal;
+        $properties[CLASS_COMPILEDDELIVERY] = $delivery;
 
-        return true;
+        $this->deliveryProperties[isset($repeatedDelivery) ? $repeatedDelivery->getUri() : $delivery->getUri()] = $properties;
+
+        return $properties;
     }
+
 
     /**
      * Check if the date are in range
@@ -166,15 +203,5 @@ class DeliveryServerService extends \taoDelivery_models_classes_DeliveryServerSe
     private function areWeInRange($startDate, $endDate){
         return (empty($startDate) || date_create() >= $startDate)
             && (empty($endDate) || date_create() <= $endDate);
-    }
-
-    /**
-     * Whether delivery is repetition of main delivery
-     * @param core_kernel_classes_Resource $delivery
-     * @return bool
-     */
-    private function isRepeated(core_kernel_classes_Resource $delivery)
-    {
-        return $delivery->isInstanceOf(new core_kernel_classes_Class(RepeatedDeliveryService::CLASS_URI));
     }
 }

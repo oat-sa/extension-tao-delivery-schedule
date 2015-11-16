@@ -44,8 +44,9 @@ class AssignmentService extends \taoDelivery_models_classes_AssignmentService
     public function getAvailableDeliveries(User $user)
     {
         $deliveryUris = array();
+        $repeatedDeliveryService = $this->getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService');
         //check for guest access
-        if( $this->isDeliveryGuestUser($user) ){
+        if($this->isDeliveryGuestUser($user)){
             $deliveryUris = $this->getGuestAccessDeliveries();
         } else {
             // check if realy available
@@ -56,6 +57,9 @@ class AssignmentService extends \taoDelivery_models_classes_AssignmentService
                 foreach ($deliveries as $deliveryUri) {
                     $candidate = new \core_kernel_classes_Resource($deliveryUri);
                     if (!$this->isUserExcluded($candidate, $user) && $candidate->exists()) {
+                        if ($repeatedDeliveryService->isRepeated($candidate)) {
+                            $candidate = $repeatedDeliveryService->getParentDelivery($candidate);
+                        }
                         $deliveryUris[] = $candidate->getUri();
                     }
                 }
@@ -64,7 +68,14 @@ class AssignmentService extends \taoDelivery_models_classes_AssignmentService
         return array_unique($deliveryUris);
     }
 
-    public function isUserAssigned(\core_kernel_classes_Resource $delivery, User $user){
+
+    /**
+     * @param \core_kernel_classes_Resource $delivery
+     * @param User $user
+     * @param bool $checkRepeated Whether check repeated deliveries if main (not repeated) delivery given
+     * @return bool
+     */
+    public function isUserAssigned(\core_kernel_classes_Resource $delivery, User $user, $checkRepeated = true){
         $returnValue = false;
         $isGuestUser = $this->isDeliveryGuestUser($user);
         $isGuestAccessibleDelivery = \taoDelivery_models_classes_DeliveryServerService::singleton()->hasDeliveryGuestAccess($delivery);
@@ -73,9 +84,9 @@ class AssignmentService extends \taoDelivery_models_classes_AssignmentService
         if( $isGuestUser && $isGuestAccessibleDelivery ){
             $returnValue = true;
         } else {
-            $repeatedDeliveryService =  $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
+            $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
             $currentRepeatedDelivery = $repeatedDeliveryService->getCurrentRepeatedDelivery($delivery);
-            if ($currentRepeatedDelivery) {
+            if ($currentRepeatedDelivery && $checkRepeated) {
                 $delivery = $currentRepeatedDelivery;
             }
             $userGroups = GroupsService::singleton()->getGroups($user);
