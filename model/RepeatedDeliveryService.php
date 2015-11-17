@@ -206,8 +206,7 @@ class RepeatedDeliveryService extends ConfigurableService
 
         $propStartExec = current($deliveryProps[TAO_DELIVERY_START_PROP]);
         $propEndExec = current($deliveryProps[TAO_DELIVERY_END_PROP]);
-        $rrule = isset($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]) ? current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]) : false;
-
+        $rrule = isset($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]) ? current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])->literal : false;
         $startDate = date_create('@'.$propStartExec->literal);
         $endDate = date_create('@'.$propEndExec->literal);
         $diff = date_diff($startDate, $endDate);

@@ -41,6 +41,16 @@ class AssignmentService extends \taoDelivery_models_classes_AssignmentService
         return ServiceManager::getServiceManager()->get(self::CONFIG_ID);
     }
 
+
+    /**
+     * Return array of available deliveries.
+     * If user has assigned repeated delivery {@see RepeatedDeliveryService::CLASS_URI}
+     * then the parent delivery of this delivery will be returned.
+     * @param User $user
+     * @return array
+     * @throws \common_exception_Error
+     * @throws \oat\oatbox\service\ServiceNotFoundException
+     */
     public function getAvailableDeliveries(User $user)
     {
         $deliveryUris = array();
