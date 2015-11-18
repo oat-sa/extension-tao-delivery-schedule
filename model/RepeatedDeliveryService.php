@@ -151,7 +151,7 @@ class RepeatedDeliveryService extends ConfigurableService
     }
 
     /**
-     * Get available in current time repeated delivery by parent delivery which is
+     * Get available in current time repeated delivery by parent delivery
      * @param \core_kernel_classes_Resource $delivery
      * @return \core_kernel_classes_Resource|null
      */

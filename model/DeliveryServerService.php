@@ -158,9 +158,10 @@ class DeliveryServerService extends \taoDelivery_models_classes_DeliveryServerSe
     /**
      * @param core_kernel_classes_Resource $delivery
      * @param User $user
+     * @param bool $includeRepeatedDeliveries
      * @return bool
      */
-    public function isDeliveryExecutionAllowed(core_kernel_classes_Resource $delivery, User $user)
+    public function isDeliveryExecutionAllowed(core_kernel_classes_Resource $delivery, User $user, $includeRepeatedDeliveries = false)
     {
         $allowed = true;
 
@@ -171,7 +172,7 @@ class DeliveryServerService extends \taoDelivery_models_classes_DeliveryServerSe
         $allowed = $allowed && $this->checkTokens($delivery, $user);
 
         //check time
-        $allowed = $allowed && $this->checkTime($delivery);
+        $allowed = $allowed && $this->checkTime($delivery, $includeRepeatedDeliveries);
 
         return $allowed;
     }
@@ -181,18 +182,37 @@ class DeliveryServerService extends \taoDelivery_models_classes_DeliveryServerSe
      * @param core_kernel_classes_Resource $delivery
      * @return bool
      */
-    private function checkTime(core_kernel_classes_Resource $delivery)
+    private function checkTime(core_kernel_classes_Resource $delivery, $includeRepeatedDeliveries = false)
     {
         $result = true;
         $properties = $this->getDeliveryProperties($delivery);
-        $startDate  = date_create('@'.$properties[TAO_DELIVERY_START_PROP]);
+
+        $startDate = date_create('@'.$properties[TAO_DELIVERY_START_PROP]);
         $endDate = date_create('@'.$properties[TAO_DELIVERY_END_PROP]);
+
+        if (isset($properties[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])
+            && !empty($properties[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])
+            && $includeRepeatedDeliveries
+        ) {
+            $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
+            $rEvents = $repeatedDeliveryService->getRecurrenceCollection($delivery)
+                ->startsBefore(date_create(), true)
+                ->endsAfter(date_create(), true);
+
+            if (count($rEvents) > 0) {
+                $event = $rEvents->first();
+                $startDate = $event->getStart();
+                $endDate = $event->getEnd();
+            }
+        }
 
         if (!$this->areWeInRange($startDate, $endDate)) {
             common_Logger::d("Attempt to start the compiled delivery " . $delivery->getUri(). " at the wrong date");
             $result = false;
         }
+
         return $result;
+
     }
 
     /**
