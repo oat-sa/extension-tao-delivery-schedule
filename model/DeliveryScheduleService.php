@@ -185,7 +185,8 @@ class DeliveryScheduleService extends \tao_models_classes_Service
 
             $delivery = $repeatedDeliveryService->getDelivery(
                 $delivery,
-                $params[RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION]
+                $params[RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION],
+                true
             );
         } else {
             $data = $this->sanitizeParams($params);

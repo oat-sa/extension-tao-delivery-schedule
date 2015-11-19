@@ -37,12 +37,12 @@ class RepeatedDeliveryService extends ConfigurableService
 
     /**
      * Get repeated delivery by parent delivery instance and number of repetition.
-     * If repeated delivery is not exists then new instance will be created.
-     * @param \core_kernel_classes_Class $delivery
+     * @param \core_kernel_classes_Resource $delivery
      * @param integer $numberOfRepetition
-     * @return \core_kernel_classes_Resource
+     * @param boolean $createNew If repeated delivery is not exists then new instance will be created.
+     * @return \core_kernel_classes_Resource|false
      */
-    public function getDelivery(\core_kernel_classes_Class $delivery, $numberOfRepetition)
+    public function getDelivery(\core_kernel_classes_Resource $delivery, $numberOfRepetition, $createNew = false)
     {
         $rrule = $delivery->getOnePropertyValue(
             new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP)
@@ -50,7 +50,7 @@ class RepeatedDeliveryService extends ConfigurableService
         if ($rrule === null) {
             throw new \InvalidArgumentException('Delivery has no recurrence rule');
         } else {
-            $rrule = (string) $rrule;
+            $rrule = (string)$rrule;
         }
 
         $rule = new \Recurr\Rule($rrule);
@@ -69,7 +69,7 @@ class RepeatedDeliveryService extends ConfigurableService
             'like' => false
         ));
 
-        if (empty($resources)) {
+        if (empty($resources) && $createNew) {
             $repeatedDeliveryClass = new \core_kernel_classes_Class(self::CLASS_URI);
             $repeatedDeliveryProperties = array(
                 self::PROPERTY_REPETITION_OF => $delivery->getUri(),
@@ -84,11 +84,23 @@ class RepeatedDeliveryService extends ConfigurableService
     }
 
     /**
+     * Get parent delivery by repeated delivery.
+     * @param \core_kernel_classes_Resource $delivery
+     * @return \core_kernel_classes_Resource
+     */
+    public function getParentDelivery(\core_kernel_classes_Resource $delivery)
+    {
+        $uri = $delivery->getOnePropertyValue(new \core_kernel_classes_Property(self::PROPERTY_REPETITION_OF))->getUri();
+        return new \core_kernel_classes_Resource($uri);
+    }
+
+    /**
      * Get repeated deliveries data
      * @param \core_kernel_classes_Resource $delivery
      * @return array
      */
-    public function getRepeatedDeliveriesData(\core_kernel_classes_Resource $delivery) {
+    public function getRepeatedDeliveriesData(\core_kernel_classes_Resource $delivery)
+    {
         $result = array();
 
         $repeatedDeliveryClass = new \core_kernel_classes_Class(self::CLASS_URI);
@@ -99,8 +111,8 @@ class RepeatedDeliveryService extends ConfigurableService
             'like' => false
         ));
 
-        foreach($repeatedDeliveries as $repeatedDelivery) {
-            $repetitionNumber = (string) $repeatedDelivery->getUniquePropertyValue(
+        foreach ($repeatedDeliveries as $repeatedDelivery) {
+            $repetitionNumber = (string)$repeatedDelivery->getUniquePropertyValue(
                 new \core_kernel_classes_Property(self::PROPERTY_NUMBER_OF_REPETITION)
             );
             $result[$repetitionNumber] = array();
@@ -133,8 +145,106 @@ class RepeatedDeliveryService extends ConfigurableService
         ), array(
             'like' => false
         ));
-        foreach($repeatedDeliveries as $repeatedDelivery) {
+        foreach ($repeatedDeliveries as $repeatedDelivery) {
             $repeatedDelivery->delete();
         }
     }
+
+    /**
+     * Get available in current time repeated delivery by parent delivery
+     * @param \core_kernel_classes_Resource $delivery
+     * @return \core_kernel_classes_Resource|null
+     */
+    public function getCurrentRepeatedDelivery(\core_kernel_classes_Resource $delivery)
+    {
+        $deliveryProps = $delivery->getPropertiesValues(array(
+            new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP),
+            new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP),
+            new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP),
+        ));
+
+        $propStartExec = (string) current($deliveryProps[TAO_DELIVERY_START_PROP]);
+        $propEndExec = (string) current($deliveryProps[TAO_DELIVERY_END_PROP]);
+        $rrule = (string) current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]);
+
+        if ($rrule) {
+            $startDate = date_create('@'.$propStartExec);
+            $endDate = date_create('@'.$propEndExec);
+            $diff = date_diff($startDate, $endDate);
+
+            $rule = new \Recurr\Rule($rrule);
+            $transformer = new \Recurr\Transformer\ArrayTransformer();
+            $rEvents = $transformer->transform($rule)->startsBefore(date_create(), true);
+            foreach ($rEvents as $numberOfRepetition => $rEvent) {
+                $rEventStartDate = $rEvent->getStart();
+                $rEventEndDate = clone $rEvent->getStart();
+                $rEventEndDate->add($diff);
+
+                $repeatedDelivery = $this->getDelivery($delivery, $numberOfRepetition);
+
+                if ($repeatedDelivery && $this->areWeInRange($rEventStartDate, $rEventEndDate)) {
+                    return $repeatedDelivery;
+                }
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Get list of events.
+     * @param \core_kernel_classes_Resource $delivery - main delivery instance
+     * @return \Recurr\RecurrenceCollection
+     */
+    public function getRecurrenceCollection(\core_kernel_classes_Resource $delivery)
+    {
+        $deliveryProps = $delivery->getPropertiesValues(array(
+            new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP),
+            new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP),
+            new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP),
+        ));
+
+        $propStartExec = current($deliveryProps[TAO_DELIVERY_START_PROP]);
+        $propEndExec = current($deliveryProps[TAO_DELIVERY_END_PROP]);
+        $rrule = isset($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]) ? current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])->literal : false;
+        $startDate = date_create('@'.$propStartExec->literal);
+        $endDate = date_create('@'.$propEndExec->literal);
+        $diff = date_diff($startDate, $endDate);
+
+        $rule = new \Recurr\Rule((string) $rrule);
+        $transformer = new \Recurr\Transformer\ArrayTransformer();
+        $rEvents = $transformer->transform($rule);
+
+        unset($rEvents[0]); //the first recurrence has the same time as the main delivery
+
+        foreach ($rEvents as $rEvent) {
+            $end = clone($rEvent->getStart());
+            $end->add($diff);
+            $rEvent->setEnd($end);
+        }
+
+        return $rEvents;
+    }
+
+    /**
+     * Whether delivery is repetition of main delivery
+     * @param \core_kernel_classes_Resource $delivery
+     * @return bool
+     */
+    public function isRepeated(\core_kernel_classes_Resource $delivery)
+    {
+        return $delivery->isInstanceOf(new \core_kernel_classes_Class(self::CLASS_URI));
+    }
+
+    /**
+     * Check if the date are in range
+     * @param type $startDate
+     * @param type $endDate
+     * @return boolean true if in range
+     */
+    private function areWeInRange($startDate, $endDate){
+        return (empty($startDate) || date_create() >= $startDate)
+        && (empty($endDate) || date_create() <= $endDate);
+    }
+
 }

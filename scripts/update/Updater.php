@@ -21,11 +21,14 @@
 
 namespace oat\taoDeliverySchedule\scripts\update;
 
+use oat\oatbox\service\ConfigurableService;
 use tao_helpers_data_GenerisAdapterRdf;
 use common_Logger;
 use oat\tao\scripts\update\OntologyUpdater;
 use oat\taoDeliverySchedule\model\RepeatedDeliveryService;
 use oat\taoDeliverySchedule\model\DeliveryGroupsService;
+use oat\taoDeliverySchedule\model\AssignmentService;
+use oat\taoDeliverySchedule\model\DeliveryServerService;
 use oat\oatbox\service\ServiceNotFoundException;
 
 /**
@@ -80,6 +83,23 @@ class Updater extends \common_ext_ExtensionUpdater {
                 $this->getServiceManager()->register(DeliveryGroupsService::CONFIG_ID, $service);
             }
             $currentVersion = '0.1.3';
+        }
+
+        if ($currentVersion === '0.1.3') {
+
+            $assignmentService = new AssignmentService();
+            $assignmentService->setServiceManager($this->getServiceManager());
+            $this->getServiceManager()->register(AssignmentService::CONFIG_ID, $assignmentService);
+
+            $currentDeliveryServerServiceConfig = $this->getServiceManager()->get(\taoDelivery_models_classes_DeliveryServerService::CONFIG_ID);
+            if ($currentDeliveryServerServiceConfig instanceof ConfigurableService) {
+                $currentDeliveryServerServiceConfig = $currentDeliveryServerServiceConfig->getOptions();
+            }
+            $deliveryServerService = new DeliveryServerService($currentDeliveryServerServiceConfig);
+            $deliveryServerService->setServiceManager($this->getServiceManager());
+            $this->getServiceManager()->register(DeliveryServerService::CONFIG_ID, $deliveryServerService);
+
+            $currentVersion = '0.1.4';
         }
 
         return $currentVersion;

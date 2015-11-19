@@ -18,16 +18,25 @@
  *
  *
  */
+use oat\oatbox\service\ConfigurableService;
 use oat\oatbox\service\ServiceManager;
-use oat\taoDeliverySchedule\model\RepeatedDeliveryService;
-use oat\taoDeliverySchedule\model\DeliveryGroupsService;
+use oat\taoDeliverySchedule\model\AssignmentService;
+use oat\taoDeliverySchedule\model\DeliveryServerService;
 
 $serviceManager = ServiceManager::getServiceManager();
 
-$repeatedDeliveryService = new RepeatedDeliveryService();
-$repeatedDeliveryService->setServiceManager($serviceManager);
-$serviceManager->register(RepeatedDeliveryService::CONFIG_ID, $repeatedDeliveryService);
 
-$deliveryGroupsService = new DeliveryGroupsService();
-$deliveryGroupsService->setServiceManager($serviceManager);
-$serviceManager->register(DeliveryGroupsService::CONFIG_ID, $deliveryGroupsService);
+$assignmentService = new AssignmentService();
+$assignmentService->setServiceManager($serviceManager);
+$serviceManager->register(AssignmentService::CONFIG_ID, $assignmentService);
+
+
+$currentDeliveryServerServiceConfig = $serviceManager->get(\taoDelivery_models_classes_DeliveryServerService::CONFIG_ID);
+if ($currentDeliveryServerServiceConfig instanceof ConfigurableService) {
+    $currentDeliveryServerServiceConfig = $currentDeliveryServerServiceConfig->getOptions();
+}
+$deliveryServerService = new DeliveryServerService($currentDeliveryServerServiceConfig);
+$deliveryServerService->setServiceManager($serviceManager);
+$serviceManager->register(DeliveryServerService::CONFIG_ID, $deliveryServerService);
+
+

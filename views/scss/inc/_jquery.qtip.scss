@@ -39,7 +39,7 @@
 	.qtip-content{
 		position: relative;
 		padding: 5px 9px;
-
+        overflow: visible !important;
 		text-align: left;
 		word-wrap: break-word;
 	}
