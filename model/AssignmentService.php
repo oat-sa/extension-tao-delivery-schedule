@@ -22,6 +22,7 @@ namespace oat\taoDeliverySchedule\model;
 
 use oat\taoGroups\models\GroupsService;
 use oat\oatbox\user\User;
+use oat\oatbox\service\ServiceManager;
 
 /**
  * Class AssignmentService
@@ -59,7 +60,7 @@ class AssignmentService extends \taoDelivery_models_classes_AssignmentService
         if($this->isDeliveryGuestUser($user)){
             $deliveryUris = $this->getGuestAccessDeliveries();
         } else {
-            // check if realy available
+            // check if really available
             foreach (GroupsService::singleton()->getGroups($user) as $group) {
                 $deliveries = $group->getPropertyValues(
                     new \core_kernel_classes_Property(PROPERTY_GROUP_DELVIERY)
