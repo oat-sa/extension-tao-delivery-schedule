@@ -20,13 +20,14 @@
 
 namespace oat\taoDeliverySchedule\form;
 
+use oat\taoDeliveryRdf\view\form\WizardForm as DeliveryWizard;
 /**
  * 
  * @access public
  * @author Aleh Hutnikau <hutnikau@1pt.com>
  * @package tao
  */
-class WizardForm extends \taoDelivery_actions_form_WizardForm
+class WizardForm extends DeliveryWizard
 {
 
     protected function initForm()

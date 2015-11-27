@@ -9,7 +9,7 @@
                 <trees>
                     <tree name="Deliveries library"
                           className="Delivery"
-                          dataUrl="/taoDelivery/Delivery/getOntologyData"
+                          dataUrl="/taoDeliveryRdf/DeliveryMgmt/getOntologyData"
                           rootNode="http://www.tao.lu/Ontologies/TAODelivery.rdf#AssembledDelivery"
                           selectClass="delivery-class-properties"
                           selectInstance="delivery-select"
@@ -28,7 +28,7 @@
                     <action id="delivery-select" name="Properties" binding="delivery-select" group="none" context="instance">
                         <icon id="icon-edit"/>
                     </action>
-                    <action id="delivery-class-new" name="New class" url="/taoDelivery/Delivery/addSubClass" context="resource" group="tree" binding="subClass">
+                    <action id="delivery-class-new" name="New class" url="/taoDeliveryRdf/DeliveryMgmt/addSubClass" context="resource" group="tree" binding="subClass">
                         <icon id="icon-folder-open"/>
                     </action>
                     <action id="delivery-new" name="New delivery" binding="delivery-new" url="/taoDeliverySchedule/Main/wizard" context="class" group="none">
@@ -36,13 +36,13 @@
                     </action>
                     <action id="delivery-edit" name="Edit delivery" binding="delivery-edit" context="class" group="none">
                     </action>
-                    <action id="class-delete" name="Delete" binding="removeNode" url="/taoDelivery/Delivery/delete" context="class" group="tree">
+                    <action id="class-delete" name="Delete" binding="removeNode" url="/taoDeliveryRdf/DeliveryMgmt/delete" context="class" group="tree">
                         <icon id="icon-bin"/>
                     </action>
                     <action id="delivery-delete" name="Delete" binding="delivery-delete" context="instance" group="tree">
                         <icon id="icon-bin"/>
                     </action>
-                    <action id="delivery-move" name="Move" url="/taoDelivery/Delivery/moveInstance" context="instance" group="none" binding="moveNode">
+                    <action id="delivery-move" name="Move" url="/taoDeliveryRdf/DeliveryMgmt/moveInstance" context="instance" group="none" binding="moveNode">
                         <icon id="icon-move-item"/>
                     </action>
                     <action id="day_schedule_mode" name="Day" binding="schedule_day_mode" group="content" context="*">
