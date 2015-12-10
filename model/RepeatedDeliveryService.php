@@ -33,6 +33,7 @@ class RepeatedDeliveryService extends ConfigurableService
     const CLASS_URI = 'http://www.tao.lu/Ontologies/TAODelivery.rdf#RepeatedDelivery';
     const PROPERTY_REPETITION_OF = 'http://www.tao.lu/Ontologies/TAODelivery.rdf#RepetitionOf';
     const PROPERTY_NUMBER_OF_REPETITION = 'http://www.tao.lu/Ontologies/TAODelivery.rdf#NumberOfRepetition';
+    
     const CONFIG_ID = 'taoDeliverySchedule/RepeatedDeliveryService';
 
     /**
@@ -206,23 +207,30 @@ class RepeatedDeliveryService extends ConfigurableService
 
         $propStartExec = current($deliveryProps[TAO_DELIVERY_START_PROP]);
         $propEndExec = current($deliveryProps[TAO_DELIVERY_END_PROP]);
-        $rrule = isset($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]) ? current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])->literal : false;
-        $startDate = date_create('@'.$propStartExec->literal);
-        $endDate = date_create('@'.$propEndExec->literal);
-        $diff = date_diff($startDate, $endDate);
+        $rrule = !empty($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])
+            ? current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])->literal
+            : false;
 
-        $rule = new \Recurr\Rule((string) $rrule);
-        $transformer = new \Recurr\Transformer\ArrayTransformer();
-        $rEvents = $transformer->transform($rule);
-
-        unset($rEvents[0]); //the first recurrence has the same time as the main delivery
-
-        foreach ($rEvents as $rEvent) {
-            $end = clone($rEvent->getStart());
-            $end->add($diff);
-            $rEvent->setEnd($end);
+        if (!empty($rrule)) {
+            $startDate = date_create('@'.$propStartExec->literal);
+            $endDate = date_create('@'.$propEndExec->literal);
+            $diff = date_diff($startDate, $endDate);
+            
+            $rule = new \Recurr\Rule((string) $rrule);
+            $transformer = new \Recurr\Transformer\ArrayTransformer();
+            $rEvents = $transformer->transform($rule);
+            
+            unset($rEvents[0]); //the first recurrence has the same time as the main delivery
+    
+            foreach ($rEvents as $rEvent) {
+                $end = clone($rEvent->getStart());
+                $end->add($diff);
+                $rEvent->setEnd($end);
+            }
+        } else {
+            $rEvents = array();
         }
-
+        
         return $rEvents;
     }
 

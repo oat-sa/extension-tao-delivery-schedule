@@ -21,6 +21,9 @@
 
 namespace oat\taoDeliverySchedule\model;
 
+use oat\taoDeliveryRdf\model\SimpleDeliveryFactory;
+use oat\taoDeliveryRdf\model\TrackedStorage;
+use oat\taoDeliveryRdf\model\DeliveryAssemblyService;
 /**
  * Services to create deliveries
  *
@@ -28,7 +31,7 @@ namespace oat\taoDeliverySchedule\model;
  * @author Aleh Hutnikau <hutnikau@1pt.com>
  * @package taoDeliverySchedule
  */
-class DeliveryFactory extends \taoDelivery_models_classes_SimpleDeliveryFactory
+class DeliveryFactory extends SimpleDeliveryFactory
 {
     /**
      * Creates a new delivery
@@ -42,7 +45,7 @@ class DeliveryFactory extends \taoDelivery_models_classes_SimpleDeliveryFactory
     {
         \common_Logger::i('Creating delivery with ' . $test->getLabel() . ' under ' . $deliveryClass->getLabel());
         
-        $storage = new \taoDelivery_models_classes_TrackedStorage();
+        $storage = new TrackedStorage();
         
         $testCompilerClass = \taoTests_models_classes_TestsService::singleton()->getCompilerClass($test);
         $compiler = new $testCompilerClass($test, $storage);
@@ -64,7 +67,7 @@ class DeliveryFactory extends \taoDelivery_models_classes_SimpleDeliveryFactory
             
             $serviceCall = $report->getData();
             $properties[PROPERTY_COMPILEDDELIVERY_DIRECTORY] = $storage->getSpawnedDirectoryIds();
-            $compilationInstance = \taoDelivery_models_classes_DeliveryAssemblyService::singleton()->createAssemblyFromServiceCall($deliveryClass, $serviceCall, $properties);
+            $compilationInstance = DeliveryAssemblyService::singleton()->createAssemblyFromServiceCall($deliveryClass, $serviceCall, $properties);
             $report->setData($compilationInstance);
         }
         return $report;

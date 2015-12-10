@@ -29,14 +29,3 @@ $serviceManager = ServiceManager::getServiceManager();
 $assignmentService = new AssignmentService();
 $assignmentService->setServiceManager($serviceManager);
 $serviceManager->register(AssignmentService::CONFIG_ID, $assignmentService);
-
-
-$currentDeliveryServerServiceConfig = $serviceManager->get(\taoDelivery_models_classes_DeliveryServerService::CONFIG_ID);
-if ($currentDeliveryServerServiceConfig instanceof ConfigurableService) {
-    $currentDeliveryServerServiceConfig = $currentDeliveryServerServiceConfig->getOptions();
-}
-$deliveryServerService = new DeliveryServerService($currentDeliveryServerServiceConfig);
-$deliveryServerService->setServiceManager($serviceManager);
-$serviceManager->register(DeliveryServerService::CONFIG_ID, $deliveryServerService);
-
-

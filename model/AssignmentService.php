@@ -23,7 +23,9 @@ namespace oat\taoDeliverySchedule\model;
 use oat\taoGroups\models\GroupsService;
 use oat\oatbox\user\User;
 use oat\oatbox\service\ServiceManager;
-
+use oat\taoDeliveryRdf\model\GroupAssignment;
+use oat\taoDeliveryRdf\model\AssignmentFactory;
+use Recurr\Recurrence;
 /**
  * Class AssignmentService
  *
@@ -33,15 +35,12 @@ use oat\oatbox\service\ServiceManager;
  * @author Aleh Hutnikau, <hutnikau@1pt.com>
  * @package oat\taoDeliverySchedule\model
  */
-class AssignmentService extends \taoDelivery_models_classes_AssignmentService
+class AssignmentService extends GroupAssignment
 {
-    const CONFIG_ID = 'taoDelivery/assignment';
-
     public static function singleton()
     {
         return ServiceManager::getServiceManager()->get(self::CONFIG_ID);
     }
-
 
     /**
      * Return array of available deliveries.
@@ -52,33 +51,88 @@ class AssignmentService extends \taoDelivery_models_classes_AssignmentService
      * @throws \common_exception_Error
      * @throws \oat\oatbox\service\ServiceNotFoundException
      */
-    public function getAvailableDeliveries(User $user)
+    public function getAssignments(User $user)
     {
-        $deliveryUris = array();
-        $repeatedDeliveryService = $this->getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService');
-        //check for guest access
-        if($this->isDeliveryGuestUser($user)){
-            $deliveryUris = $this->getGuestAccessDeliveries();
-        } else {
-            // check if really available
-            foreach (GroupsService::singleton()->getGroups($user) as $group) {
-                $deliveries = $group->getPropertyValues(
-                    new \core_kernel_classes_Property(PROPERTY_GROUP_DELVIERY)
-                );
-                foreach ($deliveries as $deliveryUri) {
-                    $candidate = new \core_kernel_classes_Resource($deliveryUri);
-                    if (!$this->isUserExcluded($candidate, $user) && $candidate->exists()) {
-                        if ($repeatedDeliveryService->isRepeated($candidate)) {
-                            $candidate = $repeatedDeliveryService->getParentDelivery($candidate);
-                        }
-                        $deliveryUris[] = $candidate->getUri();
-                    }
+        $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
+        
+        $assignments = array();
+        foreach (parent::getAssignmentFactories($user) as $assignment) {
+            $delivery = new \core_kernel_classes_Resource($assignment->getDeliveryId());
+            if ($repeatedDeliveryService->isRepeated($delivery)) {
+                $assignments[] = $this->transform($delivery);
+            } else {
+                $assignments[] = $assignment;
+                foreach($this->getRepeatedAssignments($delivery) as $repeat) {
+                    $assignments[] = $repeat;
                 }
             }
         }
-        return array_unique($deliveryUris);
+        
+        usort($assignments, function ($a, $b) {
+            return $a->getStartTime() - $b->getStartTime();
+        });
+        $final = array();
+        foreach ($assignments as $factory) {
+            $final[] = $factory->toAssignment();
+        }
+        return $final;
+    }
+    
+    public function isDeliveryExecutionAllowed($deliveryIdentifier, User $user)
+    {
+        $delivery = new \core_kernel_classes_Resource($deliveryIdentifier);
+        return $this->verifyUserAssigned($delivery, $user)
+        && $this->verifyTimeRecursiv($delivery)
+        && $this->verifyToken($delivery, $user);
     }
 
+    /**
+     * Transform a repetition into an assignment
+     * 
+     * @param \core_kernel_classes_Resource $deliveryRepetition
+     */
+    protected function transform(\core_kernel_classes_Resource $deliveryRepetition)
+    {
+        $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
+        
+        $delivery = $repeatedDeliveryService->getParentDelivery($deliveryRepetition);
+        $repetitionId = (string)$deliveryRepetition->getUniquePropertyValue(
+            new \core_kernel_classes_Property($repeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION)
+        );
+        $collection =  $repeatedDeliveryService->getRecurrenceCollection($delivery);
+        
+        $rEvent = $collection[$repetitionId];
+        return $this->buildAssignment($delivery, $repetitionId, $rEvent);
+        
+    }
+    
+    protected function getRepeatedAssignments(\core_kernel_classes_Resource $delivery)
+    {
+        $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
+        
+        $rEvents = $repeatedDeliveryService->getRecurrenceCollection($delivery);
+        
+        $assignments = array();
+        foreach ($rEvents as $repetitionId => $rEvent) {
+            $assignments[] = $this->buildAssignment($delivery, $repetitionId, $rEvent);
+        }
+        return $assignments;
+        
+    }
+    
+    protected function buildAssignment(\core_kernel_classes_Resource $delivery, $repetitionId, Recurrence $rec) {
+        
+        $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
+        
+        $start = $rec->getStart()->getTimestamp();
+        $end = $rec->getEnd()->getTimestamp();
+        $user = \common_session_SessionManager::getSession()->getUser();
+        
+        //$deliveryRepetition = $repeatedDeliveryService->getDelivery($delivery, $repetitionId);
+        $startable =  $this->areWeInRange($rec->getStart(), $rec->getEnd());
+        
+        return new RepetionAssignmentFactory($delivery, $user, $start, $end, $startable);
+    }
 
     /**
      * @param \core_kernel_classes_Resource $delivery
@@ -86,10 +140,11 @@ class AssignmentService extends \taoDelivery_models_classes_AssignmentService
      * @param bool $checkRepeated Whether check repeated deliveries if main (not repeated) delivery given
      * @return bool
      */
-    public function isUserAssigned(\core_kernel_classes_Resource $delivery, User $user, $checkRepeated = true){
+    public function isUserAssigned(\core_kernel_classes_Resource $delivery, User $user, $checkRepeated = true)
+    {
         $returnValue = false;
         $isGuestUser = $this->isDeliveryGuestUser($user);
-        $isGuestAccessibleDelivery = \taoDelivery_models_classes_DeliveryServerService::singleton()->hasDeliveryGuestAccess($delivery);
+        $isGuestAccessibleDelivery = $this->hasDeliveryGuestAccess($delivery);
 
         //check for guest access mode
         if( $isGuestUser && $isGuestAccessibleDelivery ){
@@ -112,5 +167,42 @@ class AssignmentService extends \taoDelivery_models_classes_AssignmentService
 
         return $returnValue;
     }
+    
+    protected function verifyTimeRecursiv(\core_kernel_classes_Resource $delivery)
+    {
+        $valid = parent::verifyTime($delivery);
+        
+        // if parent is not valid, check for recurring
+        if (!$valid) {
+            $props = $delivery->getPropertiesValues(array(
+                TAO_DELIVERY_START_PROP,
+                TAO_DELIVERY_END_PROP,
+                DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP
+            ));
+            if (empty($props[TAO_DELIVERY_START_PROP])
+                || empty($props[TAO_DELIVERY_END_PROP])
+                || empty($props[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])
+            ) {
+                // not a recuring delivery
+                return false;
+            }
 
+            $startDate  =    date_create('@'.(string)current($props[TAO_DELIVERY_START_PROP]));
+            $endDate    =    date_create('@'.(string)current($props[TAO_DELIVERY_END_PROP]));
+            
+            $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
+            $rEvents = $repeatedDeliveryService->getRecurrenceCollection($delivery)
+                ->startsBefore(date_create(), true)
+                ->endsAfter(date_create(), true);
+            
+            if (count($rEvents) > 0) {
+                $event = $rEvents->first();
+                $startDate = $event->getStart();
+                $endDate = $event->getEnd();
+                $valid = $this->areWeInRange($startDate, $endDate);
+            }
+            
+        }
+        return $valid;
+    }
 }
