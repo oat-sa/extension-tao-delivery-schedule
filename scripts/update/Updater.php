@@ -106,18 +106,15 @@ class Updater extends \common_ext_ExtensionUpdater {
         if ($currentVersion === '0.1.4') {
 
             // prevent missing class error
-            spl_autoload_register(function($class_name) {
-                if ($class_name == 'oat\\taoDeliverySchedule\\model\\DeliveryServerService' && !class_exists($class_name, false)) {
-                    eval('namespace oat\\taoDeliverySchedule\\model; '.
-                        'class DeliveryServerService extends \\oat\\oatbox\\service\\ConfigurableService {}');
-                }
-            });
-            $currentService = $this->getServiceManager()->get(\taoDelivery_models_classes_DeliveryServerService::CONFIG_ID);
-            if ($currentService instanceof \oat\taoDeliverySchedule\model\DeliveryServerService) {
+            $currentService = $this->safeLoadService(\taoDelivery_models_classes_DeliveryServerService::CONFIG_ID);
+            if (class_exists('\\oat\\taoDeliverySchedule\\model\\DeliveryServerService', false)
+                && $currentService instanceof \oat\taoDeliverySchedule\model\DeliveryServerService) {
+                    
                 $service = new \taoDelivery_models_classes_DeliveryServerService($currentService->getOptions());
                 $this->getServiceManager()->register(\taoDelivery_models_classes_DeliveryServerService::CONFIG_ID, $service);
             }
-            $currentVersion = '1.0.0';
+            $this->setVersion('1.0.0');
+            $currentVersion = null;
         }
 
         return $currentVersion;
