@@ -27,7 +27,7 @@ return array(
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'tao' => '>=2.7.3',
-        'taoDeliveryRdf' => '>=0.1'
+        'taoDeliveryRdf' => '>=1.0.0'
     ),
     // for compatibility
     'dependencies' => array('tao', 'taoDelivery'),
@@ -44,9 +44,7 @@ return array(
             dirname(__FILE__) . '/scripts/install/registerServices.php',
         )
     ),
-    'uninstall' => array(
-        
-    ),
+    // not supported 'uninstall' => array(),
     'update' => 'oat\\taoDeliverySchedule\\scripts\\update\\Updater',
     'autoload' => array(
         'psr-4' => array(

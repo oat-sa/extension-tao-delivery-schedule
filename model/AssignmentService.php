@@ -82,8 +82,8 @@ class AssignmentService extends GroupAssignment
     {
         $delivery = new \core_kernel_classes_Resource($deliveryIdentifier);
         return $this->verifyUserAssigned($delivery, $user)
-        && $this->verifyTimeRecursiv($delivery)
-        && $this->verifyToken($delivery, $user);
+            && $this->verifyTimeRecursiv($delivery)
+            && $this->verifyToken($delivery, $user);
     }
 
     /**
