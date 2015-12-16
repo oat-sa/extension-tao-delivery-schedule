@@ -56,13 +56,13 @@ class AssignmentService extends GroupAssignment
         $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
         
         $assignments = array();
-        foreach (parent::getAssignmentFactories($user) as $assignment) {
-            $delivery = new \core_kernel_classes_Resource($assignment->getDeliveryId());
+        foreach (parent::getAssignmentFactories($user) as $factory) {
+            $delivery = new \core_kernel_classes_Resource($factory->getDeliveryId());
             if ($repeatedDeliveryService->isRepeated($delivery)) {
-                $assignments[] = $this->transform($delivery);
+                $assignments[] = $this->transform($delivery, $user);
             } else {
-                $assignments[] = $assignment;
-                foreach($this->getRepeatedAssignments($delivery) as $repeat) {
+                $assignments[] = $factory;
+                foreach($this->getRepeatedAssignments($delivery, $user) as $repeat) {
                     $assignments[] = $repeat;
                 }
             }
@@ -91,7 +91,7 @@ class AssignmentService extends GroupAssignment
      * 
      * @param \core_kernel_classes_Resource $deliveryRepetition
      */
-    protected function transform(\core_kernel_classes_Resource $deliveryRepetition)
+    protected function transform(\core_kernel_classes_Resource $deliveryRepetition, User $user)
     {
         $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
         
@@ -101,26 +101,28 @@ class AssignmentService extends GroupAssignment
         );
         $collection =  $repeatedDeliveryService->getRecurrenceCollection($delivery);
         
+        $tokenLeft = $this->verifyToken($delivery, $user);
         $rEvent = $collection[$repetitionId];
-        return $this->buildAssignment($delivery, $repetitionId, $rEvent);
+        return $this->buildAssignment($delivery, $repetitionId, $rEvent, $tokenLeft);
         
     }
     
-    protected function getRepeatedAssignments(\core_kernel_classes_Resource $delivery)
+    protected function getRepeatedAssignments(\core_kernel_classes_Resource $delivery, User $user)
     {
+        $tokenLeft = $this->verifyToken($delivery, $user);
         $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
         
         $rEvents = $repeatedDeliveryService->getRecurrenceCollection($delivery);
         
         $assignments = array();
         foreach ($rEvents as $repetitionId => $rEvent) {
-            $assignments[] = $this->buildAssignment($delivery, $repetitionId, $rEvent);
+            $assignments[] = $this->buildAssignment($delivery, $repetitionId, $rEvent, $tokenLeft);
         }
         return $assignments;
         
     }
     
-    protected function buildAssignment(\core_kernel_classes_Resource $delivery, $repetitionId, Recurrence $rec) {
+    protected function buildAssignment(\core_kernel_classes_Resource $delivery, $repetitionId, Recurrence $rec, $tokenLeft) {
         
         $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
         
@@ -128,8 +130,7 @@ class AssignmentService extends GroupAssignment
         $end = $rec->getEnd()->getTimestamp();
         $user = \common_session_SessionManager::getSession()->getUser();
         
-        //$deliveryRepetition = $repeatedDeliveryService->getDelivery($delivery, $repetitionId);
-        $startable =  $this->areWeInRange($rec->getStart(), $rec->getEnd());
+        $startable = $tokenLeft && $this->areWeInRange($rec->getStart(), $rec->getEnd());
         
         return new RepetionAssignmentFactory($delivery, $user, $start, $end, $startable);
     }
