@@ -58,4 +58,9 @@ class RepetionAssignmentFactory extends AssignmentFactory
         
         return $this->buildDescriptionFromData($this->startTime, $this->endTime, $countExecs, $maxExecs);
     }
+
+    public function __equals(AssignmentFactory $factory)
+    {
+        return ($this->getDeliveryId() == $factory->getDeliveryId() && $this->getStartTime() == $factory->getStartTime());
+    }
 }

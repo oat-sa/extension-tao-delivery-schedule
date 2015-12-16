@@ -65,9 +65,13 @@ class AssignmentService extends GroupAssignment
             }
         }
         
+        // will all be repeat assignments
         usort($assignments, function ($a, $b) {
             return $a->getStartTime() - $b->getStartTime();
         });
+        
+        $assignments = \tao_helpers_Array::array_unique($assignments);
+        //$assignments = array_unique($assignments);
         $final = array();
         foreach ($assignments as $factory) {
             $final[] = $factory->toAssignment();
