@@ -43,26 +43,23 @@ class AssignmentService extends GroupAssignment
     }
 
     /**
-     * Return array of available deliveries.
-     * If user has assigned repeated delivery {@see RepeatedDeliveryService::CLASS_URI}
-     * then the parent delivery of this delivery will be returned.
-     * @param User $user
-     * @return array
-     * @throws \common_exception_Error
-     * @throws \oat\oatbox\service\ServiceNotFoundException
+     * Return array of assigments to available deliveries.
+     * Takes into account repeated delivery {@see RepeatedDeliveryService::CLASS_URI}
+     * 
+     * @see \oat\taoDeliveryRdf\model\GroupAssignment::getAssignments()
      */
     public function getAssignments(User $user)
     {
         $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
         
         $assignments = array();
-        foreach (parent::getAssignmentFactories($user) as $assignment) {
-            $delivery = new \core_kernel_classes_Resource($assignment->getDeliveryId());
+        foreach (parent::getAssignmentFactories($user) as $factory) {
+            $delivery = new \core_kernel_classes_Resource($factory->getDeliveryId());
             if ($repeatedDeliveryService->isRepeated($delivery)) {
-                $assignments[] = $this->transform($delivery);
+                $assignments[] = $this->transform($delivery, $user);
             } else {
-                $assignments[] = $assignment;
-                foreach($this->getRepeatedAssignments($delivery) as $repeat) {
+                $assignments[] = $factory;
+                foreach($this->getRepeatedAssignments($delivery, $user) as $repeat) {
                     $assignments[] = $repeat;
                 }
             }
@@ -78,20 +75,27 @@ class AssignmentService extends GroupAssignment
         return $final;
     }
     
+    /**
+     * (non-PHPdoc)
+     * @see \oat\taoDeliveryRdf\model\GroupAssignment::isDeliveryExecutionAllowed()
+     */
     public function isDeliveryExecutionAllowed($deliveryIdentifier, User $user)
     {
         $delivery = new \core_kernel_classes_Resource($deliveryIdentifier);
-        return $this->verifyUserAssigned($delivery, $user)
+        return $this->verifyUserAssignedRecursiv($delivery, $user)
             && $this->verifyTimeRecursiv($delivery)
             && $this->verifyToken($delivery, $user);
     }
 
     /**
      * Transform a repetition into an assignment
+     * group assignment and exlusions already verified
      * 
      * @param \core_kernel_classes_Resource $deliveryRepetition
+     * @param User $user
+     * @return \oat\taoDeliverySchedule\model\RepetionAssignmentFactory
      */
-    protected function transform(\core_kernel_classes_Resource $deliveryRepetition)
+    protected function transform(\core_kernel_classes_Resource $deliveryRepetition, User $user)
     {
         $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
         
@@ -102,11 +106,19 @@ class AssignmentService extends GroupAssignment
         $collection =  $repeatedDeliveryService->getRecurrenceCollection($delivery);
         
         $rEvent = $collection[$repetitionId];
-        return $this->buildAssignment($delivery, $repetitionId, $rEvent);
+        return $this->buildAssignment($delivery, $user, $repetitionId, $rEvent);
         
     }
     
-    protected function getRepeatedAssignments(\core_kernel_classes_Resource $delivery)
+    /**
+     * Add the repetitions to the assignment
+     * group assignment already verified, exclusions not yet
+     * 
+     * @param \core_kernel_classes_Resource $delivery
+     * @param User $user
+     * @return multitype:\oat\taoDeliverySchedule\model\RepetionAssignmentFactory
+     */
+    protected function getRepeatedAssignments(\core_kernel_classes_Resource $delivery, User $user)
     {
         $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
         
@@ -114,58 +126,66 @@ class AssignmentService extends GroupAssignment
         
         $assignments = array();
         foreach ($rEvents as $repetitionId => $rEvent) {
-            $assignments[] = $this->buildAssignment($delivery, $repetitionId, $rEvent);
+            $repeatedDelivery = $repeatedDeliveryService->getDelivery($delivery, $repetitionId);
+            // no repeated Delivery found means no custom rules
+            if ($repeatedDelivery == false || !$this->isUserExcluded($repeatedDelivery, $user)) {
+                $assignments[] = $this->buildAssignment($delivery, $user, $repetitionId, $rEvent);
+            }
         }
         return $assignments;
         
     }
     
-    protected function buildAssignment(\core_kernel_classes_Resource $delivery, $repetitionId, Recurrence $rec) {
+    /**
+     * Build an Assigmnet factory from the data provided
+     * 
+     * @param \core_kernel_classes_Resource $delivery
+     * @param User $user
+     * @param string $repetitionId
+     * @param Recurrence $rec
+     * @return \oat\taoDeliverySchedule\model\RepetionAssignmentFactory
+     */
+    protected function buildAssignment(\core_kernel_classes_Resource $delivery, User $user, $repetitionId, Recurrence $rec) {
         
         $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
         
         $start = $rec->getStart()->getTimestamp();
         $end = $rec->getEnd()->getTimestamp();
-        $user = \common_session_SessionManager::getSession()->getUser();
         
-        //$deliveryRepetition = $repeatedDeliveryService->getDelivery($delivery, $repetitionId);
-        $startable =  $this->areWeInRange($rec->getStart(), $rec->getEnd());
+        $tokenLeft = $this->verifyToken($delivery, $user);
+        $startable = $tokenLeft && $this->areWeInRange($rec->getStart(), $rec->getEnd());
         
         return new RepetionAssignmentFactory($delivery, $user, $start, $end, $startable);
     }
 
     /**
+     * // assigned if:
+     * (assigned to parent || assigned to recursion) && !exluded from recursion && !exluded from parent
+     * 
      * @param \core_kernel_classes_Resource $delivery
      * @param User $user
      * @param bool $checkRepeated Whether check repeated deliveries if main (not repeated) delivery given
      * @return bool
      */
-    public function isUserAssigned(\core_kernel_classes_Resource $delivery, User $user, $checkRepeated = true)
+    public function verifyUserAssignedRecursiv(\core_kernel_classes_Resource $delivery, User $user)
     {
-        $returnValue = false;
-        $isGuestUser = $this->isDeliveryGuestUser($user);
-        $isGuestAccessibleDelivery = $this->hasDeliveryGuestAccess($delivery);
-
-        //check for guest access mode
-        if( $isGuestUser && $isGuestAccessibleDelivery ){
-            $returnValue = true;
+        $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
+        $currentRepetition = $repeatedDeliveryService->getCurrentRepeatedDelivery($delivery);
+        if (is_null($currentRepetition)) {
+            $assigned = parent::verifyUserAssigned($delivery, $user); 
         } else {
-            $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
-            $currentRepeatedDelivery = $repeatedDeliveryService->getCurrentRepeatedDelivery($delivery);
-            if ($currentRepeatedDelivery && $checkRepeated) {
-                $delivery = $currentRepeatedDelivery;
-            }
             $userGroups = GroupsService::singleton()->getGroups($user);
             $deliveryGroups = GroupsService::singleton()->getRootClass()->searchInstances(array(
-                PROPERTY_GROUP_DELVIERY => $delivery->getUri()
+                PROPERTY_GROUP_DELVIERY => array($currentRepetition->getUri(), $delivery->getUri())
             ), array(
-                'like'=>false, 'recursive' => true
+                'like'=>false, 'recursive' => true, 'chaining' => 'or'
             ));
-
-            $returnValue = count(array_intersect($userGroups, $deliveryGroups)) > 0 && !$this->isUserExcluded($delivery, $user);
+                
+            $assigned = count(array_intersect($userGroups, $deliveryGroups)) > 0
+                && !$this->isUserExcluded($delivery, $user)
+                && !$this->isUserExcluded($currentRepetition, $user);
         }
-
-        return $returnValue;
+        return $assigned;
     }
     
     protected function verifyTimeRecursiv(\core_kernel_classes_Resource $delivery)
