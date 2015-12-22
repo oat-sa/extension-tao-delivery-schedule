@@ -23,6 +23,8 @@ namespace oat\taoDeliverySchedule\controller;
 use oat\taoDeliverySchedule\helper\ColorGenerator;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\taoDeliverySchedule\model\DeliveryTestTakersService;
+use oat\taoDeliveryRdf\model\DeliveryAssemblyService;
+use oat\taoDeliverySchedule\model\RepeatedDeliveryService;
 
 /**
  * Controller provides Rest API for managing deliveries.
@@ -44,7 +46,7 @@ class CalendarApi extends ApiBaseController
         
         $this->tz = new \DateTimeZone($tzName);
         $this->scheduleService = DeliveryScheduleService::singleton();
-        $this->service = \taoDelivery_models_classes_DeliveryAssemblyService::singleton();
+        $this->service = DeliveryAssemblyService::singleton();
 
         switch ($this->getRequestMethod()) {
             case "GET":
@@ -230,7 +232,7 @@ class CalendarApi extends ApiBaseController
     protected function deleteDelivery()
     {
         $delivery = $this->getDelivery();
-        $this->getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService')->deleteDeliveries($delivery);
+        $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID)->deleteDeliveries($delivery);
         $result = $this->delete();
         $this->sendData($result);
     }
@@ -266,7 +268,7 @@ class CalendarApi extends ApiBaseController
         $result['resultserver'] = $delivery->getOnePropertyValue($resultServerProp)->getUri();
         $result['resultserver'] = \tao_helpers_Uri::encode($result['resultserver']);
 
-        $result['repeatedDeliveries'] = $this->getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService')->getRepeatedDeliveriesData($delivery);
+        $result['repeatedDeliveries'] = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID)->getRepeatedDeliveriesData($delivery);
 
         return $result;
     }

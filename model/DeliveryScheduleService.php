@@ -21,6 +21,7 @@
 namespace oat\taoDeliverySchedule\model;
 
 use oat\oatbox\service\ServiceManager;
+use oat\taoDeliveryRdf\model\DeliveryAssemblyService;
 
 /**
  * Delivery schedule service
@@ -181,7 +182,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     public function save(\core_kernel_classes_Class $delivery, array $params)
     {
         if (!empty($params['repeatedDelivery']) && isset($params[RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION])) {
-            $repeatedDeliveryService = ServiceManager::getServiceManager()->get('taoDeliverySchedule/RepeatedDeliveryService');
+            $repeatedDeliveryService = ServiceManager::getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
 
             $delivery = $repeatedDeliveryService->getDelivery(
                 $delivery,
@@ -276,7 +277,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      */
     public function getAssemblies($from, $to)
     {
-        $assemblies = \taoDelivery_models_classes_DeliveryAssemblyService::singleton()->getAllAssemblies();
+        $assemblies = DeliveryAssemblyService::singleton()->getAllAssemblies();
 
         $startProp = new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP);
         $endProp = new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP);

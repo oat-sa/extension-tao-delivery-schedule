@@ -21,6 +21,7 @@
 namespace oat\taoDeliverySchedule\model;
 
 use oat\oatbox\service\ServiceManager;
+use oat\taoDelivery\model\AssignmentService;
 
 /**
  * Delivery test takers service
@@ -74,7 +75,7 @@ class DeliveryTestTakersService extends \tao_models_classes_Service
         }
 
         // assigned test takers
-        $users = ServiceManager::getServiceManager()->get('taoDelivery/assignment')->getAssignedUsers($delivery);
+        $users = ServiceManager::getServiceManager()->get(AssignmentService::CONFIG_ID)->getAssignedUsers($delivery->getUri());
         $assigned = array_values(array_diff(array_unique($users), $excluded));
         
         foreach ($assigned as $testTaker) {
