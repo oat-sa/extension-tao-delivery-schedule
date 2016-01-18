@@ -33,7 +33,7 @@ define([
     'text!timeZoneList',
     'taoDeliverySchedule/calendar/mediator',
     'taoDeliverySchedule/lib/rrule/rrule.amd',
-    'css!/taoDeliverySchedule/views/css/taodeliveryschedule'
+    'css!taoDeliveryScheduleCss/taodeliveryschedule'
 ],
 function (
     _,

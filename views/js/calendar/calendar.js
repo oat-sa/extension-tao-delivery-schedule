@@ -20,12 +20,13 @@ define([
     'lodash',
     'jquery',
     'i18n',
+    'helpers',
     'taoDeliverySchedule/calendar/eventService',
     'ui/feedback',
     'context',
     'moment',
     'taoDeliverySchedule/lib/fullcalendar/fullcalendar.amd'
-],function (_, $, __, eventService, feedback, context, moment) {
+],function (_, $, __, helpers, eventService, feedback, context, moment) {
     'use strict';
 
     /**
@@ -126,7 +127,7 @@ define([
                 },
                 events : function(start, end, timezone, callback) {
                     $.ajax({
-                        url: '/taoDeliverySchedule/CalendarApi?timeZone=' + eventService.getCurrentTZName(),
+                        url: helpers._url('index', 'CalendarApi', 'taoDeliverySchedule', {timeZone : eventService.getCurrentTZName()}),
                         dataType: 'json',
                         data: {
                             start: start.unix(),

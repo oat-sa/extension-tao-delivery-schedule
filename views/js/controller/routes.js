@@ -21,13 +21,13 @@
 /**
  * @see http://forge.taotesting.com/projects/tao/wiki/Front_js
  */
-define(function () {
+define(['helpers'], function (helpers) {
     'use strict';
-    
+
     require.config({
         paths: {
-            editDeliveryForm : '/taoDeliverySchedule/Main/editDeliveryForm?noext', //load template from controller action. (noext extension may be useful here)
-            timeZoneList : '/taoDeliverySchedule/Main/timeZoneList?noext' //load template from controller action. (noext extension may be useful here)
+            editDeliveryForm : helpers._url('editDeliveryForm', 'Main', 'taoDeliverySchedule', {noext : 'noext'}), //load template from controller action. (noext extension may be useful here)
+            timeZoneList : helpers._url('timeZoneList', 'Main', 'taoDeliverySchedule', {noext : 'noext'}) //load template from controller action. (noext extension may be useful here)
         }
     });
     
