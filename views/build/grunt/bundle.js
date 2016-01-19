@@ -26,6 +26,7 @@ module.exports = function (grunt) {
             mainConfigFile: './config/requirejs.build.js',
             paths: {
                 'taoDeliverySchedule': root + '/taoDeliverySchedule/views/js',
+                'taoDeliveryScheduleCss' :  root + '/taoDeliverySchedule/views/css',
                 'editDeliveryForm': 'empty:',
                 'timeZoneList': 'empty:'
             },
