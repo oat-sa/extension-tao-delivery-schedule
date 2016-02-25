@@ -114,6 +114,8 @@ class Updater extends \common_ext_ExtensionUpdater {
                 $this->getServiceManager()->register(\taoDelivery_models_classes_DeliveryServerService::CONFIG_ID, $service);
             }
             $this->setVersion('1.0.0');
+            
+            $this->skip('1.0.0','1.0.1');
             $currentVersion = null;
         }
 

@@ -19,13 +19,14 @@
 define([
     'lodash',
     'jquery',
+    'helpers',
     'taoDeliverySchedule/calendar/tooltips/eventTooltip',
     'handlebars',
     'i18n',
     'taoDeliverySchedule/calendar/mediator',
     'moment',
     'taoDeliverySchedule/lib/qtip/jquery.qtip'
-], function (_, $, eventTooltip, Handlebars, __, mediator, moment) {
+], function (_, $, helpers, eventTooltip, Handlebars, __, mediator, moment) {
     'use strict';
     return function () {
         var that = this;
@@ -75,7 +76,7 @@ define([
                 };
 
             $.ajax({
-                url : '/taoDeliverySchedule/Main/createDeliveryForm',
+                url : helpers._url('createDeliveryForm', 'Main', 'taoDeliverySchedule'),
                 type : 'GET',
                 data : {
                     classUri : options.classUri,

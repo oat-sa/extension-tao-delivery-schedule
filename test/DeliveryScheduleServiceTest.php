@@ -121,34 +121,6 @@ class DeliveryScheduleServiceTest extends TaoPhpUnitTestRunner
         $this->assertTrue(isset($errors[TAO_DELIVERY_START_PROP]));
     }
     
-    public function testGetDeliverySettings() 
-    {
-        $service = DeliveryScheduleService::singleton();
-        $rrule = 'FREQ=WEEKLY;INTERVAL=1;COUNT=5;DTSTART=20150507T010000Z';
-        
-        $prophet = new Prophet();
-        $deliveryProphecy = $prophet->prophesize('core_kernel_classes_Resource');
-        $deliveryProphecy->getPropertiesValues(array(
-            new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP),
-        ))->willReturn(array(
-            DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP => array($rrule)
-        ));
-        $delivery = $deliveryProphecy->reveal();
-        $settings = $service->getDeliverySettings($delivery);
-        
-        $this->assertTrue(isset($settings[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]));
-        $this->assertEquals($settings[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP], $rrule);
-        
-        $this->assertTrue(isset($settings['rruleSummary']));
-        $this->assertEquals($settings['rruleSummary'], 'weekly for 5 times');
-        
-        $this->assertTrue(isset($settings['from']));
-        $this->assertEquals($settings['from'], 1430960400);
-        
-        $this->assertTrue(isset($settings['until']));
-        $this->assertEquals($settings['until'], 1433379600);
-    }
-    
     /*public function testCreate()
     {
         $service = DeliveryScheduleService::singleton();
