@@ -21,6 +21,7 @@
 define([
 'lodash',
 'jquery',
+'helpers',
 'taoDeliverySchedule/calendar/modals/modal',
 'text!editDeliveryForm',
 'i18n',
@@ -34,7 +35,7 @@ define([
 'taoDeliverySchedule/lib/rrule/rrule.amd',
 'taoDeliverySchedule/lib/jquery.serialize-object.min',
 'taoDeliverySchedule/lib/qtip/jquery.qtip',
-'jqueryui'], function (_, $, modal, formTpl, __, GenerisTreeSelectClass, moment, Handlebars, eventService, TestTakersList, mediator) {
+'jqueryui'], function (_, $, helpers, modal, formTpl, __, GenerisTreeSelectClass, moment, Handlebars, eventService, TestTakersList, mediator) {
     'use strict';
     return function () {
         var that = this,
@@ -82,7 +83,7 @@ define([
         this.show = function (fcEvent) {
             var eventId = fcEvent.subEvent ? fcEvent.parentEventId : fcEvent.id;
             $.ajax({
-                url : '/taoDeliverySchedule/CalendarApi?full=1',
+                url : helpers._url('index', 'CalendarApi', 'taoDeliverySchedule', {full : '1'}),
                 type : 'GET',
                 data : {
                     uri : eventId
@@ -284,7 +285,7 @@ define([
          * @returns {undefined}
          */
         this.initGroupTree = function (options) {
-            that.groupTree = new GenerisTreeSelectClass('.js-groups', '/tao/GenerisTree/getData', {
+            that.groupTree = new GenerisTreeSelectClass('.js-groups', helpers._url('getData', 'GenerisTree','tao'), {
                 checkedNodes: options.groups,
                 serverParameters: {
                     openNodes: ["http:\/\/www.tao.lu\/Ontologies\/TAOGroup.rdf#Group"],

@@ -20,12 +20,13 @@ define([
     'lodash',
     'jquery',
     'i18n',
+    'helpers',
     'ui/feedback',
     'layout/actions',
     'moment',
     'layout/loading-bar',
     'taoDeliverySchedule/lib/rrule/rrule.amd'
-], function (_, $, __, feedback, actionManager, moment, loadingBar) {
+], function (_, $, __, helpers, feedback, actionManager, moment, loadingBar) {
     'use strict';
     var instance = null;
 
@@ -62,7 +63,7 @@ define([
         this.createEvent = function (options) {
             loadingBar.start();
             $.ajax({
-                url : '/taoDeliverySchedule/CalendarApi',
+                url : helpers._url('index', 'CalendarApi', 'taoDeliverySchedule'),
                 type : 'POST',
                 data : options.data,
                 global : false,
@@ -159,7 +160,7 @@ define([
             }
 
             $.ajax({
-                url : '/taoDeliverySchedule/CalendarApi',
+                url : helpers._url('index', 'CalendarApi', 'taoDeliverySchedule'),
                 type : 'PUT',
                 data : data,
                 global : false,
@@ -216,7 +217,7 @@ define([
                     uri        : fcEvent.uri
                 };
                 $.ajax({
-                    url : '/taoDeliverySchedule/CalendarApi?' + $.param(data),
+                    url : helpers._url('index', 'CalendarApi', 'taoDeliverySchedule', data),
                     type : 'DELETE',
                     global : false,
                     dataType : 'json',
@@ -276,7 +277,7 @@ define([
             var timeZone = that.getCurrentTZName();
 
             $.ajax({
-                url : '/taoDeliverySchedule/CalendarApi?uri=' + eventId + '&timeZone=' + timeZone,
+                url : helpers._url('index', 'CalendarApi', 'taoDeliverySchedule', {uri : eventId, timeZone : timeZone}),
                 type : 'GET',
                 global : false,
                 success : function (data) {

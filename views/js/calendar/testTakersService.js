@@ -19,9 +19,10 @@
 define([
     'lodash',
     'jquery',
+    'helpers',
     'ui/feedback',
     'layout/loading-bar'
-], function (_, $, feedback, loadingBar) {
+], function (_, $, helpers, feedback, loadingBar) {
     'use strict';
     var instance = null;
 
@@ -36,7 +37,7 @@ define([
             var deferred = $.Deferred();
 
             $.ajax({
-                url : '/taoDeliverySchedule/TestTakersApi',
+                url : helpers._url('index', 'TestTakersApi', 'taoDeliverySchedule'),
                 type : 'GET',
                 data : options,
                 success : function (response) {
