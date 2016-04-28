@@ -33,7 +33,7 @@ module.exports = function (grunt) {
             modules: [{
                 name: 'taoDeliverySchedule/controller/routes',
                 include: ext.getExtensionsControllers(['taoDeliverySchedule']),
-                exclude: ['mathJax', 'mediaElement'].concat(libs)
+                exclude: ['mathJax'].concat(libs)
             }]
         }
     };
