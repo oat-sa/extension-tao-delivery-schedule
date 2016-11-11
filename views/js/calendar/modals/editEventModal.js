@@ -71,7 +71,8 @@ define([
                 'style.width'     : 900,
                 'style.classes'   : 'edit-delivery-modal dialogue qtip-light qtip-shadow'
             });
-            that.modal.elements.content.on('click', '.js-close', function () {
+            that.modal.elements.content.on('click', '.js-close', function (e) {
+                e.preventDefault();
                 that.hide();
             });
         };
