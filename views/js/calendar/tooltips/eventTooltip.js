@@ -61,7 +61,8 @@ define([
                 options = defaultOptions;
             }
             this.tooltip = $('<div/>').qtip(options).qtip('api');
-            this.tooltip.elements.content.on('click', '.js-close', function () {
+            this.tooltip.elements.content.on('click', '.js-close', function (e) {
+                e.preventDefault();
                 that.hide();
             });
         };
