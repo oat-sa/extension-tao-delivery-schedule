@@ -23,10 +23,10 @@ return array(
     'label' => 'Delivery schedule',
     'description' => 'An extension is used to visualize the delivery schedule in the form of a calendar.',
     'license' => 'GPL-2.0',
-    'version' => '1.2.1',
+    'version' => '2.0.0',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
-        'tao' => '>=2.7.3',
+        'tao' => '>=9.0.0',
         'taoDeliveryRdf' => '>=1.0.0'
     ),
     // for compatibility
@@ -60,9 +60,6 @@ return array(
 	    
         #BASE URL (usually the domain root)
         'BASE_URL' => ROOT_URL.'taoDeliverySchedule/',
-	    
-        #BASE WWW required by JS
-        'BASE_WWW' => ROOT_URL.'taoDeliverySchedule/views/'
     ),
     'extra' => array(
         'structures' => dirname(__FILE__).DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.'structures.xml',
