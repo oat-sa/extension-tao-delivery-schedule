@@ -19,8 +19,8 @@
  */
 namespace oat\taoDeliverySchedule\model;
 
-use core_kernel_classes_Resource;
 use core_kernel_classes_Property;
+use oat\taoDelivery\model\execution\ServiceProxy;
 use oat\taoDeliveryRdf\model\AssignmentFactory;
 use oat\oatbox\user\User;
 /**
@@ -54,7 +54,7 @@ class RepetionAssignmentFactory extends AssignmentFactory
         $maxExecs = is_null($propMaxExec) ? 0 : $propMaxExec->literal;
         
         $user = \common_session_SessionManager::getSession()->getUser();
-        $countExecs = count(\taoDelivery_models_classes_execution_ServiceProxy::singleton()->getUserExecutions($this->delivery, $user->getIdentifier()));
+        $countExecs = count(ServiceProxy::singleton()->getUserExecutions($this->delivery, $user->getIdentifier()));
         
         return $this->buildDescriptionFromData($this->startTime, $this->endTime, $countExecs, $maxExecs);
     }
