@@ -21,7 +21,7 @@
 
 namespace oat\taoDeliverySchedule\scripts\update;
 
-use oat\oatbox\service\ConfigurableService;
+use oat\taoDelivery\model\execution\DeliveryServerService;
 use tao_helpers_data_GenerisAdapterRdf;
 use common_Logger;
 use oat\tao\scripts\update\OntologyUpdater;
@@ -106,19 +106,18 @@ class Updater extends \common_ext_ExtensionUpdater {
         if ($currentVersion === '0.1.4') {
 
             // prevent missing class error
-            $currentService = $this->safeLoadService(\taoDelivery_models_classes_DeliveryServerService::CONFIG_ID);
+            $currentService = $this->safeLoadService(DeliveryServerService::SERVICE_ID);
             if (class_exists('\\oat\\taoDeliverySchedule\\model\\DeliveryServerService', false)
                 && $currentService instanceof \oat\taoDeliverySchedule\model\DeliveryServerService) {
                     
-                $service = new \taoDelivery_models_classes_DeliveryServerService($currentService->getOptions());
-                $this->getServiceManager()->register(\taoDelivery_models_classes_DeliveryServerService::CONFIG_ID, $service);
+                $service = new DeliveryServerService($currentService->getOptions());
+                $this->getServiceManager()->register(DeliveryServerService::SERVICE_ID, $service);
             }
             $this->setVersion('1.0.0');
             $currentVersion = null;
         }
         
-        $this->skip('1.0.0','2.0.0');
+        $this->skip('1.0.0','2.1.1');
 
-        return $currentVersion;
     }
 }

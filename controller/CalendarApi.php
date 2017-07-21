@@ -20,6 +20,7 @@
  */
 namespace oat\taoDeliverySchedule\controller;
 
+use oat\taoDelivery\model\execution\ServiceProxy;
 use oat\taoDeliverySchedule\helper\ColorGenerator;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\taoDeliverySchedule\model\DeliveryTestTakersService;
@@ -36,6 +37,7 @@ class CalendarApi extends ApiBaseController
 {
     private $tz;
     private $requestParams;
+    private $scheduleService;
 
     public function __construct()
     {
@@ -245,8 +247,8 @@ class CalendarApi extends ApiBaseController
     private function getFullDeliveryData(\core_kernel_classes_Resource $delivery)
     {
         $result = array();
-        if (\taoDelivery_models_classes_execution_ServiceProxy::singleton()->implementsMonitoring()) {
-            $execs = \taoDelivery_models_classes_execution_ServiceProxy::singleton()->getExecutionsByDelivery($delivery);
+        if (ServiceProxy::singleton()->implementsMonitoring()) {
+            $execs = ServiceProxy::singleton()->getExecutionsByDelivery($delivery);
             $result['executions'] = count($execs);
         }
 
