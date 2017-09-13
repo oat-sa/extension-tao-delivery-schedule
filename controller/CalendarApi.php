@@ -21,6 +21,7 @@
 namespace oat\taoDeliverySchedule\controller;
 
 use oat\taoDelivery\model\execution\ServiceProxy;
+use oat\taoDeliveryRdf\model\DeliveryContainerService;
 use oat\taoDeliverySchedule\helper\ColorGenerator;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\taoDeliverySchedule\model\DeliveryTestTakersService;
@@ -83,8 +84,8 @@ class CalendarApi extends ApiBaseController
         $to = isset($requestParams['end']) ? (integer) $requestParams['end'] : null;
         
         $result = array();
-        $startProp = new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP);
-        $endProp = new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP);
+        $startProp = new \core_kernel_classes_Property(DeliveryContainerService::START_PROP);
+        $endProp = new \core_kernel_classes_Property(DeliveryContainerService::END_PROP);
         
         $assemblies = array();
         
@@ -105,8 +106,8 @@ class CalendarApi extends ApiBaseController
                 new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP)
             ));
             
-            $start = (string) current($deliveryProps[TAO_DELIVERY_START_PROP]);
-            $end = (string) current($deliveryProps[TAO_DELIVERY_END_PROP]);
+            $start = (string) current($deliveryProps[DeliveryContainerService::START_PROP]);
+            $end = (string) current($deliveryProps[DeliveryContainerService::END_PROP]);
             if (!$start || !$end) {
                 if (isset($requestParams['uri'])) {
                     $this->sendData(array('message' => __('Delivery has no start and end date.')), 400, array(), true);    
@@ -156,7 +157,7 @@ class CalendarApi extends ApiBaseController
     {
         $params = $this->getRequestParams();
         if (empty($params['classUri'])) {
-            $params['classUri'] = CLASS_COMPILEDDELIVERY;
+            $params['classUri'] = DeliveryAssemblyService::CLASS_ID;
         }
         if ($this->scheduleService->validate($this->scheduleService->getEvaluatedParams($params))) {
             $report = $this->scheduleService->create($params);
@@ -262,11 +263,11 @@ class CalendarApi extends ApiBaseController
         $result = $result + DeliveryTestTakersService::singleton()->getDeliveryTestTakers($delivery);
         
         //Max. number of executions
-        $deliveryMaxexecProperty = new \core_kernel_classes_Property(TAO_DELIVERY_MAXEXEC_PROP);
+        $deliveryMaxexecProperty = new \core_kernel_classes_Property(DeliveryContainerService::MAX_EXEC_PROP);
         $result['maxexec'] = (string) $delivery->getOnePropertyValue($deliveryMaxexecProperty);
 
         //Result server
-        $resultServerProp = new \core_kernel_classes_Property(TAO_DELIVERY_RESULTSERVER_PROP);
+        $resultServerProp = new \core_kernel_classes_Property(DeliveryContainerService::RESULT_SERVER_PROP);
         $result['resultserver'] = $delivery->getOnePropertyValue($resultServerProp)->getUri();
         $result['resultserver'] = \tao_helpers_Uri::encode($result['resultserver']);
 

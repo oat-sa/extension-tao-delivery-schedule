@@ -22,6 +22,7 @@ namespace oat\taoDeliverySchedule\model;
 
 use oat\oatbox\service\ServiceManager;
 use oat\taoDelivery\model\AssignmentService;
+use oat\taoDeliveryRdf\model\DeliveryContainerService;
 
 /**
  * Delivery test takers service
@@ -67,7 +68,7 @@ class DeliveryTestTakersService extends \tao_models_classes_Service
             'ttassigned'=>array(),
         );
         // excluded test takers
-        $excludedSubjProperty = new \core_kernel_classes_Property(TAO_DELIVERY_EXCLUDEDSUBJECTS_PROP);
+        $excludedSubjProperty = new \core_kernel_classes_Property(DeliveryContainerService::EXCLUDED_SUBJECTS_PROP);
         $excluded = $delivery->getPropertyValues($excludedSubjProperty);
 
         foreach ($excluded as $testTaker) {
@@ -162,7 +163,7 @@ class DeliveryTestTakersService extends \tao_models_classes_Service
      */
     public function saveExcludedTestTakers(\core_kernel_classes_Resource $delivery, $excluded) {
         $success = $delivery->editPropertyValues(
-            new \core_kernel_classes_Property(TAO_DELIVERY_EXCLUDEDSUBJECTS_PROP),
+            new \core_kernel_classes_Property(DeliveryContainerService::EXCLUDED_SUBJECTS_PROP),
             $excluded
         );
 

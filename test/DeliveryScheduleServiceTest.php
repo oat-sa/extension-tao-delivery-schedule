@@ -18,9 +18,9 @@
  *
  */
 
+use oat\taoDeliveryRdf\model\DeliveryContainerService;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\tao\test\TaoPhpUnitTestRunner;
-use Prophecy\Prophet;
 
 include_once dirname(__FILE__) . '/../includes/raw_start.php';
 
@@ -52,8 +52,8 @@ class DeliveryScheduleServiceTest extends TaoPhpUnitTestRunner
         );
         
         $label = RDFS_LABEL;
-        $start = TAO_DELIVERY_START_PROP;
-        $end = TAO_DELIVERY_END_PROP;
+        $start = DeliveryContainerService::START_PROP;
+        $end = DeliveryContainerService::END_PROP;
         
         $properties = $service->mapDeliveryProperties($data);
         $this->assertTrue(isset($properties[$label]) && $properties[$label] === $data['label']);
@@ -74,16 +74,16 @@ class DeliveryScheduleServiceTest extends TaoPhpUnitTestRunner
         $service = DeliveryScheduleService::singleton();
         
         $params = array(
-            TAO_DELIVERY_START_PROP => '2015-05-05T00:00:00+0000',
-            TAO_DELIVERY_END_PROP => '2015-05-05T05:00:00+0000',
-            TAO_DELIVERY_RESULTSERVER_PROP => 'http_2_www_0_tao_0_lu_1_Ontologies_1_TAOResultServer_0_rdf_3_void'
+            DeliveryContainerService::START_PROP => '2015-05-05T00:00:00+0000',
+            DeliveryContainerService::END_PROP => '2015-05-05T05:00:00+0000',
+            DeliveryContainerService::RESULT_SERVER_PROP => 'http_2_www_0_tao_0_lu_1_Ontologies_1_TAOResultServer_0_rdf_3_void'
         );
         
         $eveluatedParams = $service->getEvaluatedParams($params);
         
-        $this->assertEquals(1430784000, $eveluatedParams[TAO_DELIVERY_START_PROP]);
-        $this->assertEquals(1430802000, $eveluatedParams[TAO_DELIVERY_END_PROP]);
-        $this->assertEquals('http://www.tao.lu/Ontologies/TAOResultServer.rdf#void', $eveluatedParams[TAO_DELIVERY_RESULTSERVER_PROP]);
+        $this->assertEquals(1430784000, $eveluatedParams[DeliveryContainerService::START_PROP]);
+        $this->assertEquals(1430802000, $eveluatedParams[DeliveryContainerService::END_PROP]);
+        $this->assertEquals('http://www.tao.lu/Ontologies/TAOResultServer.rdf#void', $eveluatedParams[DeliveryContainerService::RESULT_SERVER_PROP]);
     }
     
     public function testGetErrors()
@@ -96,29 +96,29 @@ class DeliveryScheduleServiceTest extends TaoPhpUnitTestRunner
 
         //all fields are valid
         $params = array(
-            TAO_DELIVERY_START_PROP => $start->getTimestamp(),
-            TAO_DELIVERY_END_PROP => $end->getTimestamp(),
+            DeliveryContainerService::START_PROP => $start->getTimestamp(),
+            DeliveryContainerService::END_PROP => $end->getTimestamp(),
             RDFS_LABEL => 'Delivery name',
-            TAO_DELIVERY_MAXEXEC_PROP => '3'
+            DeliveryContainerService::MAX_EXEC_PROP => '3'
         );
         $this->assertTrue(empty($service->getErrors($params)));
         
         //empty end date
-        $params[TAO_DELIVERY_END_PROP] = '';
+        $params[DeliveryContainerService::END_PROP] = '';
         $errors = $service->getErrors($params);
-        $this->assertTrue(isset($errors[TAO_DELIVERY_END_PROP]));
+        $this->assertTrue(isset($errors[DeliveryContainerService::END_PROP]));
         
         //all fields are invalid
-        $params[TAO_DELIVERY_MAXEXEC_PROP] = 'str';
+        $params[DeliveryContainerService::MAX_EXEC_PROP] = 'str';
         $params[RDFS_LABEL] = '';
         $end->modify('-2 day');
-        $params[TAO_DELIVERY_END_PROP] = $end->getTimestamp();
+        $params[DeliveryContainerService::END_PROP] = $end->getTimestamp();
         
         $errors = $service->getErrors($params);
         
-        $this->assertTrue(isset($errors[TAO_DELIVERY_MAXEXEC_PROP]));
+        $this->assertTrue(isset($errors[DeliveryContainerService::MAX_EXEC_PROP]));
         $this->assertTrue(isset($errors[RDFS_LABEL]));
-        $this->assertTrue(isset($errors[TAO_DELIVERY_START_PROP]));
+        $this->assertTrue(isset($errors[DeliveryContainerService::START_PROP]));
     }
     
     /*public function testCreate()

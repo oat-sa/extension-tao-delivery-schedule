@@ -20,6 +20,7 @@
 
 namespace oat\taoDeliverySchedule\form;
 
+use oat\taoDeliveryRdf\model\DeliveryContainerService;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 
 /**
@@ -49,7 +50,7 @@ class EditDeliveryForm extends \tao_actions_form_Instance
             $this->form->addElement($labelElt);
         }
         
-        $maxExecElt = $this->form->getElement(\tao_helpers_Uri::encode(TAO_DELIVERY_MAXEXEC_PROP));
+        $maxExecElt = $this->form->getElement(\tao_helpers_Uri::encode(DeliveryContainerService::MAX_EXEC_PROP));
         if ($maxExecElt !== null) {
             $maxExecElt->addValidators(array(
                 \tao_helpers_form_FormFactory::getValidator('Integer', array(
@@ -63,7 +64,7 @@ class EditDeliveryForm extends \tao_actions_form_Instance
             $this->form->addElement($maxExecElt);
         }
         
-        $resultServerElt = $this->form->getElement(\tao_helpers_Uri::encode(TAO_DELIVERY_RESULTSERVER_PROP));
+        $resultServerElt = $this->form->getElement(\tao_helpers_Uri::encode(DeliveryContainerService::RESULT_SERVER_PROP));
         if ($resultServerElt !== null) {
             $resultServerElt->addAttribute('noLabel', true);
             $resultServerElt->addAttribute('class', 'full-width');

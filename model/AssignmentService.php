@@ -20,11 +20,11 @@
 
 namespace oat\taoDeliverySchedule\model;
 
+use oat\taoDeliveryRdf\model\DeliveryContainerService;
 use oat\taoGroups\models\GroupsService;
 use oat\oatbox\user\User;
 use oat\oatbox\service\ServiceManager;
 use oat\taoDeliveryRdf\model\GroupAssignment;
-use oat\taoDeliveryRdf\model\AssignmentFactory;
 use Recurr\Recurrence;
 /**
  * Class AssignmentService
@@ -180,7 +180,7 @@ class AssignmentService extends GroupAssignment
         } else {
             $userGroups = GroupsService::singleton()->getGroups($user);
             $deliveryGroups = GroupsService::singleton()->getRootClass()->searchInstances(array(
-                PROPERTY_GROUP_DELVIERY => array($currentRepetition->getUri(), $delivery->getUri())
+                GroupAssignment::GROUP_DELIVERY => array($currentRepetition->getUri(), $delivery->getUri())
             ), array(
                 'like'=>false, 'recursive' => true, 'chaining' => 'or'
             ));
@@ -199,20 +199,20 @@ class AssignmentService extends GroupAssignment
         // if parent is not valid, check for recurring
         if (!$valid) {
             $props = $delivery->getPropertiesValues(array(
-                TAO_DELIVERY_START_PROP,
-                TAO_DELIVERY_END_PROP,
+                DeliveryContainerService::START_PROP,
+                DeliveryContainerService::END_PROP,
                 DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP
             ));
-            if (empty($props[TAO_DELIVERY_START_PROP])
-                || empty($props[TAO_DELIVERY_END_PROP])
+            if (empty($props[DeliveryContainerService::START_PROP])
+                || empty($props[DeliveryContainerService::END_PROP])
                 || empty($props[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])
             ) {
                 // not a recuring delivery
                 return false;
             }
 
-            $startDate  =    date_create('@'.(string)current($props[TAO_DELIVERY_START_PROP]));
-            $endDate    =    date_create('@'.(string)current($props[TAO_DELIVERY_END_PROP]));
+            $startDate  =    date_create('@'.(string)current($props[DeliveryContainerService::START_PROP]));
+            $endDate    =    date_create('@'.(string)current($props[DeliveryContainerService::END_PROP]));
             
             $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
             $rEvents = $repeatedDeliveryService->getRecurrenceCollection($delivery)
