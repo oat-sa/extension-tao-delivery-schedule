@@ -331,7 +331,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      * @return string assigned to the delivery test uri.
      */
     public function getTestUri(\core_kernel_classes_Resource $delivery) {
-        $runtimeResource = $delivery->getUniquePropertyValue(new \core_kernel_classes_Property(DeliveryAssemblyService::DELIVERY_RUNTIME));
+        $runtimeResource = $delivery->getUniquePropertyValue(new \core_kernel_classes_Property(DeliveryAssemblyService::PROPERTY_DELIVERY_RUNTIME));
         $actualParams = $runtimeResource->getPropertyValuesCollection(new \core_kernel_classes_Property(PROPERTY_CALLOFSERVICES_ACTUALPARAMETERIN));
         foreach ($actualParams as $actualParam) {
             $test = $actualParam->getUniquePropertyValue(new \core_kernel_classes_Property(PROPERTY_ACTUALPARAMETER_CONSTANTVALUE));

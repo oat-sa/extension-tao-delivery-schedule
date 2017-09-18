@@ -67,7 +67,7 @@ class DeliveryFactory extends SimpleDeliveryFactory
             }
             
             $serviceCall = $report->getData();
-            $properties[DeliveryAssemblyService::DELIVERY_DIRECTORY] = $storage->getSpawnedDirectoryIds();
+            $properties[DeliveryAssemblyService::PROPERTY_DELIVERY_DIRECTORY] = $storage->getSpawnedDirectoryIds();
             $compilationInstance = DeliveryAssemblyService::singleton()->createAssemblyFromServiceCall($deliveryClass, $serviceCall, $properties);
             $report->setData($compilationInstance);
         }

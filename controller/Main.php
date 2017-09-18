@@ -64,7 +64,7 @@ class Main extends \tao_actions_SaSModule
      */
     public function editDeliveryForm() 
     {
-        $clazz = new \core_kernel_classes_Class(DeliveryAssemblyService::CLASS_ID);
+        $clazz = new \core_kernel_classes_Class(DeliveryAssemblyService::CLASS_URI);
         
         $formContainer = new EditDeliveryForm($clazz);
         $myForm = $formContainer->getForm();

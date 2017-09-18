@@ -180,7 +180,7 @@ class AssignmentService extends GroupAssignment
         } else {
             $userGroups = GroupsService::singleton()->getGroups($user);
             $deliveryGroups = GroupsService::singleton()->getRootClass()->searchInstances(array(
-                GroupAssignment::GROUP_DELIVERY => array($currentRepetition->getUri(), $delivery->getUri())
+                GroupAssignment::PROPERTY_GROUP_DELIVERY => array($currentRepetition->getUri(), $delivery->getUri())
             ), array(
                 'like'=>false, 'recursive' => true, 'chaining' => 'or'
             ));

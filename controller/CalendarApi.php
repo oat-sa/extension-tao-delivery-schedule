@@ -157,7 +157,7 @@ class CalendarApi extends ApiBaseController
     {
         $params = $this->getRequestParams();
         if (empty($params['classUri'])) {
-            $params['classUri'] = DeliveryAssemblyService::CLASS_ID;
+            $params['classUri'] = DeliveryAssemblyService::CLASS_URI;
         }
         if ($this->scheduleService->validate($this->scheduleService->getEvaluatedParams($params))) {
             $report = $this->scheduleService->create($params);
