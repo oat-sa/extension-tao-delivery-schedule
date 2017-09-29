@@ -60,10 +60,10 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     {
         $map = array(
             RDFS_LABEL => 'label',
-            DeliveryContainerService::START_PROP => 'start',
-            DeliveryContainerService::END_PROP => 'end',
-            DeliveryContainerService::MAX_EXEC_PROP => 'maxexec',
-            DeliveryContainerService::RESULT_SERVER_PROP => 'resultserver',
+            DeliveryContainerService::PROPERTY_START => 'start',
+            DeliveryContainerService::PROPERTY_END => 'end',
+            DeliveryContainerService::PROPERTY_MAX_EXEC => 'maxexec',
+            DeliveryContainerService::PROPERTY_RESULT_SERVER => 'resultserver',
             self::TAO_DELIVERY_RRULE_PROP => 'recurrence',
             RepeatedDeliveryService::PROPERTY_NUMBER_OF_REPETITION => 'numberOfRepetition'
         );
@@ -109,16 +109,16 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     public function getEvaluatedParams($params)
     {
         $tz = new \DateTimeZone('UTC');
-        if (isset($params[DeliveryContainerService::START_PROP])) {
-            $dt = new \DateTime($params[DeliveryContainerService::START_PROP], $tz);
-            $params[DeliveryContainerService::START_PROP] = (string) $dt->getTimestamp();
+        if (isset($params[DeliveryContainerService::PROPERTY_START])) {
+            $dt = new \DateTime($params[DeliveryContainerService::PROPERTY_START], $tz);
+            $params[DeliveryContainerService::PROPERTY_START] = (string) $dt->getTimestamp();
         }
-        if (isset($params[DeliveryContainerService::END_PROP])) {
-            $dt = new \DateTime($params[DeliveryContainerService::END_PROP], $tz);
-            $params[DeliveryContainerService::END_PROP] = (string) $dt->getTimestamp();
+        if (isset($params[DeliveryContainerService::PROPERTY_END])) {
+            $dt = new \DateTime($params[DeliveryContainerService::PROPERTY_END], $tz);
+            $params[DeliveryContainerService::PROPERTY_END] = (string) $dt->getTimestamp();
         }
-        if (isset($params[DeliveryContainerService::RESULT_SERVER_PROP])) {
-            $params[DeliveryContainerService::RESULT_SERVER_PROP] = \tao_helpers_Uri::decode($params[DeliveryContainerService::RESULT_SERVER_PROP]);
+        if (isset($params[DeliveryContainerService::PROPERTY_RESULT_SERVER])) {
+            $params[DeliveryContainerService::PROPERTY_RESULT_SERVER] = \tao_helpers_Uri::decode($params[DeliveryContainerService::PROPERTY_RESULT_SERVER]);
         }
         if (isset($params['repeatedDelivery'])) {
             $params['repeatedDelivery'] = filter_var($params['repeatedDelivery'], FILTER_VALIDATE_BOOLEAN);
@@ -154,20 +154,20 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         $notEmptyValidator = new \tao_helpers_form_validators_NotEmpty();
         $numericValidator = new \tao_helpers_form_validators_Numeric();
         
-        if (!$notEmptyValidator->evaluate($data[DeliveryContainerService::START_PROP])) {
-            $errors[DeliveryContainerService::START_PROP] = $notEmptyValidator->getMessage();
+        if (!$notEmptyValidator->evaluate($data[DeliveryContainerService::PROPERTY_START])) {
+            $errors[DeliveryContainerService::PROPERTY_START] = $notEmptyValidator->getMessage();
         }
-        if (!$notEmptyValidator->evaluate($data[DeliveryContainerService::END_PROP])) {
-            $errors[DeliveryContainerService::END_PROP] = $notEmptyValidator->getMessage();
+        if (!$notEmptyValidator->evaluate($data[DeliveryContainerService::PROPERTY_END])) {
+            $errors[DeliveryContainerService::PROPERTY_END] = $notEmptyValidator->getMessage();
         }
-        if ($data[DeliveryContainerService::END_PROP] < $data[DeliveryContainerService::START_PROP]) {
-            $errors[DeliveryContainerService::START_PROP] = __('start date must be before end date');
+        if ($data[DeliveryContainerService::PROPERTY_END] < $data[DeliveryContainerService::PROPERTY_START]) {
+            $errors[DeliveryContainerService::PROPERTY_START] = __('start date must be before end date');
         }
         if (!$notEmptyValidator->evaluate($data[RDFS_LABEL])) {
             $errors[RDFS_LABEL] = $notEmptyValidator->getMessage();
         }
-        if (isset($data[DeliveryContainerService::MAX_EXEC_PROP]) && !$numericValidator->evaluate($data[DeliveryContainerService::MAX_EXEC_PROP])) {
-            $errors[DeliveryContainerService::MAX_EXEC_PROP] = $numericValidator->getMessage();
+        if (isset($data[DeliveryContainerService::PROPERTY_MAX_EXEC]) && !$numericValidator->evaluate($data[DeliveryContainerService::PROPERTY_MAX_EXEC])) {
+            $errors[DeliveryContainerService::PROPERTY_MAX_EXEC] = $numericValidator->getMessage();
         }
         
         return $errors;
@@ -231,8 +231,8 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         $deliveryClass = new \core_kernel_classes_Class($params['classUri']);
         
         $report = DeliveryFactory::create($deliveryClass, $test, array(
-            DeliveryContainerService::START_PROP => $params[DeliveryContainerService::START_PROP],
-            DeliveryContainerService::END_PROP => $params[DeliveryContainerService::END_PROP],
+            DeliveryContainerService::PROPERTY_START => $params[DeliveryContainerService::PROPERTY_START],
+            DeliveryContainerService::PROPERTY_END => $params[DeliveryContainerService::PROPERTY_END],
             RDFS_LABEL => $params[RDFS_LABEL]
         ));
         
@@ -280,8 +280,8 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     {
         $assemblies = DeliveryAssemblyService::singleton()->getAllAssemblies();
 
-        $startProp = new \core_kernel_classes_Property(DeliveryContainerService::START_PROP);
-        $endProp = new \core_kernel_classes_Property(DeliveryContainerService::END_PROP);
+        $startProp = new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_START);
+        $endProp = new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_END);
         
         $result = array();
         $timeZone = new \DateTimeZone('UTC');
@@ -296,12 +296,12 @@ class DeliveryScheduleService extends \tao_models_classes_Service
                 new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP)
             ));
             
-            if(empty($deliveryProps[DeliveryContainerService::START_PROP]) || empty($deliveryProps[DeliveryContainerService::END_PROP])) {
+            if(empty($deliveryProps[DeliveryContainerService::PROPERTY_START]) || empty($deliveryProps[DeliveryContainerService::PROPERTY_END])) {
                 continue;
             }
             
-            $deliveryStartTs = (integer) current($deliveryProps[DeliveryContainerService::START_PROP])->literal;
-            $deliveryEndTs = (integer) current($deliveryProps[DeliveryContainerService::END_PROP])->literal;
+            $deliveryStartTs = (integer) current($deliveryProps[DeliveryContainerService::PROPERTY_START])->literal;
+            $deliveryEndTs = (integer) current($deliveryProps[DeliveryContainerService::PROPERTY_END])->literal;
             
             $rrule = (string) current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]);
             

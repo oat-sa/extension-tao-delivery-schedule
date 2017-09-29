@@ -51,7 +51,7 @@ class RepetionAssignmentFactory extends AssignmentFactory
     
     protected function getDescription()
     {
-        $propMaxExec = $this->delivery->getOnePropertyValue(new core_kernel_classes_Property(DeliveryContainerService::MAX_EXEC_PROP));
+        $propMaxExec = $this->delivery->getOnePropertyValue(new core_kernel_classes_Property(DeliveryContainerService::PROPERTY_MAX_EXEC));
         $maxExecs = is_null($propMaxExec) ? 0 : $propMaxExec->literal;
         
         $user = \common_session_SessionManager::getSession()->getUser();

@@ -199,20 +199,20 @@ class AssignmentService extends GroupAssignment
         // if parent is not valid, check for recurring
         if (!$valid) {
             $props = $delivery->getPropertiesValues(array(
-                DeliveryContainerService::START_PROP,
-                DeliveryContainerService::END_PROP,
+                DeliveryContainerService::PROPERTY_START,
+                DeliveryContainerService::PROPERTY_END,
                 DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP
             ));
-            if (empty($props[DeliveryContainerService::START_PROP])
-                || empty($props[DeliveryContainerService::END_PROP])
+            if (empty($props[DeliveryContainerService::PROPERTY_START])
+                || empty($props[DeliveryContainerService::PROPERTY_END])
                 || empty($props[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])
             ) {
                 // not a recuring delivery
                 return false;
             }
 
-            $startDate  =    date_create('@'.(string)current($props[DeliveryContainerService::START_PROP]));
-            $endDate    =    date_create('@'.(string)current($props[DeliveryContainerService::END_PROP]));
+            $startDate  =    date_create('@'.(string)current($props[DeliveryContainerService::PROPERTY_START]));
+            $endDate    =    date_create('@'.(string)current($props[DeliveryContainerService::PROPERTY_END]));
             
             $repeatedDeliveryService = $this->getServiceManager()->get(RepeatedDeliveryService::CONFIG_ID);
             $rEvents = $repeatedDeliveryService->getRecurrenceCollection($delivery)

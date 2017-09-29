@@ -68,7 +68,7 @@ class DeliveryTestTakersService extends \tao_models_classes_Service
             'ttassigned'=>array(),
         );
         // excluded test takers
-        $excludedSubjProperty = new \core_kernel_classes_Property(DeliveryContainerService::EXCLUDED_SUBJECTS_PROP);
+        $excludedSubjProperty = new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_EXCLUDED_SUBJECTS);
         $excluded = $delivery->getPropertyValues($excludedSubjProperty);
 
         foreach ($excluded as $testTaker) {
@@ -163,7 +163,7 @@ class DeliveryTestTakersService extends \tao_models_classes_Service
      */
     public function saveExcludedTestTakers(\core_kernel_classes_Resource $delivery, $excluded) {
         $success = $delivery->editPropertyValues(
-            new \core_kernel_classes_Property(DeliveryContainerService::EXCLUDED_SUBJECTS_PROP),
+            new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_EXCLUDED_SUBJECTS),
             $excluded
         );
 

@@ -84,8 +84,8 @@ class CalendarApi extends ApiBaseController
         $to = isset($requestParams['end']) ? (integer) $requestParams['end'] : null;
         
         $result = array();
-        $startProp = new \core_kernel_classes_Property(DeliveryContainerService::START_PROP);
-        $endProp = new \core_kernel_classes_Property(DeliveryContainerService::END_PROP);
+        $startProp = new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_START);
+        $endProp = new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_END);
         
         $assemblies = array();
         
@@ -106,8 +106,8 @@ class CalendarApi extends ApiBaseController
                 new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP)
             ));
             
-            $start = (string) current($deliveryProps[DeliveryContainerService::START_PROP]);
-            $end = (string) current($deliveryProps[DeliveryContainerService::END_PROP]);
+            $start = (string) current($deliveryProps[DeliveryContainerService::PROPERTY_START]);
+            $end = (string) current($deliveryProps[DeliveryContainerService::PROPERTY_END]);
             if (!$start || !$end) {
                 if (isset($requestParams['uri'])) {
                     $this->sendData(array('message' => __('Delivery has no start and end date.')), 400, array(), true);    
@@ -263,11 +263,11 @@ class CalendarApi extends ApiBaseController
         $result = $result + DeliveryTestTakersService::singleton()->getDeliveryTestTakers($delivery);
         
         //Max. number of executions
-        $deliveryMaxexecProperty = new \core_kernel_classes_Property(DeliveryContainerService::MAX_EXEC_PROP);
+        $deliveryMaxexecProperty = new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_MAX_EXEC);
         $result['maxexec'] = (string) $delivery->getOnePropertyValue($deliveryMaxexecProperty);
 
         //Result server
-        $resultServerProp = new \core_kernel_classes_Property(DeliveryContainerService::RESULT_SERVER_PROP);
+        $resultServerProp = new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_RESULT_SERVER);
         $result['resultserver'] = $delivery->getOnePropertyValue($resultServerProp)->getUri();
         $result['resultserver'] = \tao_helpers_Uri::encode($result['resultserver']);
 

@@ -56,14 +56,14 @@ class DeliveryFactory extends SimpleDeliveryFactory
             //$tz = new \DateTimeZone(\common_session_SessionManager::getSession()->getTimeZone());
             $tz = new \DateTimeZone('UTC');
             
-            if (!empty($properties[DeliveryContainerService::START_PROP])) {
-                $dt = new \DateTime($properties[DeliveryContainerService::START_PROP], $tz);
-                $properties[DeliveryContainerService::START_PROP] = (string) $dt->getTimestamp();
+            if (!empty($properties[DeliveryContainerService::PROPERTY_START])) {
+                $dt = new \DateTime($properties[DeliveryContainerService::PROPERTY_START], $tz);
+                $properties[DeliveryContainerService::PROPERTY_START] = (string) $dt->getTimestamp();
             }
             
-            if (!empty($properties[DeliveryContainerService::END_PROP])) {
-                $dt = new \DateTime($properties[DeliveryContainerService::END_PROP], $tz);
-                $properties[DeliveryContainerService::END_PROP] = (string) $dt->getTimestamp();
+            if (!empty($properties[DeliveryContainerService::PROPERTY_END])) {
+                $dt = new \DateTime($properties[DeliveryContainerService::PROPERTY_END], $tz);
+                $properties[DeliveryContainerService::PROPERTY_END] = (string) $dt->getTimestamp();
             }
             
             $serviceCall = $report->getData();
