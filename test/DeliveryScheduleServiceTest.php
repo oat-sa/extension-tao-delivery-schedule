@@ -18,6 +18,7 @@
  *
  */
 
+use oat\generis\model\OntologyRdfs;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\tao\test\TaoPhpUnitTestRunner;
 use Prophecy\Prophet;
@@ -51,7 +52,7 @@ class DeliveryScheduleServiceTest extends TaoPhpUnitTestRunner
             'end' => '2015-04-14 00:00',
         );
         
-        $label = RDFS_LABEL;
+        $label = OntologyRdfs::RDFS_LABEL;
         $start = TAO_DELIVERY_START_PROP;
         $end = TAO_DELIVERY_END_PROP;
         
@@ -98,7 +99,7 @@ class DeliveryScheduleServiceTest extends TaoPhpUnitTestRunner
         $params = array(
             TAO_DELIVERY_START_PROP => $start->getTimestamp(),
             TAO_DELIVERY_END_PROP => $end->getTimestamp(),
-            RDFS_LABEL => 'Delivery name',
+            OntologyRdfs::RDFS_LABEL => 'Delivery name',
             TAO_DELIVERY_MAXEXEC_PROP => '3'
         );
         $this->assertTrue(empty($service->getErrors($params)));
@@ -110,14 +111,14 @@ class DeliveryScheduleServiceTest extends TaoPhpUnitTestRunner
         
         //all fields are invalid
         $params[TAO_DELIVERY_MAXEXEC_PROP] = 'str';
-        $params[RDFS_LABEL] = '';
+        $params[OntologyRdfs::RDFS_LABEL] = '';
         $end->modify('-2 day');
         $params[TAO_DELIVERY_END_PROP] = $end->getTimestamp();
         
         $errors = $service->getErrors($params);
         
         $this->assertTrue(isset($errors[TAO_DELIVERY_MAXEXEC_PROP]));
-        $this->assertTrue(isset($errors[RDFS_LABEL]));
+        $this->assertTrue(isset($errors[OntologyRdfs::RDFS_LABEL]));
         $this->assertTrue(isset($errors[TAO_DELIVERY_START_PROP]));
     }
     

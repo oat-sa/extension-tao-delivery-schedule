@@ -20,6 +20,7 @@
 
 namespace oat\taoDeliverySchedule\model;
 
+use oat\generis\model\OntologyRdfs;
 use oat\oatbox\service\ServiceManager;
 use oat\taoDeliveryRdf\model\DeliveryAssemblyService;
 
@@ -58,7 +59,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
     public function mapDeliveryProperties($data, $reverse = false)
     {
         $map = array(
-            RDFS_LABEL => 'label', 
+            OntologyRdfs::RDFS_LABEL => 'label',
             TAO_DELIVERY_START_PROP => 'start', 
             TAO_DELIVERY_END_PROP => 'end',
             TAO_DELIVERY_MAXEXEC_PROP => 'maxexec',
@@ -162,8 +163,8 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         if ($data[TAO_DELIVERY_END_PROP] < $data[TAO_DELIVERY_START_PROP]) {
             $errors[TAO_DELIVERY_START_PROP] = __('start date must be before end date');
         }
-        if (!$notEmptyValidator->evaluate($data[RDFS_LABEL])) {
-            $errors[RDFS_LABEL] = $notEmptyValidator->getMessage();
+        if (!$notEmptyValidator->evaluate($data[OntologyRdfs::RDFS_LABEL])) {
+            $errors[OntologyRdfs::RDFS_LABEL] = $notEmptyValidator->getMessage();
         }
         if (isset($data[TAO_DELIVERY_MAXEXEC_PROP]) && !$numericValidator->evaluate($data[TAO_DELIVERY_MAXEXEC_PROP])) {
             $errors[TAO_DELIVERY_MAXEXEC_PROP] = $numericValidator->getMessage();
@@ -232,7 +233,7 @@ class DeliveryScheduleService extends \tao_models_classes_Service
         $report = DeliveryFactory::create($deliveryClass, $test, array(
             TAO_DELIVERY_START_PROP => $params[TAO_DELIVERY_START_PROP],
             TAO_DELIVERY_END_PROP => $params[TAO_DELIVERY_END_PROP],
-            RDFS_LABEL => $params[RDFS_LABEL]
+            OntologyRdfs::RDFS_LABEL => $params[OntologyRdfs::RDFS_LABEL]
         ));
         
         return $report;

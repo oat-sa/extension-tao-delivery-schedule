@@ -20,6 +20,7 @@
 
 namespace oat\taoDeliverySchedule\form;
 
+use oat\generis\model\OntologyRdfs;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 
 /**
@@ -37,7 +38,7 @@ class EditDeliveryForm extends \tao_actions_form_Instance
     protected function initElements()
     {
         parent::initElements();
-        $labelElt = $this->form->getElement(\tao_helpers_Uri::encode(RDFS_LABEL));
+        $labelElt = $this->form->getElement(\tao_helpers_Uri::encode(OntologyRdfs::RDFS_LABEL));
         if ($labelElt !== null) {
             $labelElt->addAttribute('noLabel', true);
             $labelElt->addAttribute('class', 'full-width js-label');

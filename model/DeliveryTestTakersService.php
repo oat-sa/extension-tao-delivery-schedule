@@ -20,6 +20,8 @@
 
 namespace oat\taoDeliverySchedule\model;
 
+use oat\generis\model\GenerisRdf;
+use oat\generis\model\OntologyRdfs;
 use oat\oatbox\service\ServiceManager;
 use oat\taoDelivery\model\AssignmentService;
 
@@ -94,9 +96,9 @@ class DeliveryTestTakersService extends \tao_models_classes_Service
     {
         $result = array();
         $properties = array(
-            RDFS_LABEL,
-            PROPERTY_USER_FIRSTNAME,
-            PROPERTY_USER_LASTNAME,
+            OntologyRdfs::RDFS_LABEL,
+            GenerisRdf::PROPERTY_USER_FIRSTNAME,
+            GenerisRdf::PROPERTY_USER_LASTNAME,
         );
         $values = $testTaker->getPropertiesValues($properties);
         
@@ -134,9 +136,9 @@ class DeliveryTestTakersService extends \tao_models_classes_Service
     public function mapDeliveryProperties($data, $reverse = false)
     {
         $map = array(
-            RDFS_LABEL => 'label', 
-            PROPERTY_USER_LASTNAME => 'lastname', 
-            PROPERTY_USER_FIRSTNAME => 'firstname',
+            OntologyRdfs::RDFS_LABEL => 'label',
+            GenerisRdf::PROPERTY_USER_LASTNAME => 'lastname', 
+            GenerisRdf::PROPERTY_USER_FIRSTNAME => 'firstname',
         );
         
         foreach ($data as $key => $val) {
