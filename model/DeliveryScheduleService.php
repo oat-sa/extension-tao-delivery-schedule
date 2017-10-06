@@ -22,6 +22,7 @@ namespace oat\taoDeliverySchedule\model;
 
 use oat\generis\model\OntologyRdfs;
 use oat\oatbox\service\ServiceManager;
+use oat\tao\model\WfEngineOntology;
 use oat\taoDeliveryRdf\model\DeliveryAssemblyService;
 
 /**
@@ -332,9 +333,9 @@ class DeliveryScheduleService extends \tao_models_classes_Service
      */
     public function getTestUri(\core_kernel_classes_Resource $delivery) {
         $runtimeResource = $delivery->getUniquePropertyValue(new \core_kernel_classes_Property(PROPERTY_COMPILEDDELIVERY_RUNTIME));
-        $actualParams = $runtimeResource->getPropertyValuesCollection(new \core_kernel_classes_Property(PROPERTY_CALLOFSERVICES_ACTUALPARAMETERIN));
+        $actualParams = $runtimeResource->getPropertyValuesCollection(new \core_kernel_classes_Property(WfEngineOntology::PROPERTY_CALL_OF_SERVICES_ACTUAL_PARAMETER_IN));
         foreach ($actualParams as $actualParam) {
-            $test = $actualParam->getUniquePropertyValue(new \core_kernel_classes_Property(PROPERTY_ACTUALPARAMETER_CONSTANTVALUE));
+            $test = $actualParam->getUniquePropertyValue(new \core_kernel_classes_Property(WfEngineOntology::PROPERTY_ACTUAL_PARAMETER_CONSTANT_VALUE));
             if (get_class($test) === "core_kernel_classes_Resource") {
                 $result = $test->getUri();
                 break;
