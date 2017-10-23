@@ -21,6 +21,7 @@
 namespace oat\taoDeliverySchedule\model;
 
 use oat\oatbox\service\ConfigurableService;
+use oat\taoDeliveryRdf\model\GroupAssignment;
 
 /**
  * Delivery groups service
@@ -41,7 +42,7 @@ class DeliveryGroupsService extends ConfigurableService
      */
     public function saveGroups(\core_kernel_classes_Resource $delivery, $values)
     {
-        $property = new \core_kernel_classes_Property(PROPERTY_GROUP_DELVIERY);
+        $property = new \core_kernel_classes_Property(GroupAssignment::PROPERTY_GROUP_DELIVERY);
 
         $currentValues = array();
         foreach ($property->getDomain() as $domain) {
@@ -76,7 +77,7 @@ class DeliveryGroupsService extends ConfigurableService
     public function getGroups(\core_kernel_classes_Resource $delivery)
     {
         $result = array();
-        $groupsProperty = new \core_kernel_classes_Property(PROPERTY_GROUP_DELVIERY);
+        $groupsProperty = new \core_kernel_classes_Property(GroupAssignment::PROPERTY_GROUP_DELIVERY);
         $domainCollection = $groupsProperty->getDomain();
         if (!$domainCollection->isEmpty()) {
             $domain = $domainCollection->get(0);
