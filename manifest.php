@@ -23,11 +23,11 @@ return array(
     'label' => 'Delivery schedule',
     'description' => 'An extension is used to visualize the delivery schedule in the form of a calendar.',
     'license' => 'GPL-2.0',
-    'version' => '2.1.1',
+    'version' => '2.2.0',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
-        'tao' => '>=9.0.0',
-        'taoDeliveryRdf' => '>=3.6.1'
+        'tao' => '>=14.3.1',
+        'taoDeliveryRdf' => '>=3.12.0'
     ),
     // for compatibility
     'dependencies' => array('tao', 'taoDelivery'),
