@@ -21,6 +21,7 @@
 namespace oat\taoDeliverySchedule\model;
 
 use oat\oatbox\service\ConfigurableService;
+use oat\taoDeliveryRdf\model\DeliveryContainerService;
 
 /**
  * Service to manage repeated deliveries
@@ -159,13 +160,13 @@ class RepeatedDeliveryService extends ConfigurableService
     public function getCurrentRepeatedDelivery(\core_kernel_classes_Resource $delivery)
     {
         $deliveryProps = $delivery->getPropertiesValues(array(
-            new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP),
-            new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP),
+            new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_START),
+            new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_END),
             new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP),
         ));
 
-        $propStartExec = (string) current($deliveryProps[TAO_DELIVERY_START_PROP]);
-        $propEndExec = (string) current($deliveryProps[TAO_DELIVERY_END_PROP]);
+        $propStartExec = (string) current($deliveryProps[DeliveryContainerService::PROPERTY_START]);
+        $propEndExec = (string) current($deliveryProps[DeliveryContainerService::PROPERTY_END]);
         $rrule = (string) current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP]);
 
         if ($rrule) {
@@ -200,13 +201,13 @@ class RepeatedDeliveryService extends ConfigurableService
     public function getRecurrenceCollection(\core_kernel_classes_Resource $delivery)
     {
         $deliveryProps = $delivery->getPropertiesValues(array(
-            new \core_kernel_classes_Property(TAO_DELIVERY_START_PROP),
-            new \core_kernel_classes_Property(TAO_DELIVERY_END_PROP),
+            new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_START),
+            new \core_kernel_classes_Property(DeliveryContainerService::PROPERTY_END),
             new \core_kernel_classes_Property(DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP),
         ));
 
-        $propStartExec = current($deliveryProps[TAO_DELIVERY_START_PROP]);
-        $propEndExec = current($deliveryProps[TAO_DELIVERY_END_PROP]);
+        $propStartExec = current($deliveryProps[DeliveryContainerService::PROPERTY_START]);
+        $propEndExec = current($deliveryProps[DeliveryContainerService::PROPERTY_END]);
         $rrule = !empty($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])
             ? current($deliveryProps[DeliveryScheduleService::TAO_DELIVERY_RRULE_PROP])->literal
             : false;

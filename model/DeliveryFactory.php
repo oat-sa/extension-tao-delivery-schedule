@@ -21,6 +21,7 @@
 
 namespace oat\taoDeliverySchedule\model;
 
+use oat\taoDeliveryRdf\model\DeliveryContainerService;
 use oat\taoDeliveryRdf\model\SimpleDeliveryFactory;
 use oat\taoDeliveryRdf\model\TrackedStorage;
 use oat\taoDeliveryRdf\model\DeliveryAssemblyService;
@@ -55,18 +56,18 @@ class DeliveryFactory extends SimpleDeliveryFactory
             //$tz = new \DateTimeZone(\common_session_SessionManager::getSession()->getTimeZone());
             $tz = new \DateTimeZone('UTC');
             
-            if (!empty($properties[TAO_DELIVERY_START_PROP])) {
-                $dt = new \DateTime($properties[TAO_DELIVERY_START_PROP], $tz);
-                $properties[TAO_DELIVERY_START_PROP] = (string) $dt->getTimestamp();
+            if (!empty($properties[DeliveryContainerService::PROPERTY_START])) {
+                $dt = new \DateTime($properties[DeliveryContainerService::PROPERTY_START], $tz);
+                $properties[DeliveryContainerService::PROPERTY_START] = (string) $dt->getTimestamp();
             }
             
-            if (!empty($properties[TAO_DELIVERY_END_PROP])) {
-                $dt = new \DateTime($properties[TAO_DELIVERY_END_PROP], $tz);
-                $properties[TAO_DELIVERY_END_PROP] = (string) $dt->getTimestamp();
+            if (!empty($properties[DeliveryContainerService::PROPERTY_END])) {
+                $dt = new \DateTime($properties[DeliveryContainerService::PROPERTY_END], $tz);
+                $properties[DeliveryContainerService::PROPERTY_END] = (string) $dt->getTimestamp();
             }
             
             $serviceCall = $report->getData();
-            $properties[PROPERTY_COMPILEDDELIVERY_DIRECTORY] = $storage->getSpawnedDirectoryIds();
+            $properties[DeliveryAssemblyService::PROPERTY_DELIVERY_DIRECTORY] = $storage->getSpawnedDirectoryIds();
             $compilationInstance = DeliveryAssemblyService::singleton()->createAssemblyFromServiceCall($deliveryClass, $serviceCall, $properties);
             $report->setData($compilationInstance);
         }

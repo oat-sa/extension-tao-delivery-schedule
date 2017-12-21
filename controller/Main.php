@@ -20,6 +20,7 @@
  */
 namespace oat\taoDeliverySchedule\controller;
 
+use oat\taoDeliveryRdf\model\DeliveryAssemblyService;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\taoDeliverySchedule\form\WizardForm;
 use oat\taoDeliverySchedule\form\EditDeliveryForm;
@@ -63,7 +64,7 @@ class Main extends \tao_actions_SaSModule
      */
     public function editDeliveryForm() 
     {
-        $clazz = new \core_kernel_classes_Class(CLASS_COMPILEDDELIVERY);
+        $clazz = new \core_kernel_classes_Class(DeliveryAssemblyService::CLASS_URI);
         
         $formContainer = new EditDeliveryForm($clazz);
         $myForm = $formContainer->getForm();
