@@ -21,6 +21,7 @@
 
 namespace oat\taoDeliverySchedule\model;
 
+use oat\oatbox\service\ServiceManager;
 use oat\taoDeliveryRdf\model\DeliveryContainerService;
 use oat\taoDeliveryRdf\model\SimpleDeliveryFactory;
 use oat\taoDeliveryRdf\model\TrackedStorage;
@@ -50,7 +51,8 @@ class DeliveryFactory extends SimpleDeliveryFactory
         
         $testCompilerClass = \taoTests_models_classes_TestsService::singleton()->getCompilerClass($test);
         $compiler = new $testCompilerClass($test, $storage);
-        
+        $compiler->setServiceLocator(ServiceManager::getServiceManager());
+
         $report = $compiler->compile();
         if ($report->getType() == \common_report_Report::TYPE_SUCCESS) {
             //$tz = new \DateTimeZone(\common_session_SessionManager::getSession()->getTimeZone());
