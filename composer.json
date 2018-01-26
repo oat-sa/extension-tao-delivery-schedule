@@ -13,7 +13,7 @@
     ],
     "homepage" : "http://www.taotesting.com",
     "license" : [
-        "GPL-2.0-only"
+        "GPL-2.0"
     ],
     "extra" : {
         "tao-extension-name" : "taoDeliverySchedule"

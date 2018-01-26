@@ -22,8 +22,8 @@ return array(
     'name' => 'taoDeliverySchedule',
     'label' => 'Delivery schedule',
     'description' => 'An extension is used to visualize the delivery schedule in the form of a calendar.',
-    'license' => 'GPL-2.0-only',
-    'version' => '2.3.1',
+    'license' => 'GPL-2.0',
+    'version' => '2.3.0',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'tao' => '>=15.4.0',
