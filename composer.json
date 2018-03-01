@@ -21,7 +21,7 @@
     "minimum-stability" : "dev",
     "require": {
         "oat-sa/oatbox-extension-installer" : "dev-master",
-        "simshaun/recurr" : "dev-master"
+        "simshaun/recurr" : "~3.0.0",
     },
     "autoload" : {
         "psr-4" : {
