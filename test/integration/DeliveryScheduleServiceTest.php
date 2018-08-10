@@ -23,7 +23,7 @@ use oat\generis\model\OntologyRdfs;
 use oat\taoDeliverySchedule\model\DeliveryScheduleService;
 use oat\tao\test\TaoPhpUnitTestRunner;
 
-include_once dirname(__FILE__) . '/../includes/raw_start.php';
+include_once dirname(__FILE__) . '/../../includes/raw_start.php';
 
 /**
  * Delivery schedule service

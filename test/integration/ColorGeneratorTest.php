@@ -18,7 +18,7 @@
  *               
  */
 
-namespace oat\taoDeliverySchedule\test;
+namespace oat\taoDeliverySchedule\test\integration;
 
 use oat\tao\test\TaoPhpUnitTestRunner;
 use oat\taoDeliverySchedule\helper\ColorGenerator;
