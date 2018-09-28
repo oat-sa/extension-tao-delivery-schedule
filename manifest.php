@@ -23,7 +23,7 @@ return array(
     'label' => 'Delivery schedule',
     'description' => 'An extension is used to visualize the delivery schedule in the form of a calendar.',
     'license' => 'GPL-2.0-only',
-    'version' => '2.4.3',
+    'version' => '2.4.4',
     'author' => 'Open Assessment Technologies SA',
     'requires' => array(
         'tao' => '>=15.4.0',
