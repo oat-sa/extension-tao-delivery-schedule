@@ -31,18 +31,18 @@ use oat\taoDeliverySchedule\model\AssignmentService;
 use oat\oatbox\service\ServiceNotFoundException;
 
 /**
- * 
+ *
  * @author Aleh Hutnikau <hutnikau@1pt.com>
  */
 class Updater extends \common_ext_ExtensionUpdater {
-    
+
     /**
-     * 
+     *
      * @param string $initialVersion
      * @return string $versionUpdatedTo
      */
     public function update($initialVersion) {
-        
+
         $currentVersion = $initialVersion;
 
         if ($currentVersion == '0.1') {
@@ -91,7 +91,7 @@ class Updater extends \common_ext_ExtensionUpdater {
             $this->getServiceManager()->register(AssignmentService::CONFIG_ID, $assignmentService);
 
             // removed, class no longer exists
-            
+
             // $currentDeliveryServerServiceConfig = $this->getServiceManager()->get(\taoDelivery_models_classes_DeliveryServerService::CONFIG_ID);
             // if ($currentDeliveryServerServiceConfig instanceof ConfigurableService) {
             //     $currentDeliveryServerServiceConfig = $currentDeliveryServerServiceConfig->getOptions();
@@ -109,15 +109,15 @@ class Updater extends \common_ext_ExtensionUpdater {
             $currentService = $this->safeLoadService(DeliveryServerService::SERVICE_ID);
             if (class_exists('\\oat\\taoDeliverySchedule\\model\\DeliveryServerService', false)
                 && $currentService instanceof \oat\taoDeliverySchedule\model\DeliveryServerService) {
-                    
+
                 $service = new DeliveryServerService($currentService->getOptions());
                 $this->getServiceManager()->register(DeliveryServerService::SERVICE_ID, $service);
             }
             $this->setVersion('1.0.0');
             $currentVersion = null;
         }
-        
-        $this->skip('1.0.0','2.4.4');
+
+        $this->skip('1.0.0','3.0.0');
 
     }
 }
