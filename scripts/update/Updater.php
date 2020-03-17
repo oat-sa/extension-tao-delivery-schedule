@@ -117,7 +117,7 @@ class Updater extends \common_ext_ExtensionUpdater {
             $currentVersion = null;
         }
 
-        $this->skip('1.0.0','3.0.0');
+        $this->skip('1.0.0','3.1.0');
 
     }
 }
