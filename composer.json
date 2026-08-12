@@ -20,6 +20,7 @@
     },
     "minimum-stability" : "dev",
     "require": {
+        "oat-sa/tao-core" : ">=47.0.0",
         "oat-sa/oatbox-extension-installer" : "~1.1||dev-master",
         "simshaun/recurr" : "~3.0.0"
     },
